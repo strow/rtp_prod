@@ -16,6 +16,7 @@ function [isiteind, isitenum] = fixedsite(lat, lon, range_km);
 
 % Created: 11 April 2007, Scott Hannon
 % Update: 20 April 2007, S.Hannon - fix "dist" conversion to km (was mm)
+% Update:  3 March 2011, Paul Schou - added extra sites
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
