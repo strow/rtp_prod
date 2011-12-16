@@ -1,4 +1,43 @@
-airs_paths
+addpath /asl/matlab/airs/readers/
+addpath /asl/matlab/aslutil/
+addpath /asl/matlab/science/
+addpath /asl/matlab/h4toolsV201/
+addpath /asl/matlab/rtptoolsV201/
+addpath /asl/matlab/iasi/utils/ % fixed site
+
+julian = JOB(1) - datenum(datevec(JOB(1)).*[1 0 0 0 0 0]);
+indir = ['/asl/data/airs/AIRIBRAD/' datestr(JOB(1),10) '/' num2str(julian,'%03d')];
+outdir = ['/asl/data/rtprod_airs/' datestr(JOB(1),26)];
+
+system(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 1 AIRIBRAD.005 > /dev/null'])
+
+tmpfile = mktemp('AIRS_L1');
+
+[year mo day hr x x] = datevec(JOB(1));
+hr_span = (JOB(2)-JOB(1))*24;
+
+for hour = hr-1:hr+hr_span-1
+hour
+
+outfile = [outdir '/summary_AIRS1C' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '.mat'];
+rtp_outfile = [outdir '/AIRS_L1B_' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '.rtp'];
+
+files = []; dates = [];
+for g = 1:10
+  [f d] = findfiles([indir '/AIRS.' datestr(JOB(1),'yyyy.mm.dd') num2str(hour*10+g,'.%03d') '*.hdf']);
+  files = [files f];
+  dates = [dates d];
+end
+[rtp_files rtp_dates] = findfiles([rtp_outfile]); % check if the rtp outfiles already exist
+
+dates2 = [];
+rtp_dates2 = [];
+if exist(outfile,'file')
+  dates2 = load(outfile,'gran_dates');
+  dates2 = dates2.gran_dates;
+  rtp_dates2 = load(outfile,'rtp_dates');
+  rtp_dates2 = rtp_dates2.rtp_dates;
+end
 
 % Fixed site matchup range {km}
 site_range = 55.5;  % we 55.5 km for AIRS
@@ -9,76 +48,73 @@ co2ppm_default = 385.0;
 % No data value
 nodata = -9999;
 
-% version of processing
-rtp_version = 2.01;
 
-julian = JOB(1) - datenum(datevec(JOB(1)).*[1 0 0 0 0 0]);
-
-% Make sure the airs files are downloaded for this time
-disp(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 2 AIRXBCAL.005 > /dev/null']);
-system(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 2 AIRXBCAL.005 > /dev/null']);
-[files dates] = findfiles(['/asl/data/airs/AIRXBCAL/' datestr(JOB(1),10) '/' num2str(julian,'%03d') '/*.hdf']);
-if isempty(files); error('No AIRS HDF files found for day'); end
-outdir = ['/asl/data/rtprod_airs/' datestr(JOB(1),26)];
-
-[y m d] = datevec(JOB(1));
-%dustcal(y,julian);
-
-pattr = [];
-
-tmpfile = mktemp('AIRS_L1');
-
-for hour = 0:23
-hour
-
- outfile = [outdir '/airs_l1bcm_summary.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.v1.mat'];
- rtp_outfile = [outdir '/airs_l1bcm.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.v1.rtp'];
-
- [rtp_files rtp_dates] = findfiles([rtp_outfile]); % check if the rtp outfiles already exist
-
- dates2 = [];
- rtp_dates2 = [];
- rtp_version2= nan;
- if exist(outfile,'file')
-  prev = load(outfile,'gran_dates','rtp_dates','rtp_version');
-  dates2 = prev.gran_dates;
-  rtp_dates2 = prev.rtp_dates;
-  if isfield(prev,'rtp_version');
-    rtp_version2 = prev.rtp_version;
-  end
- end
-
-
-
- if ~isequal(dates, dates2) | ~isequal(rtp_dates, rtp_dates2) | ~isequal(rtp_version, rtp_version2) 
+if ~isequal(dates, dates2) | ~isequal(rtp_dates, rtp_dates2)
   mkdirs(outdir,'+w +x','g');
 
   % declare we are working on this day so we don't have two processes working on the same day
-  if ~lockfile(outfile); disp(['Lock file found, skipping ' outfile]); continue; end
+  if ~lockfile(outfile); continue; end
 
   clear prof summary_arr;
-  if ~exist('gdata','var')
-    %mkmetadata(JOB);
-    %mkmetadata(JOB-1);
-    %try
-      disp(files{1})
-      % read in the entire file
-      [gdata, pattr, f] = readl1bcm_v5_rtp(files{1});
-    %catch 
-    %  disp(['ERROR READING: ' files{1}]); 
-    %
-    %  disp('-- deleting hdf file and re-downloading it');
-    %  unlink(files{1})
-    %  system(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 2 AIRXBCAL.005 > /dev/null']);
-    %  [gdata, pattr, f] = readl1bcm_v5_rtp(files{1});
-    %end
+  for i = 1:length(files)  % loop over granule files for a day
+    disp(files{i})
+    try
+      [eq_x_tai, f, gdata]=readl1b_all(files{i});
+    catch; disp(['ERROR ' files{i}]); continue; end
 
-  end
+    data.rtime = gdata.rtime(:)';  %'
+    nok = length(data.rtime);
 
+    data.rlat = gdata.rlat(:)';  %'
+    data.rlon = gdata.rlon(:)';  %'
+    data.satazi = gdata.satazi(:)'; %'
+    data.satzen = gdata.satzen(:)'; %'
+    data.zobs = gdata.zobs(:)'; %'
+    data.solazi = gdata.solazi(:)'; %'
+    data.solzen = gdata.solzen(:)'; %'
+    data.robs1 = gdata.robs1;
 
+    data.atrack = gdata.atrack(:)'; %'
+    data.xtrack = gdata.xtrack(:)'; %'
 
+    data.calflag = gdata.calflag;
 
-    nchan = size(gdata.robs1,1);
+    % default CO2 values
+    data.co2ppm = co2ppm_default*ones(1,nok);
+
+    % write out the file index number for which file the data came from
+    %   note: file names & dates are only available in the summary file
+    data.findex = gdata.findex(:)'; %'
+
+    s = abs(data.rlat) <= 90 & abs(data.rlon) <= 180;
+    data.salti = ones(1,nok)*nodata;
+    [data.salti(s) data.landfrac(s)] = usgs_deg10_dem(data.rlat(s),data.rlon(s));
+    
+    % fill out the iudef values
+    data.iudef = nodata*ones(10,nok);
+
+    % Check for fixed sites
+    [isiteind, isitenum] = fixedsite(data.rlat(s), data.rlon(s), site_range);
+    if (length(isiteind) > 0)
+      data.iudef(2,s(isiteind)) = isitenum;
+    end
+
+    % fill out the iudef values
+    data.udef = nodata*ones(20,nok);
+    data.udef(1,:) = eq_x_tai(:)' - gdata.rtime(:)';
+
+    % subset for good fields
+    s = abs(data.rlat) <= 90 & abs(data.rlon) <= 180 & nanmax(data.robs1,[],1) > 0 & max(isnan(data.robs1),[],1) == 0;
+    if sum(s) > 0
+      prof(i) = structfun(@(x) ( x(:,s) ), data, 'UniformOutput', false);
+      %prof(i)
+    end
+  end   % loop over files
+
+  if exist('prof','var')
+    prof = structmerge(prof)
+
+    nchan = size(prof.robs1,1);
     part1 = (1:nchan)';
 
     % Determine channel freqs
@@ -92,43 +128,35 @@ hour
     
     % Assign RTP attribute strings
     hattr={ {'header' 'pltfid' 'Aqua'}, ...
-            {'header' 'instid' 'AIRS'} };
+            {'header' 'instid' 'AIRS'} }
     %
-    %pattr={ {'profiles' 'rtime' 'seconds since 1 Jan 1993'}, ...
-    %        {'profiles' 'robsqual' '0=good, 1=bad'}, ...
-    %        {'profiles' 'udef(1,:)' 'eq_x_tai - rtime'} };
-    pattr = set_attr(pattr,'rtime','seconds since 1 Jan 1993','profiles');
+    pattr={ {'profiles' 'rtime' 'seconds since 1 Jan 1993'}, ...
+            {'profiles' 'robsqual' '0=good, 1=bad'}, ...
+            {'profiles' 'udef(1,:)' 'eq_x_tai - rtime'} };
 
     % PART 1
     head.instid = 800; % AIRS 
-    head.pltfid = -9999;
     head.nchan = length(part1);
     head.ichan = part1;
     head.vchan = vchan(part1);
-    head.vcmax = max(head.vchan);
-    head.vcmin = min(head.vchan);
-    hattr = set_attr(hattr,'rtpfile',[rtp_outfile]);
-
-    if hour > 0
-      ifov = gdata.findex > hour*10 & gdata.findex <= (hour+1)*10;
-    else
-      ifov = gdata.findex <= 10;
-    end
-    [head prof] = subset_rtp(head, gdata, [], [], find(ifov));
+    set_attr(hattr,'rtpfile',[rtp_outfile]);
     rtpwrite(tmpfile,head,hattr,prof,pattr);
     movefile(tmpfile,[rtp_outfile]);
 
     % save out a summary file
-    summary.rtp_version = rtp_version;
     summary.gran_files = files;
     summary.gran_dates = dates;
     [summary.rtp_files summary.rtp_dates] = findfiles([rtp_outfile]);
     save(outfile,'-struct','summary')
- else
+  end
+else
   disp('The file date lists match, doing nothing!');
- end
+end
 
- clear prof summary_arr head hattr;
+  clear prof summary_arr;
 
 end % hour loop
+
+%run_addecmwf
+rtpadd_ecmwf(findfiles(['rtprod/' datestr(JOB(1),26) '/AIRS_L1B_' datestr(JOB(1),'yyyymmdd') '*']))
 
