@@ -7,7 +7,7 @@ addpath /asl/matlab/iasi/utils/ % fixed site
 
 julian = JOB(1) - datenum(datevec(JOB(1)).*[1 0 0 0 0 0]);
 indir = ['/asl/data/airs/AIRIBRAD/' datestr(JOB(1),10) '/' num2str(julian,'%03d')];
-outdir = ['/asl/data/rtprod_airs/' datestr(JOB(1),26)];
+outdir = [prod_dir '/' datestr(JOB(1),26)];
 
 system(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 1 AIRIBRAD.005 > /dev/null'])
 

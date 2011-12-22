@@ -1,7 +1,7 @@
-cris_paths
+airs_paths
 
 model = 'ecm';
-emis = 'wis';
-input_glob = [prod_dir '/' datestr(JOB(1),'yyyy/mm/dd') '/cris_sdr4.' datestr(JOB(1),'yyyy.mm.dd') '*.rtp'];
+emis = 'dan';
+input_glob = [prod_dir '/' datestr(JOB(1),'yyyy/mm/dd') '/l1bcm.ecmwf.' datestr(JOB(1),'yyyy.mm.dd') '*.rtp'];
 
 sarta_core

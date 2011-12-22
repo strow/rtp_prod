@@ -12,12 +12,13 @@ if ~exist('model','var')
 end
 %if ~exist('emis','var')
   emis='wis';
+  emis='dan';
 %end
 
 %JOB = datenum(2011,5,29);
 
 clear f
-for f = findfiles(['/asl/data/rtprod_iasi/' datestr(JOB(1),'yyyy/mm/dd') '/iasi_l1c.' datestr(JOB(1),'yyyy.mm.dd') '*.rtp_1']);
+for f = findfiles([prod_dir '/' datestr(JOB(1),'yyyy/mm/dd') '/iasi_l1c.' datestr(JOB(1),'yyyy.mm.dd') '*.rtp_1']);
 bn = basename(f{1});
 
 %outfile = [dirname(f{1}) '/calc_' basename(f{1},'_1Z')];

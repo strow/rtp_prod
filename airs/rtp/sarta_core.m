@@ -7,13 +7,14 @@
 %  Written by Paul Schou  17 Jun 2011
 airs_paths
 
-
 %JOB = datenum(2011,5,29);
 
 clear f
 %for f = findfiles(['/asl/data/rtprod_airs/' datestr(JOB(1),'yyyy/mm/dd') '/AIRS_L1BCM_' datestr(JOB(1),'yyyymmdd') '*.rtp']);
-for f = findfiles(['/asl/data/rtprod_airs/' datestr(JOB(1),'yyyy/mm/dd') '/airs*' datestr(JOB(1),'yyyy.mm.dd') '*.rtp']);
-bn = basename(f{1});
+%for f = findfiles([prod_dir '/' datestr(JOB(1),'yyyy/mm/dd') '/airs*' datestr(JOB(1),'yyyy.mm.dd') '*.rtp']);
+
+for f = findfiles(input_glob);
+   bn = basename(f{1});
 
 outfile = [dirname(f{1}) '/' model '.' basename(f{1},'Z') 'Z'];
 

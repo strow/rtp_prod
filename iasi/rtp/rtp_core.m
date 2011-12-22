@@ -17,7 +17,8 @@ end
 
 % Directories to use for input / output files
 indir = ['/asl/data/IASI/L1C/' datestr(JOB(1),26)];
-outdir = ['/strowdataN/data/rtprod_iasi/' datestr(JOB(1),26)];
+%outdir = ['/strowdataN/data/rtprod_iasi/' datestr(JOB(1),26)];
+outdir = [prod_dir '/' datestr(JOB(1),26)];
 
 % temporary files
 tmpfile1 = mktemp('IASI_L1C1');
