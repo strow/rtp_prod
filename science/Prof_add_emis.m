@@ -107,7 +107,8 @@ models='Land(Wisconsin:/asl/data/iremis/CIMSS/); ';
   %       We will save three dates, and three coeficients, for the interpolation:
 
   % Do I want two ahead or two behind?
-  idates=[nearest(iclosest_date)-1 nearest(iclosest_date) nearest(iclosest_date)+1]; 
+  %idates=[nearest(iclosest_date)-1 nearest(iclosest_date) nearest(iclosest_date)+1]; 
+  idates=[round(iclosest_date)-1 round(iclosest_date) round(iclosest_date)+1]; 
 
   % if I got out of range, set it to invalid -0-
   ioutofrange=find(idates<1 | idates>max(iremis_file_n));
@@ -123,7 +124,8 @@ models='Land(Wisconsin:/asl/data/iremis/CIMSS/); ';
   if(interp>1)
     error('Sorry but only can do interp 0 or 1 for now');
   elseif(interp==1)
-  if(iclosest_date-nearest(iclosest_date)>=0)
+  %if(iclosest_date-nearest(iclosest_date)>=0)
+  if(iclosest_date-round(iclosest_date)>=0)
     if(idates(3)~=0)
       % .   . * .
       %      x y

@@ -86,8 +86,10 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 2. Transform from lat/lon to ilat/ilon (2D grid).
 
-ibxlat = 3600-nearest((bxlat+90 )*20+.5)+1;
-ibxlon = nearest((bxlon+180)*20+.5);
+%ibxlat = 3600-nearest((bxlat+90 )*20+.5)+1;
+%ibxlon = nearest((bxlon+180)*20+.5);
+ibxlat = 3600-round((bxlat+90 )*20+.5)+1;
+ibxlon = round((bxlon+180)*20+.5);
 
 % Fix the limitting cases:
 ilatmax=find(ibxlat(:)==0); 
