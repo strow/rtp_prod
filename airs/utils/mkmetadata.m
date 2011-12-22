@@ -1,5 +1,4 @@
 function mkmetadata(JOB)
-airs_paths
 
 to_plot = 0;
 product_path = '/data/s4pa/Aqua_AIRS_Level1/AIRIBQAP.005';
@@ -27,7 +26,7 @@ load /asl/data/airs/airs_freq
 for day = jdays
     day
     mdate = datenum(year,1,day);
-    if ~exist(['/asl/data/airs/META_DATA/' num2str(year)],'dir'); mkdir(['/asl/data/airs/META_DATA/' num2str(year)]); end
+    if ~exist(['/asl/data/airs/META_DATA/' num2str(year)],'dir'); mkdirs(['/asl/data/airs/META_DATA/' num2str(year)]); end
     output_file=['/asl/data/airs/META_DATA/' num2str(year) '/AIRS_' datestr(mdate,'yyyymmdd') '.mat'];
     %if exist(output_file,'file'); continue; end
 

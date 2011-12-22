@@ -11,7 +11,9 @@
 %    3 March 2011 - added hour divisions and rtpfile pattr
 %    4 March 2011 - padded the cris reader with try/catch with error output
 %                   added Scott's uniform test for 3 channels and put the result in udef 13
+%     16 Dec 2011 - updates to add to the revision control system
 
+% If no job is specified, go to the test day
 if ~exist('JOB','var')
   JOB = datenum(2011,3,10);
 end
@@ -33,6 +35,7 @@ fm = [fm1';fm2';fm3';fm4';fm5';fm6';fm7';fm8';fm9'];
 % Sarta g4 channels that are not in Proxy data 
 inan = [ 1306 1307 1312:1315 1320:1323 1328:1329];
 
+site_range = 55.5;  % we 55.5 km for AIRS
 version = 'v1';
 
 % These indices not used yet, done explicitely below for now
@@ -60,16 +63,7 @@ for hour = 0:23
   for i = 1:length(f)
     d = dir(f{i});
     disp(['Reading ' f{i}])
-    try
-      [p pattr]=readsdr_rtp(f{i});
-    catch e
-      msg = '';
-      for ierr = 1:length(e.stack)
-        msg = [msg ' in ' e.stack(ierr).name num2str(e.stack(ierr).line,':%d ')];
-      end
-      disp(['  Error: ' e.message '  ->' msg])
-      continue
-    end
+    [p pattr]=readsdr_rtp(f{i});
     p.findex = ones(size(p.rtime)) * i;
 
     % Now change indices to g4 of SARTA
@@ -114,6 +108,7 @@ for hour = 0:23
   hattr = set_attr(hattr,'instid','CrIS');
   hattr = set_attr(hattr,'rtpfile',rtpfile);
   pattr = set_attr(pattr,'udef(13,:)','dbt test: ch 401 499 731 {dbtun}');
+  pattr = set_attr(pattr,'udef(1.:)','Reason [1=clear,2=site,4=high cloud,8=random] {reason_bit}')
 
   % Put this back in and subset later once debugged
   idtest=[401, 499, 731];
@@ -126,11 +121,24 @@ for hour = 0:23
   junk = sum(prof.robs1(idtest2,:) > rmin * ones(1,nobs));
   iok = find(junk == 3);
 
+  prof.iudef = zeros(20,length(prof.rtime));
+
+  % find the site fovs
+  [isiteind, isitenum] = fixedsite(prof.rlat, prof.rlon, site_range);
+  prof.iudef(1,isiteind) = bitor(prof.iudef(1,isiteind),2);
+
+  % select random fovs
+  irand = find(rand(size(prof.rtime)) < .001);
+  prof.iudef(1,irand) = bitor(prof.iudef(1,irand),8);
+
   % find the clear fovs
   bt1231 = rad2bt(head.vchan(731), prof.robs1(731,iok));
   iclear = iok(abs(prof.udef(13,iok)) < 0.5 & bt1231 > 270);
-
-  [head, prof]=subset_rtp(head, prof, [], [], iclear);
+  prof.iudef(1,iclear) = bitor(prof.iudef(1,iclear),1);
+  if ~strcmp(rtpset,'full')
+    % If this is a subset file, do the subset
+    [head, prof]=subset_rtp(head, prof, [], [], union(union(iclear, isiteind), irand));
+  end
 
   % A trap for missing zobs data, substitute CRiS altitude (correct?)
   if ~isfield(prof,'zobs') | all(prof.zobs < 1)

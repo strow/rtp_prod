@@ -2,7 +2,7 @@
 %  This code constructs IASI rtp files and is ready for real-time production
 %
 %  To use execute the script using
-%    $ clustcmd mkday_full.m 20090801:20090808
+%    $ clustcmd mkday_####.m 20090801:20090808
 %  from the command line.
 %
 
@@ -17,7 +17,6 @@ end
 
 % Directories to use for input / output files
 indir = ['/asl/data/IASI/L1C/' datestr(JOB(1),26)];
-%outdir = ['/strowdataN/data/rtprod_iasi/' datestr(JOB(1),26)];
 outdir = [prod_dir '/' datestr(JOB(1),26)];
 
 % temporary files
@@ -29,11 +28,23 @@ disp(['hour=' num2str(hour)])
 
 % File name
 prefix = 'IASI_L1_CLR';
-outfile = [outdir '/iasi_l1c_summary.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.v1.mat'];
-rtp_outfile = [outdir '/iasi_l1c.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.v1.rtp'];
+if strcmp(rtpset,'full')
+  allfov = 1;
+  outfile = [outdir '/iasi_l1c_full.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.v1.summary.mat'];
+  rtp_outfile = [outdir '/iasi_l1c_full.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.v1.rtp'];
+else
+  allfov = 0;
+  outfile = [outdir '/iasi_l1c.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.v1.summary.mat'];
+  rtp_outfile = [outdir '/iasi_l1c.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.v1.rtp'];
+end
 
 
-[files dates] = findfiles([indir '/IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '*']);
+disp([' RTP outfile: ' outfile])
+
+mask=[indir '/IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '*'];
+disp([' matching IASI file mask: ' mask])
+[files dates] = findfiles(mask);
+disp(['   found ' num2str(length(files)) ' files'])
 [rtp_files rtp_dates] = findfiles([rtp_outfile '*']); % check if the rtp outfiles already exist
 
 dates2 = [];
@@ -80,7 +91,7 @@ nodata = -9999;
 
 %if ~isequal(dates, dates2) | ~isequal(rtp_dates, rtp_dates2)
   if ~exist(outdir,'dir')
-    disp(['outdir: ' outdir])
+    disp(['creating output directory: ' outdir])
     mkdirs(outdir);
   end
 
@@ -88,65 +99,39 @@ nodata = -9999;
   disp(['lockfile: ' outfile])
   if ~lockfile(outfile); continue; end
 
-  [head, hattr, prof, pattr, summary] = iasi_uniform_clear_func([indir '/*IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '*']);
-
-  %if length(findfiles([indir '/IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '*.gz'])) > 0
-  %  [head, hattr, prof, pattr, summary] = iasi_uniform_clear_func([indir '/IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '*.gz']);
-  %else
-  %  [head, hattr, prof, pattr, summary] = iasi_uniform_clear_func([indir '/IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '*Z']);
-  %end
+  [head, hattr, prof, pattr, summary, isubset] = iasi_uniform_and_allfov_func([indir '/*IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '*'],allfov);
 
   if exist('prof','var') & ~isempty(prof)
     prof = structmerge(prof)
     robs1 = prof.robs1;
     calflag = prof.calflag;
 
-    nchan = 8461;
-    split = ceil(nchan/2);
-    part1 = (1:split)';
-    part2 = (split+1:nchan)';
-
-    % Determine channel freqs
-    vchan = (645:0.25:2760)';
 
     %%%%%%%%%  Make a HEADER structure
     head = struct;
     head.pfields = 4;
     head.ptype = 0;
     head.ngas = 0;
+
+    % Determine channel freqs
+    head.vchan = (645:0.25:2760)';
     
     % Assign RTP attribute strings
-%    hattr={ {'header' 'pltfid' 'IASI'}, ...
-%            {'header' 'instid' 'METOP2'} }
-    %
+    hattr = set_attr(hattr,'rtpfile',rtp_outfile,'header');
+    hattr = set_attr(hattr,'pltfid','IASI');
+    hattr = set_attr(hattr,'instid','METOP2');
+
+    hattr = set_attr(hattr,'rtime','seconds since 01 1 Jan 2000','profiles');
+    hattr = set_attr(hattr,'robsqual','0=good, 1=bad');
+
+%   Some examples of attributes set by the reader:
 %    pattr={ {'profiles' 'rtime' 'seconds since 01 1 Jan 2000'}, ...
 %            {'profiles' 'robsqual' '0=good, 1=bad'}, ...
 %            {'profiles' 'iudef(2,:)' 'fixed site number'}, ...
 %            {'profiles' 'iudef(3,:)' 'scan direction'} };
 
-    %[head hattr prof pattr] = rtpadd_ecmwf_era(head,hattr,prof,pattr);
+    rtpwrite_12(rtp_outfile,head,hattr,prof,pattr);
 
-    % PART 1
-    head.nchan = length(part1);
-    head.ichan = part1;
-    head.vchan = vchan(part1);
-    prof.robs1 = robs1(part1,:);
-    prof.calflag = calflag(part1,:);
-    hattr = set_attr(hattr,'rtpfile',[rtp_outfile '_1']);
-    rtpwrite(tmpfile1,head,hattr,prof,pattr);
-
-    % PART 2
-    head.nchan = length(part2);
-    head.ichan = part2;
-    head.vchan = vchan(part2);
-    prof.robs1 = robs1(part2,:);
-    prof.calflag = calflag(part2,:);
-    hattr = set_attr(hattr,'rtpfile',[rtp_outfile '_2']);
-    rtpwrite(tmpfile2,head,hattr,prof,pattr);
-
-    % if we have not had any errors yet, lets start moving these into place
-    movefile(tmpfile1,[rtp_outfile '_1']);
-    movefile(tmpfile2,[rtp_outfile '_2']);
 
     % save out a summary file
     summary.gran_files = files;
@@ -155,12 +140,8 @@ nodata = -9999;
     [summary.rtp_files summary.rtp_dates] = findfiles([rtp_outfile '_*']);
     save(outfile,'-struct','summary')
   end
-%else
-%  disp('The file date lists match, doing nothing!');
-%end
 
 end % hour loop
 
 %IASI_check
 
-%exit

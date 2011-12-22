@@ -7,14 +7,12 @@
 %  Written by Paul Schou  17 Jun 2011
 airs_paths
 
+
 %JOB = datenum(2011,5,29);
 
 clear f
-%for f = findfiles(['/asl/data/rtprod_airs/' datestr(JOB(1),'yyyy/mm/dd') '/AIRS_L1BCM_' datestr(JOB(1),'yyyymmdd') '*.rtp']);
-%for f = findfiles([prod_dir '/' datestr(JOB(1),'yyyy/mm/dd') '/airs*' datestr(JOB(1),'yyyy.mm.dd') '*.rtp']);
-
 for f = findfiles(input_glob);
-   bn = basename(f{1});
+bn = basename(f{1});
 
 outfile = [dirname(f{1}) '/' model '.' basename(f{1},'Z') 'Z'];
 
@@ -45,6 +43,9 @@ elseif strcmp(model,'era')
   disp(['  adding era profiles to ' bn])
   system(['/asl/opt/bin/getera ' datestr(JOB(1),'yyyymmdd')])
   [head hattr prof pattr] =rtpadd_era_data(head,hattr,prof,pattr);
+elseif strcmp(model,'gfs')
+  disp(['  adding gfs profiles to ' bn])
+  [head hattr prof pattr] =rtpadd_gfs(head,hattr,prof,pattr);
 else
   error('unknown profile model')
 end
