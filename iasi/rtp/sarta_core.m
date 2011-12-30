@@ -12,13 +12,16 @@ if ~exist('model','var')
 end
 %if ~exist('emis','var')
   emis='wis';
-  emis='dan';
 %end
 
 %JOB = datenum(2011,5,29);
 
 clear f
-for f = findfiles([prod_dir '/' datestr(JOB(1),'yyyy/mm/dd') '/iasi_l1c.' datestr(JOB(1),'yyyy.mm.dd') '*.rtp_1']);
+file_list = findfiles([prod_dir '/' datestr(JOB(1),'yyyy/mm/dd') '/iasi_l1c.' datestr(JOB(1),'yyyy.mm.dd') '*.rtp_1']);
+
+disp(['  Found a total of ' num2str(length(file_list)) ' files to add model data'])
+
+for f = file_list
 bn = basename(f{1});
 
 %outfile = [dirname(f{1}) '/calc_' basename(f{1},'_1Z')];
@@ -43,7 +46,7 @@ pattr = set_attr(pattr,'rtime','Seconds since 2000','profiles');
 
 %%%%
 %
-%  ECMWF Matchup section
+%  Model matchup section
 %
 %%%%
 if strcmp(model,'ecm')
@@ -53,6 +56,9 @@ elseif strcmp(model,'era')
   disp(['  adding era profiles to ' bn])
   %system(['/asl/opt/bin/getera ' datestr(JOB(1),'yyyymmdd')]);
   [head hattr prof pattr] =rtpadd_era_data(head,hattr,prof,pattr);
+elseif strcmp(model,'gfs')
+  disp(['  adding gfs profiles to ' bn])
+  [head hattr prof pattr] =rtpadd_gfs(head,hattr,prof,pattr);
 else
   error('unknown profile model')
 end

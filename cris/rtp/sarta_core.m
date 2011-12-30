@@ -39,7 +39,7 @@ hattr = set_attr(hattr,'rtpfile',f{1});
 
 %%%%
 %
-%  ECMWF Matchup section
+%  MODEL Matchup section
 %
 %%%%
 if strcmp(model,'ecm')
@@ -49,6 +49,9 @@ elseif strcmp(model,'era')
   disp(['  adding era profiles to ' bn])
   system(['/asl/opt/bin/getera ' datestr(JOB(1),'yyyymmdd')])
   [head hattr prof pattr] =rtpadd_era_data(head,hattr,prof,pattr);
+elseif strcmp(model,'gfs')
+  disp(['  adding gfs profiles to ' bn])
+  [head hattr prof pattr] =rtpadd_gfs(head,hattr,prof,pattr);
 else
   error('unknown profile model')
 end
