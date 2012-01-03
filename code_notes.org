@@ -53,7 +53,10 @@ The defined udefs right now are:
      Make sure that is what I want.  I think the SARTA versions should
      be in a separate input, not in the source code.
 
+* RTP
+  1.  Switch to the new rtpread function.
   
+
 
 
 
