@@ -121,23 +121,32 @@ for hour = 0:23
   junk = sum(prof.robs1(idtest2,:) > rmin * ones(1,nobs));
   iok = find(junk == 3);
 
-  prof.iudef = zeros(20,length(prof.rtime));
+  prof.iudef = zeros(10,length(prof.rtime));
 
   % find the site fovs
-  [isiteind, isitenum] = fixedsite(prof.rlat, prof.rlon, site_range);
-  prof.iudef(1,isiteind) = bitor(prof.iudef(1,isiteind),2);
+  %[isiteind, isitenum] = fixedsite(prof.rlat, prof.rlon, site_range);
+  %prof.iudef(1,isiteind) = bitor(prof.iudef(1,isiteind),2);
 
   % select random fovs
-  irand = find(rand(size(prof.rtime)) < .001);
-  prof.iudef(1,irand) = bitor(prof.iudef(1,irand),8);
+  %irand = find(rand(size(prof.rtime)) < .001);
+  %prof.iudef(1,irand) = bitor(prof.iudef(1,irand),8);
 
   % find the clear fovs
-  bt1231 = rad2bt(head.vchan(731), prof.robs1(731,iok));
-  iclear = iok(abs(prof.udef(13,iok)) < 0.5 & bt1231 > 270);
-  prof.iudef(1,iclear) = bitor(prof.iudef(1,iclear),1);
+  %bt1231 = rad2bt(head.vchan(731), prof.robs1(731,iok));
+  %iclear = iok(abs(prof.udef(13,iok)) < 0.5 & bt1231 > 270);
+  %prof.iudef(1,iclear) = bitor(prof.iudef(1,iclear),1);
+
+  if ~isfield(prof,'landfrac')
+    [prof.salti, prof.landfrac] = usgs_deg10_dem(prof.rlat, prof.rlon);
+  end
+
+  [head,hattr,prof,pattr,ikeep] = rtp_cris_subset(head,hattr,prof,pattr);
+  if isempty(prof); continue; end  % if no data was returned
+
   if ~strcmp(rtpset,'full')
     % If this is a subset file, do the subset
-    [head, prof]=subset_rtp(head, prof, [], [], union(union(iclear, isiteind), irand));
+    disp('subsetting')
+    [head, prof] = subset_rtp(head,prof,[],[],ikeep);
   end
 
   % A trap for missing zobs data, substitute CRiS altitude (correct?)
