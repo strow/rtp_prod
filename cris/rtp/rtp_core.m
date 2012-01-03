@@ -92,6 +92,14 @@ for hour = 0:23
 
   prof=structmerge(prof,2)
   
+  % This is to catch the data point which have latitude values of -9999 and to keep the
+  %   values / fovs we will map them to a equator point that has an invalid rlon point
+  disp([' bad rlat = ' num2str(sum(prof.rlat < -999))])
+  prof.rlon(abs(prof.rlat) > 999) = -9999;
+  prof.rlat(abs(prof.rlat) > 999) = 0;
+  prof.rlat(abs(prof.rlon) > 999) = 0;
+  disp([' bad rlat = ' num2str(sum(prof.rlat < -999))])
+
   % Get head.vchan from fm definitions above
   head.ichan = (1:1329)';
   head.vchan = fm;
@@ -122,6 +130,7 @@ for hour = 0:23
   iok = find(junk == 3);
 
   prof.iudef = zeros(10,length(prof.rtime));
+
 
   % find the site fovs
   %[isiteind, isitenum] = fixedsite(prof.rlat, prof.rlon, site_range);

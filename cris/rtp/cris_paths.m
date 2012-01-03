@@ -8,11 +8,11 @@ base_dir2 = fileparts(base_dir1); % dir:  ../../
 prod_dir = '/asl/data/rtprod_cris_test';
 
 % CRiS Matlab utility box
-%addpath([base_dir1 '/clear'])
+addpath([base_dir1 '/clear'])
 addpath([base_dir1 '/readers'])
 addpath([base_dir1 '/rtp'])
 addpath([base_dir1 '/uniform'])
-%addpath([base_dir1 '/utils'])
+addpath([base_dir1 '/unapod'])
 
 % ASL matlab utility box
 addpath([base_dir2 '/gribtools/'])

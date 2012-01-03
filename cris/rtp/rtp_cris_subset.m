@@ -75,15 +75,24 @@ disp('subsetting RTP to clear test channels')
 
 % Write RTP to tmp_rtp1
 disp('writing pre-klayers tmp RTP file')
-rtpwrite(tmp_rtp1,head,hattr,prof,pattr);
+
+% to run klayers one needs to get the ecmwf profiles:
+[head1 hattr1 prof1 pattr1] =rtpadd_ecmwf_data(head,hattr,prof,pattr);
+dv = datevec(JOB(1));
+[prof1 emis_qual emis_str] = Prof_add_emis(prof1, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
+rtpwrite(tmp_rtp1,head1,hattr1,prof1,pattr1);
 
 % Run klayers and SARTA
 disp('running klayers')
+disp(['  ' KLAYERS ' fin=' tmp_rtp1 ' fout=' tmp_rtp2 ' > ' tmp_jout]);
 eval(['! ' KLAYERS ' fin=' tmp_rtp1 ' fout=' tmp_rtp2 ' > ' tmp_jout]);
 disp('running sarta')
+disp(['  ' SARTA ' fin=' tmp_rtp2 ' fout=' tmp_rtp1 ' > ' tmp_jout]);
 eval(['! ' SARTA ' fin=' tmp_rtp2 ' fout=' tmp_rtp1 ' > ' tmp_jout]);
 disp('loading sarta output RTP')
-[head, hattr, prof, pattr] = rtpread(tmp_rtp1);
+[head2, hattr2, prof2, pattr2] = rtpread(tmp_rtp1);
+prof.rcalc = prof2.rcalc;
+
 
 % Remove tmp RTP files
 eval(['! rm -f ' tmp_rtp1 ' ' tmp_rtp2 ' ' tmp_jout]);
