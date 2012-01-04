@@ -3,8 +3,12 @@ LLS Notes on /asl/prod/matlab
 * Overall
   1. To run interactively without clustcmd just set JOBS and then
      execute the relevant script.  Something like:
- : JOB = datenum(2011,2,10)
- : rtp_core
+ : >> JOB = datenum(2011,2,10)
+ : >> rtp_core
+   Another way to accomplish the same feat is to start matlab up with
+   the desired day in the JOB environment variable:
+ : taro$ JOB=20110310 matlab -nodesktop
+ : >> rtpcore
 
 * CrIS
 ** Problems
