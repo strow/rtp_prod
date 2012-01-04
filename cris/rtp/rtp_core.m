@@ -12,6 +12,11 @@
 %    4 March 2011 - padded the cris reader with try/catch with error output
 %                   added Scott's uniform test for 3 channels and put the result in udef 13
 %     16 Dec 2011 - updates to add to the revision control system
+%     30 Dec 2011 - LLS.  Fixed pattr for Reason.  Was set to udef(1,:) 
+%                   when it is actually stored in iudef(1,:)
+%     01 Jan 2012 - LLS changed zeros(20,...) to zeros(10,...).  
+%                   10 = max size for iudef, causing fmatch{} rtp error
+
 
 % If no job is specified, go to the test day
 if ~exist('JOB','var')
@@ -116,7 +121,7 @@ for hour = 0:23
   hattr = set_attr(hattr,'instid','CrIS');
   hattr = set_attr(hattr,'rtpfile',rtpfile);
   pattr = set_attr(pattr,'udef(13,:)','dbt test: ch 401 499 731 {dbtun}');
-  pattr = set_attr(pattr,'udef(1.:)','Reason [1=clear,2=site,4=high cloud,8=random] {reason_bit}')
+  pattr = set_attr(pattr,'iudef(1.:)','Reason [1=clear,2=site,4=high cloud,8=random] {reason_bit}')
 
   % Put this back in and subset later once debugged
   idtest=[401, 499, 731];
@@ -129,8 +134,8 @@ for hour = 0:23
   junk = sum(prof.robs1(idtest2,:) > rmin * ones(1,nobs));
   iok = find(junk == 3);
 
-  prof.iudef = zeros(10,length(prof.rtime));
-
+  % LLS changed zeros(20,...) to zeros(10,...).  10 = max size iudef
+  prof.iudef = zeros(20,length(prof.rtime));
 
   % find the site fovs
   %[isiteind, isitenum] = fixedsite(prof.rlat, prof.rlon, site_range);
