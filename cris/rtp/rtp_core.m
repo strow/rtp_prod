@@ -176,7 +176,7 @@ for hour = 0:23
   mkdirs(dirname(rtpfile))
   disp(['Writing out rtp file: ' rtpfile]);
   rtpwrite(rtpfile,head,hattr,prof,pattr)
-  save([rtpfile(1:end-4) 'summary.mat','-struct',summary)
+  save([rtpfile(1:end-4) 'summary.mat'],'-struct',summary)
 
 end % hour loop
 
