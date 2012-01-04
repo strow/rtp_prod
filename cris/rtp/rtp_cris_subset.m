@@ -51,7 +51,10 @@ head = head_in; hattr = hattr_in; prof = prof_in; pattr = pattr_in;
 
 % Convert boxcar (ie unapodized) to Hamming apodization
 disp('running proxy_box_to_ham')
-proxy_box_to_ham
+
+%replaces proxy_box_to_ham
+prof.robs1 = boxg4_to_ham(head.ichan, prof.robs1);
+
 % Note: the RTP structures are now temporary variables with boxcar
 % apodized radiances. Before outputing the subsetted RTP it will be
 % necessary to re-read the input file.

@@ -3,11 +3,11 @@ function [head, hattr, prof, pattr] = rtpread(hfile)
 
 % NAME
 %
-%   rtpread -- read a set of RTP profiles; preserve data type
+%   rtpread -- read a set of RTP profiles
 %
 % SYNOPSIS
 %
-%   [head, hattr, prof, pattr] = xrtpread(hfile)
+%   [head, hattr, prof, pattr] = rtpread(hfile)
 %
 % INPUTS
 % 
@@ -62,12 +62,10 @@ function [head, hattr, prof, pattr] = rtpread(hfile)
 %   and builds the gamnt array from the individual constituent 
 %   fields.
 %
-
 % H. Motteler, 12 Jun 01
 % Update: 21 May 2010, Scott Hannon - read "calflag" as char
 %    but convert (with 8 & 16 bit fixes) to uint8 for output
-% Update: 20 Oct 2011, S.Hannon - leave data types unaltered
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 
 % open the HDF file
 file_id = hdfh('open', hfile, 'read', 0);
@@ -85,45 +83,42 @@ end
 [head, hattr] = vsfid2mat(file_id, 'header');
 [prof, pattr] = vsfid2mat(file_id, 'profiles');
 
-%%% OBSOLETE; removed to preserve data types
-%% move data to 64 bit types, as Matlab does not support 
-%% arithmetic directly on int32 or float32 types
-%
-%
-%% expand header fields to double
-%hfields = fieldnames(head);
-%for i = 1 : length(hfields)
-%  fname = hfields{i};
-%  eval(sprintf('head.%s = double(head.%s);', fname, fname));
-%end
-%
-%% expand profile fields to double
-%pfields = fieldnames(prof);
-%for j = 1 : length(pfields)
-%  fname = pfields{j};
-%  switch fname
-%
-%    % calflag and pnote should be strings
-%    case {'calflag'}
-%      junk = double(prof.calflag);
-%      ii = find(junk > 128);
-%      junk(ii) = junk(ii) - 65536 + 256;
-%      prof.calflag = cast(junk,'uint8');
-%
-%    case {'pnote'}
-%      eval(sprintf('prof.%s = char(prof.%s);', fname, fname));
-%
-%
-%    % rcalc and robs1 should be singles
-%    case {'rcalc' 'robs1'}
-%      eval(sprintf('prof.%s = single(prof.%s);', fname, fname));
-%
-%    % return everything else as a double
-%    otherwise
-%      eval(sprintf('prof.%s = double(prof.%s);', fname, fname));
-%  end
-%end
-%%%
+% move data to 64 bit types, as Matlab does not support 
+% arithmetic directly on int32 or float32 types
+
+% expand header fields to double
+hfields = fieldnames(head);
+for i = 1 : length(hfields)
+  fname = hfields{i};
+  eval(sprintf('head.%s = double(head.%s);', fname, fname));
+end
+
+% expand profile fields to double
+pfields = fieldnames(prof);
+for j = 1 : length(pfields)
+  fname = pfields{j};
+  switch fname
+
+    % calflag and pnote should be strings
+    case {'calflag'}
+      junk = double(prof.calflag);
+      ii = find(junk > 128);
+      junk(ii) = junk(ii) - 65536 + 256;
+      prof.calflag = cast(junk,'uint8');
+
+    case {'pnote'}
+      eval(sprintf('prof.%s = char(prof.%s);', fname, fname));
+
+
+    % rcalc and robs1 should be singles
+    case {'rcalc' 'robs1'}
+      eval(sprintf('prof.%s = single(prof.%s);', fname, fname));
+
+    % return everything else as a double
+    otherwise
+      eval(sprintf('prof.%s = double(prof.%s);', fname, fname));
+  end
+end
 
 % end vgroup interface access
 status = hdfv('end',file_id);
@@ -136,3 +131,4 @@ status = hdfh('close',file_id);
 if status == -1
   error('HDF hclose failed')
 end
+

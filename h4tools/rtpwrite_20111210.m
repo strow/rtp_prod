@@ -1,5 +1,5 @@
 
-function rtpwrite(hfile, head, hattr, prof, pattr)
+function rtpwritev2(hfile, head, hattr, prof, pattr)
 
 % NAME
 %
@@ -61,11 +61,9 @@ function rtpwrite(hfile, head, hattr, prof, pattr)
 %   in Matlab, for large arrays; see stransp1.m and stransp2.m 
 %   to go between the two formats.
 %
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % H. Motteler, 9 July 01;
 % Updated for RTP version 2.01, 24 Oct 2008 S.Hannon
-% Update: 20 Oct 2011, S.Hannon - write calflag & pnote as uint8
+%
 
 bad = -9999;  % JPL bad value
 
@@ -130,8 +128,14 @@ for i = 1 : length(pfields);
       eval(sprintf('prof.%s = double(prof.%s);', fname, fname));
 
     % set the byte-array fields
-    case {'pnote', 'calflag'}
-      eval(sprintf('prof.%s = uint8(prof.%s);', fname, fname));
+    % if these are already strings, "char" doesn't have any effect
+    case {'pnote'}
+      eval(sprintf('prof.%s = char(prof.%s);', fname, fname));
+
+    % set the byte-array fields
+    % if these are already strings, "char" doesn't have any effect
+    case {'calflag'}
+      eval(sprintf('prof.%s = char(prof.%s);', fname, fname));
 
     % assume everything else should be a float32
     otherwise

@@ -103,12 +103,17 @@ bv4(ib) = 4;
 
 
 % Random FOVs (bit value 8)
-rng('shuffle'); % seed random number generator with current time
+%rng('shuffle'); % seed random number generator with current time
 bv8 = zeros(1,nobs);
 ind = find(prof.xtrack == ixtrackrandom);
 nind = length(ind);
 if (nind > 0)
-   random01 = rand([1,nind]);
+   % generate a set of random numbers
+     rf = fopen('/dev/urandom','r');
+     random01 = (single(fread(rf,nind,'*uint16')) / 2^16)';
+     fclose(rf);
+   % end random number generator
+   %random01 = rand([1,nind]);
    randlimit = randadjust*cos(prof.rlat(ind)*pi/180);
    ib = ind(find(random01 <= randlimit));
 end
