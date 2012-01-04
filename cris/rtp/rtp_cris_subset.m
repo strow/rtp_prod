@@ -194,6 +194,6 @@ else
    disp('no FOVs selected, so no output RTP')
 end
 
-prof = [];
+%prof = [];
 
 %%% end of program %%%
