@@ -71,13 +71,13 @@ tmp_jout = mktemp('/tmp/jout_');
 
 % Subset RTP for the clear test channels (to speed up calcs)
 disp('subsetting RTP to clear test channels')
-[head, prof] = subset_rtp(head, prof, [], idtestc, []);
+[head1, prof1] = subset_rtp(head, prof, [], idtestc, []);
 
 % Write RTP to tmp_rtp1
 disp('writing pre-klayers tmp RTP file')
 
 % to run klayers one needs to get the ecmwf profiles:
-[head1 hattr1 prof1 pattr1] =rtpadd_ecmwf_data(head,hattr,prof,pattr);
+[head1 hattr1 prof1 pattr1] =rtpadd_ecmwf_data(head1,hattr,prof1,pattr);
 dv = datevec(JOB(1));
 [prof1 emis_qual emis_str] = Prof_add_emis(prof1, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
 rtpwrite(tmp_rtp1,head1,hattr1,prof1,pattr1);
@@ -91,7 +91,6 @@ disp(['  ' SARTA ' fin=' tmp_rtp2 ' fout=' tmp_rtp1 ' > ' tmp_jout]);
 eval(['! ' SARTA ' fin=' tmp_rtp2 ' fout=' tmp_rtp1 ' > ' tmp_jout]);
 disp('loading sarta output RTP')
 [head2, hattr2, prof2, pattr2] = rtpread(tmp_rtp1);
-prof.rcalc = prof2.rcalc;
 
 
 % Remove tmp RTP files
@@ -99,14 +98,14 @@ eval(['! rm -f ' tmp_rtp1 ' ' tmp_rtp2 ' ' tmp_jout]);
 
 % Run xfind_clear
 disp('running xfind_clear')
-[iflagsc, bto1232, btc1232] = xfind_clear(head, prof, 1:nobs);
+[iflagsc, bto1232, btc1232] = xfind_clear(head2, prof2, 1:nobs);
 iclear_sea    = find(iflagsc == 0 & abs(dbtun) < 0.5 & prof.landfrac <= 0.01);
 iclear_notsea = find(iflagsc == 0 & abs(dbtun) < 1.0 & prof.landfrac >  0.01);
 iclear = union(iclear_sea, iclear_notsea);
 
 % Re-load the CrIS proxy data file
-disp('re-loading original RTP data')
-[head, hattr, prof, pattr] = rtpread(RTPIN);
+%disp('re-loading original RTP data')
+%[head, hattr, prof, pattr] = rtpread(RTPIN);
 
 
 % Determine all indices to keep
@@ -149,17 +148,17 @@ summary.cleartest_str = '0=clear, 1=big dbt1232, 2=cirrus, 4=dust/ash';
 summary.reason     = uint8(ireason);
 summary.reason_str = '1=clear, 2=site, 4=DCC, 8=random, 16=coast, 32=bad';
 summary.site_number = uint16(isite);
-summary.parent_file = RTPIN;
-eval(['save  ' SUMOUT ' summary'])
+%summary.parent_file = RTPIN;
+%eval(['save  ' SUMOUT ' summary'])
 
 
 % Subset RTP and save output
 if (nkeep > 0)
    % Subset to RTP for {clear, site, DCC, random}
    %[head, prof] = subset_rtp(head,prof,[],[],ikeep);
-   isite = isite(ikeep);
-   iclrflag = iclrflag(ikeep);
-   ireason = ireason(ikeep);
+   isite = isite();
+   iclrflag = iclrflag();
+   ireason = ireason();
 
    % Cut ireason to 4 bits
    icut = find(ireason > 32);
@@ -171,9 +170,9 @@ if (nkeep > 0)
    if (~isfield(prof,'udef'))
       prof.udef = zeros(20,nkeep);
    end
-   prof.udef(13,:) = dbtun(ikeep);
-   prof.udef(14,:) = bto1232(ikeep);
-   prof.udef(15,:) = btc1232(ikeep);
+   prof.udef(13,:) = dbtun();
+   prof.udef(14,:) = bto1232();
+   prof.udef(15,:) = btc1232();
    if (~isfield(prof,'iudef'))
       prof.iudef = zeros(10,nkeep);
    end
@@ -189,7 +188,7 @@ if (nkeep > 0)
    pattr = junk;
 
    % Write output RTP
-   rtpwrite(RTPOUT,head,hattr,prof,pattr);
+   %rtpwrite(RTPOUT,head,hattr,prof,pattr);
 
 else
    disp('no FOVs selected, so no output RTP')
