@@ -135,7 +135,7 @@ for hour = 0:23
   iok = find(junk == 3);
 
   % LLS changed zeros(20,...) to zeros(10,...).  10 = max size iudef
-  prof.iudef = zeros(20,length(prof.rtime));
+  prof.iudef = zeros(10,length(prof.rtime));
 
   % find the site fovs
   %[isiteind, isitenum] = fixedsite(prof.rlat, prof.rlon, site_range);
