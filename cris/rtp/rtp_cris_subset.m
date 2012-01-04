@@ -1,4 +1,4 @@
-function [head hattr prof pattr ikeep] = rtp_cris_subset(head,hattr,prof,pattr);
+function [head hattr prof pattr summary] = rtp_cris_subset(head_in,hattr_in,prof_in,pattr_in,subset)
 
 % 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -33,7 +33,20 @@ KLAYERS='/asl/packages/klayersV205/BinV201/klayers_airs';
 SARTA='/asl/packages/sartaV108/BinV201/sarta_crisg4_nov09_wcon_nte';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%addpath /asl/matlab/aslutil        % mktemp
+%addpath /asl/matlab/h4toolsV201    % rtpread, rtpwrite
+%addpath /asl/matlab/rtptoolsV201   % subset_rtp
+%addpath /asl/matlab/cris/uniform   % xuniform, site_dcc_random
+%addpath /asl/matlab/cris/clear     % xfind_clear, proxy_box_to_ham
+%addpath /asl/matlab/cris/unapod    % xfind_clear, proxy_box_to_ham
 
+
+% Load the CrIS proxy data file
+%disp(['loading data: ' RTPIN])
+%[head, hattr, prof, pattr] = rtpread(RTPIN);
+% Use the data stored in memory
+disp(['loading data: '])
+head = head_in; hattr = hattr_in; prof = prof_in; pattr = pattr_in;
 
 
 % Convert boxcar (ie unapodized) to Hamming apodization
@@ -71,41 +84,35 @@ tmp_jout = mktemp('/tmp/jout_');
 
 % Subset RTP for the clear test channels (to speed up calcs)
 disp('subsetting RTP to clear test channels')
-[head1, prof1] = subset_rtp(head, prof, [], idtestc, []);
+[head, prof] = subset_rtp(head, prof, [], idtestc, []);
 
 % Write RTP to tmp_rtp1
 disp('writing pre-klayers tmp RTP file')
-
-% to run klayers one needs to get the ecmwf profiles:
-[head1 hattr1 prof1 pattr1] =rtpadd_ecmwf_data(head1,hattr,prof1,pattr);
-dv = datevec(JOB(1));
-[prof1 emis_qual emis_str] = Prof_add_emis(prof1, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
-rtpwrite(tmp_rtp1,head1,hattr1,prof1,pattr1);
+rtpwrite(tmp_rtp1,head,hattr,prof,pattr);
 
 % Run klayers and SARTA
 disp('running klayers')
-disp(['  ' KLAYERS ' fin=' tmp_rtp1 ' fout=' tmp_rtp2 ' > ' tmp_jout]);
 eval(['! ' KLAYERS ' fin=' tmp_rtp1 ' fout=' tmp_rtp2 ' > ' tmp_jout]);
 disp('running sarta')
-disp(['  ' SARTA ' fin=' tmp_rtp2 ' fout=' tmp_rtp1 ' > ' tmp_jout]);
 eval(['! ' SARTA ' fin=' tmp_rtp2 ' fout=' tmp_rtp1 ' > ' tmp_jout]);
 disp('loading sarta output RTP')
-[head2, hattr2, prof2, pattr2] = rtpread(tmp_rtp1);
-
+[head, hattr, prof, pattr] = rtpread(tmp_rtp1);
 
 % Remove tmp RTP files
 eval(['! rm -f ' tmp_rtp1 ' ' tmp_rtp2 ' ' tmp_jout]);
 
 % Run xfind_clear
 disp('running xfind_clear')
-[iflagsc, bto1232, btc1232] = xfind_clear(head2, prof2, 1:nobs);
+[iflagsc, bto1232, btc1232] = xfind_clear(head, prof, 1:nobs);
 iclear_sea    = find(iflagsc == 0 & abs(dbtun) < 0.5 & prof.landfrac <= 0.01);
 iclear_notsea = find(iflagsc == 0 & abs(dbtun) < 1.0 & prof.landfrac >  0.01);
 iclear = union(iclear_sea, iclear_notsea);
 
 % Re-load the CrIS proxy data file
-%disp('re-loading original RTP data')
+disp('re-loading original RTP data')
 %[head, hattr, prof, pattr] = rtpread(RTPIN);
+% Use the data stored in memory
+head = head_in; hattr = hattr_in; prof = prof_in; pattr = pattr_in;
 
 
 % Determine all indices to keep
@@ -155,10 +162,13 @@ summary.site_number = uint16(isite);
 % Subset RTP and save output
 if (nkeep > 0)
    % Subset to RTP for {clear, site, DCC, random}
-   %[head, prof] = subset_rtp(head,prof,[],[],ikeep);
-   isite = isite();
-   iclrflag = iclrflag();
-   ireason = ireason();
+   if(subset ~= 1)
+     ikeep = 1:nobs;
+   end
+   [head, prof] = subset_rtp(head,prof,[],[],ikeep);
+   isite = isite(ikeep);
+   iclrflag = iclrflag(ikeep);
+   ireason = ireason(ikeep);
 
    % Cut ireason to 4 bits
    icut = find(ireason > 32);
@@ -170,30 +180,29 @@ if (nkeep > 0)
    if (~isfield(prof,'udef'))
       prof.udef = zeros(20,nkeep);
    end
-   prof.udef(13,:) = dbtun();
-   prof.udef(14,:) = bto1232();
-   prof.udef(15,:) = btc1232();
+   prof.udef(13,:) = dbtun(ikeep);
+   prof.udef(14,:) = bto1232(ikeep);
+   prof.udef(15,:) = btc1232(ikeep);
    if (~isfield(prof,'iudef'))
       prof.iudef = zeros(10,nkeep);
    end
    prof.iudef(1,:) = ireason;
    prof.iudef(2,:) = isite;
 
-   junk = set_attr(pattr, 'udef(13,:)', 'spatial uniformity test dBT {dbtun}');
-   pattr = set_attr(junk, 'udef(14,:)', 'BTobs 1232 wn {bto1232}');
-   junk = set_attr(pattr, 'udef(15,:)', 'BTcal 1232 wn {btc1232}');
-   pattr = set_attr(junk, 'iudef(1,:)', ...
+   pattr = set_attr(pattr, 'udef(13,:)', 'spatial uniformity test dBT {dbtun}');
+   pattr = set_attr(pattr, 'udef(14,:)', 'BTobs 1232 wn {bto1232}');
+   pattr = set_attr(pattr, 'udef(15,:)', 'BTcal 1232 wn {btc1232}');
+   pattr = set_attr(pattr, 'iudef(1,:)', ...
       'selection reason: 1=clear, 2=site, 4=DCC, 8=random {reason}');
-   junk = set_attr(pattr, 'iudef(2,:)', 'fixed site number {sitenum}');
-   pattr = junk;
+   pattr = set_attr(pattr, 'iudef(2,:)', 'fixed site number {sitenum}');
 
    % Write output RTP
    %rtpwrite(RTPOUT,head,hattr,prof,pattr);
 
 else
    disp('no FOVs selected, so no output RTP')
+   prof = [];
 end
 
-%prof = [];
 
 %%% end of program %%%

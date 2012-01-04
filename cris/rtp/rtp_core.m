@@ -117,15 +117,16 @@ for hour = 0:23
   head.vcmax = -9999;
   head.vcmin = -9999;
 
-  hattr = set_attr('header','pltfid','M02');
+  hattr = set_attr('header','pltfid','NPP');
   hattr = set_attr(hattr,'instid','CrIS');
   hattr = set_attr(hattr,'rtpfile',rtpfile);
   pattr = set_attr(pattr,'udef(13,:)','dbt test: ch 401 499 731 {dbtun}');
-  pattr = set_attr(pattr,'iudef(1.:)','Reason [1=clear,2=site,4=high cloud,8=random] {reason_bit}')
+  pattr = set_attr(pattr,'iudef(1,:)','Reason [1=clear,2=site,4=high cloud,8=random] {reason_bit}')
 
   % Put this back in and subset later once debugged
   idtest=[401, 499, 731];
   prof.udef(13,:) = xuniform(head, prof, idtest);
+
 
   % search for data in all three bands that are not bad
   idtest2=[499, 731, 1147];
@@ -134,7 +135,6 @@ for hour = 0:23
   junk = sum(prof.robs1(idtest2,:) > rmin * ones(1,nobs));
   iok = find(junk == 3);
 
-  % LLS changed zeros(20,...) to zeros(10,...).  10 = max size iudef
   prof.iudef = zeros(10,length(prof.rtime));
 
   % find the site fovs
@@ -154,24 +154,29 @@ for hour = 0:23
     [prof.salti, prof.landfrac] = usgs_deg10_dem(prof.rlat, prof.rlon);
   end
 
-  [head,hattr,prof,pattr,ikeep] = rtp_cris_subset(head,hattr,prof,pattr);
-  if isempty(prof); continue; end  % if no data was returned
+  disp('running rtpadd_ecmwf');
+  [head hattr prof pattr] = rtpadd_ecmwf_data(head,hattr,prof,pattr);
 
-  if ~strcmp(rtpset,'full')
-    % If this is a subset file, do the subset
-    disp('subsetting')
-    [head, prof] = subset_rtp(head,prof,[],[],ikeep);
-  end
+  disp('adding emissivity');
+  rtime = rtpget_date(prof,pattr);
+  dv = datevec(JOB(1));
+  [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
+
+  [head,hattr,prof,pattr,summary] = rtp_cris_subset(head,hattr,prof,pattr,strcmp(rtpset,'subset'));
+  if isempty(prof); disp('ERROR: no data returned'); continue; end  % if no data was returned
+
 
   % A trap for missing zobs data, substitute CRiS altitude (correct?)
   if ~isfield(prof,'zobs') | all(prof.zobs < 1)
     prof.zobs = ones(size(prof.rtime)) * 820000;
-    pattr = set_attr(pattr,'zobs','CRiS Estimated Altitude');
+    pattr = set_attr(pattr,'zobs','CrIS Estimated Altitude');
   end
 
   %[head hattr prof pattr] = rtpadd_ecmwf_data(head, hattr, prof, pattr);
   mkdirs(dirname(rtpfile))
+  disp(['Writing out rtp file: ' rtpfile]);
   rtpwrite(rtpfile,head,hattr,prof,pattr)
+  save([rtpfile(1:end-4) 'summary.mat','-struct',summary)
 
 end % hour loop
 
