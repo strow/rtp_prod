@@ -117,7 +117,7 @@ hour
       ifov = gdata.findex <= 10;
     end
     [head prof] = subset_rtp(head, gdata, [], [], find(ifov));
-    rtpwrite_unaltered(tmpfile,head,hattr,prof,pattr);
+    rtpwrite(tmpfile,head,hattr,prof,pattr);
     movefile(tmpfile,[rtp_outfile]);
 
     % save out a summary file

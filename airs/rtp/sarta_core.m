@@ -152,7 +152,7 @@ disp(['  writing out ' outfile]);
 %  get_attr(hattr)
 %  prof
 %  get_attr(pattr)
-rtpwrite_unaltered(outfile,head,hattr,prof,pattr);
+rtpwrite(outfile,head,hattr,prof,pattr);
 
 unlink(tmp1)
 unlink(tmp2)
