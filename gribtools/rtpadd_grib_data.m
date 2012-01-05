@@ -306,7 +306,7 @@ end
 % Assign the output header structure
 head.ptype = 0;
 if (isfield(head,'pfields'))
-   head.pfields = bitor(head.pfields, 1);
+   head.pfields = bitor(uint32(head.pfields), 1);
 else
    head.pfields = 1;
 end
