@@ -29,14 +29,15 @@ for day = jdays
     if ~exist(['/asl/data/airs/META_DATA/' num2str(year)],'dir'); mkdirs(['/asl/data/airs/META_DATA/' num2str(year)]); end
     output_file=['/asl/data/airs/META_DATA/' num2str(year) '/AIRS_' datestr(mdate,'yyyymmdd') '.mat'];
     %if exist(output_file,'file'); continue; end
+    disp([' checking for output file: ' output_file])
 
-    %if exist(output_file,'file')
+    if exist(output_file,'file')
     %  [f fd]=findfiles(output_file);
     %  if ~isempty(whos('-file',output_file,'Time')) & ~isempty(whos('-file',output_file,'Latitude'))
     %    disp('date too new')
-    %    continue
+        continue
     %  end
-    %end
+    end
     
       date_path = ['/' num2str(year) '/' num2str(day,'%03d')];
       server = ['http://airscal' num2str(2-mod(year,2)) 'u.ecs.nasa.gov/opendap/Aqua_AIRS_Level1/AIRIBQAP.005'];
@@ -185,6 +186,7 @@ for day = jdays
     end % file loop
     
     toc
+    disp([' saving output file: ' output_file])
     save(output_file,'-struct','d','-V7.3');
 end
 

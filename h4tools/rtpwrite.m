@@ -67,6 +67,8 @@ function rtpwrite(hfile, head, hattr, prof, pattr)
 % Updated for RTP version 2.01, 24 Oct 2008 S.Hannon
 % Update: 20 Oct 2011, S.Hannon - write calflag & pnote as uint8
 
+disp('  Using updated RTPWRITE')
+
 bad = -9999;  % JPL bad value
 
 % --------------------------------------------

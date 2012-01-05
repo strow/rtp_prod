@@ -21,7 +21,7 @@ disp(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 2 AIRXBCAL.005 > /dev
 system(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 2 AIRXBCAL.005 > /dev/null']);
 [files dates] = findfiles(['/asl/data/airs/AIRXBCAL/' datestr(JOB(1),10) '/' num2str(julian,'%03d') '/*.hdf']);
 if isempty(files); error('No AIRS HDF files found for day'); end
-outdir = ['/asl/data/rtprod_airs/' datestr(JOB(1),26)];
+outdir = [prod_dir '/' datestr(JOB(1),26)];
 
 [y m d] = datevec(JOB(1));
 %dustcal(y,julian);
