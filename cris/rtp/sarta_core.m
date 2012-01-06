@@ -136,7 +136,7 @@ end
 %
 %%%%
 disp(['  reading in calcs for ' bn])
-[h hattr p pattr] = rtpread_12(tmp);
+[h hattr p pattr] = rtpread_12(outfiles{1});
 unlink(tmp1)
 prof.rcalc = p.rcalc;
 clear p;
