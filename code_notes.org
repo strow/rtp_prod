@@ -15,8 +15,15 @@ LLS Notes on /asl/prod/matlab
 *** rtp/rtp_core.m
   - Do not want to switch from sdr4 to sdr60 files automatically.
   - Profile attributes are incorrect (pattr).  Reason is in iudef, not
-    udef.
+    udef.  (FIXED.)
+  - Need to get exact altitude, is it in metadata?  824km?  Fix in
+    mkconv4.m as well?
+  - iok not used now, remove unneeded code?
 ** Cleanups
+  - rtp_cris_subset runs proxy_box_to_ham for small number of channels
+    needed in finding clear.  This can be done more efficiently.  It
+    is being done for all channels now using old code.  Is only needed
+    for a handful of channels.
 ** Immediate Changes Needed
   1. Update =cris/readers/readsdr_rtp= with updated reader that pulls
      in many more flags, etc.
@@ -58,7 +65,8 @@ The defined udefs right now are:
      be in a separate input, not in the source code.
 
 * RTP
-  1.  Switch to the new rtpread function.
+  1.  Switch to the new rtpread function.  Paul says that worked for
+      him. 
   
 
 

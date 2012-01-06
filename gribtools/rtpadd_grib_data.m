@@ -37,6 +37,7 @@ function [head, hattr, prof, pattr] = rtpadd_grib_data(sourcename, head, hattr, 
 % Rewrite:  4 May 2011, Paul Schou - switched to matlab binary reader
 % Update : 17 Jun 2011, Paul Schou - added grib 2 capabilities
 % Update: 27 Jun 2011, S.Hannon - add isfield test for head.pfields
+% Update: 05 Jan 2012, L. Strow - bitor argument translated to uint32
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Edit this section as needed
 
@@ -306,7 +307,7 @@ end
 % Assign the output header structure
 head.ptype = 0;
 if (isfield(head,'pfields'))
-   head.pfields = bitor(head.pfields, 1);
+   head.pfields = bitor(uint32(head.pfields), 1);
 else
    head.pfields = 1;
 end
