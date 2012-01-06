@@ -17,7 +17,7 @@ if length(d) == 0; error(['Missing file ' filename]); end
 sel = strcmp(in_fnames, filename) & d.datenum == in_fdates;
 if any(sel)
   disp('found a match, testing if file exists')
-  out_fnames{find(sel,1)}
+  %out_fnames{find(sel,1)}
 end
 
 if any(sel) & exist(out_fnames{find(sel,1)},'file')

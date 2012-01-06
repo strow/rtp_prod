@@ -58,17 +58,18 @@ end
 if strcmp(emis,'wis')
   disp(['  adding wis emissivity to ' bn])
   dv = datevec(JOB(1));
-  try
-    [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
-  catch
-    if dv(3) > 15
-       dv = datevec(JOB(1) + 30);
-      [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
-    else
-       dv = datevec(JOB(1) - 30);
-      [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
-    end
-  end
+  [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
+  %try
+  %  [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
+  %catch
+  %  if dv(3) > 15
+  %     dv = datevec(JOB(1) + 30);
+  %    [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
+  %  else
+  %     dv = datevec(JOB(1) - 30);
+  %    [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
+  %  end
+  %end
   pattr = set_attr(pattr,'emis',emis_str);
 elseif strcmp(emis,'dan')
   disp(['  adding dan emissivity to ' bn])
