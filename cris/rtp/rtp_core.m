@@ -155,7 +155,12 @@ for hour = 0:23
   end
 
   disp('running rtpadd_ecmwf');
-  [head hattr prof pattr] = rtpadd_ecmwf_data(head,hattr,prof,pattr);
+  if(JOB(1) > datenum(2012,1,1))
+    [head hattr prof pattr] =rtpadd_gfs(head,hattr,prof,pattr);
+  else
+    [head hattr prof pattr] = rtpadd_ecmwf_data(head,hattr,prof,pattr);
+  end
+
 
   disp('adding emissivity');
   rtime = rtpget_date(prof,pattr);
