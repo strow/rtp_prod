@@ -110,10 +110,6 @@ hour
     head.vcmax = max(head.vchan);
     head.vcmin = min(head.vchan);
     hattr = set_attr(hattr,'rtpfile',[rtp_outfile]);
-    if isfield(prof,'zobs')
-      iz = prof.zobs < 20000 & prof.zobs > 20;
-      prof.zobs(iz) = prof.zobs(iz) * 1000;
-    end
 
     if hour > 0
       ifov = gdata.findex > hour*10 & gdata.findex <= (hour+1)*10;
@@ -121,6 +117,13 @@ hour
       ifov = gdata.findex <= 10;
     end
     [head prof] = subset_rtp(head, gdata, [], [], find(ifov));
+
+    % fix for zobs altitude
+    if isfield(prof,'zobs')
+      iz = prof.zobs < 20000 & prof.zobs > 20;
+      prof.zobs(iz) = prof.zobs(iz) * 1000;
+    end
+
     rtpwrite(tmpfile,head,hattr,prof,pattr);
     movefile(tmpfile,[rtp_outfile]);
 
