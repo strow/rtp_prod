@@ -1,5 +1,6 @@
 function [head, hattr, prof, pattr] = rtpadd_grib_data(sourcename, head, hattr, prof, pattr, fields, rec_per_day, center_long);
 
+% function [head, hattr, prof, pattr] = rtpadd_grib_data(sourcename, head, hattr, prof, pattr);
 % function [head, hattr, prof, pattr] = rtpadd_grib_data(sourcename, head, hattr, prof, pattr, fields, rec_per_day, center_long);
 %
 % Routine to read in a 37, 60, or 91 level ECMWF file and return a
