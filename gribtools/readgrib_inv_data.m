@@ -1,5 +1,6 @@
 function [offset,param,level,date] = readgrib_inv_data(fname,savename)
 %function [offset,param,level,date] = readgrib_inv_data(fname,savename)
+%function [offset,param,level,date] = readgrib_inv_data(fname)
 %
 %  Read a GRIB file and return arrays of the invetory.
 %
