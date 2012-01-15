@@ -9,6 +9,7 @@ LLS Notes on /asl/prod/matlab
    the desired day in the JOB environment variable:
  : taro$ JOB=20110310 matlab -nodesktop
  : >> rtpcore
+  2.  How run clustcmd to use more processors on leek?
 
 * CrIS
 ** Problems
@@ -72,4 +73,16 @@ The defined udefs right now are:
 
 
 
-
+* Packages
+Need to integrate external packages into system.  Unfortunately, I set
+up git at the /asl/prod/matlab level to /asl/prod level.  Probably can
+be changed.  Need to add shell level path commands, or absolute paths,
+to the calls to wgrib, wgrib2, and gribsplit.
+** wgrib2
+  - Using version 1.7.7.e for Linux
+  - Using version 1.7.7.g for Mac
+  - Paul says need old version because: (fill in here)
+  - LLS had to move to 1.7.7.g to get wgrib2 to compile on Mac because
+    of libpng problem.  Had to run "make -f makefile_all_libs_new" to
+    make a local libpng, after changing MAKE:=gmake, to MAKE:=make
+    inside makefile_all_libs_new.
