@@ -16,10 +16,13 @@ rtp_version = 2.01;
 
 julian = JOB(1) - datenum(datevec(JOB(1)).*[1 0 0 0 0 0]);
 
-% LLS commented out below
+% LLS commented out below - updated by PS to identify the system and run if at UMBC
 % Make sure the airs files are downloaded for this time
-% $$$ disp(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 2 AIRXBCAL.005 > /dev/null']);
-% $$$ system(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 2 AIRXBCAL.005 > /dev/null']);
+hostname = getenv('HOSTNAME');
+if strcmp(hostname(max(1,end-7):end),'umbc.edu')
+  disp(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 2 AIRXBCAL.005 > /dev/null']);
+  system(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 2 AIRXBCAL.005 > /dev/null']);
+end
 [files dates] = findfiles(['/asl/data/airs/AIRXBCAL/' datestr(JOB(1),10) '/' num2str(julian,'%03d') '/*.hdf']);
 if isempty(files); error('No AIRS HDF files found for day'); end
 outdir = [prod_dir '/' datestr(JOB(1),26)];

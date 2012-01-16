@@ -135,7 +135,9 @@ for hour = 0:23
   junk = sum(prof.robs1(idtest2,:) > rmin * ones(1,nobs));
   iok = find(junk == 3);
 
-  prof.iudef = zeros(10,length(prof.rtime));
+  if ~isfield(prof,'iudef')
+    prof.iudef = zeros(10,length(prof.rtime));
+  end
 
   % find the site fovs
   %[isiteind, isitenum] = fixedsite(prof.rlat, prof.rlon, site_range);
@@ -154,6 +156,7 @@ for hour = 0:23
     [prof.salti, prof.landfrac] = usgs_deg10_dem(prof.rlat, prof.rlon);
   end
 
+  % This is for the rtp_cris_subset algorithm:
   disp('running rtpadd_ecmwf');
   if(JOB(1) > datenum(2012,1,1))
     [head hattr prof pattr] =rtpadd_gfs(head,hattr,prof,pattr);
