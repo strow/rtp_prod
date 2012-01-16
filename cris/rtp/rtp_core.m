@@ -69,7 +69,7 @@ for hour = 0:23
     d = dir(f{i});
     disp(['Reading ' f{i}])
     [p pattr]=readsdr_rtp(f{i});
-    p.findex = ones(size(p.rtime)) * i;
+    p.findex = int32(ones(size(p.rtime)) * i);
 
     % Now change indices to g4 of SARTA
     robs = p.robs1;
@@ -89,7 +89,7 @@ for hour = 0:23
     prof(i) = p;
     clear p;
   end % file loop
-
+  
   % if no files were loaded continue on to the next hour
   if ~exist('prof','var')
     continue
@@ -161,11 +161,11 @@ for hour = 0:23
     [head hattr prof pattr] = rtpadd_ecmwf_data(head,hattr,prof,pattr);
   end
 
-
   disp('adding emissivity');
   rtime = rtpget_date(prof,pattr);
   dv = datevec(JOB(1));
   [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
+ 
 
   [head,hattr,prof,pattr,summary] = rtp_cris_subset(head,hattr,prof,pattr,strcmp(rtpset,'subset'));
   if isempty(prof); disp('ERROR: no data returned'); continue; end  % if no data was returned
