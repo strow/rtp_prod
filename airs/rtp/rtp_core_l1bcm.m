@@ -20,6 +20,8 @@ julian = JOB(1) - datenum(datevec(JOB(1)).*[1 0 0 0 0 0]);
 % Make sure the airs files are downloaded for this time
 hostname = getenv('HOSTNAME');
 if strcmp(hostname(max(1,end-7):end),'umbc.edu')
+  disp(['../utils/get_meta_data ' datestr(JOB(1),'yyyymmdd') ' > /dev/null']);
+  system(['../utils/get_meta_data ' datestr(JOB(1),'yyyymmdd') ' > /dev/null']);
   disp(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 2 AIRXBCAL.005 > /dev/null']);
   system(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 2 AIRXBCAL.005 > /dev/null']);
 end
