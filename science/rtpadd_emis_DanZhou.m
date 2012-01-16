@@ -9,8 +9,8 @@ function [head hattr prof pattr] = rtpadd_emis_DanZhou(head,hattr,prof,pattr)
 %  Written 17 March 2011 - Paul Schou
 
 
-addpath /asl/matlab/science        % emissivity function
-addpath /asl/matlab/aslutil/  % get_attr function
+%addpath /asl/matlab/science        % emissivity function
+%addpath /asl/matlab/aslutil/  % get_attr function
 
 debug = 1; %indicate that we are in debug an print out a bunch of checks
 

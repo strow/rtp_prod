@@ -32,11 +32,11 @@ dbtmax=0.3;
 % Set max allowed (ie passing) radiance calibration flag
 flgmax=7;  % Bits 2^{0,1,2} currently not used
 
-addpath /asl/matlab/gribtools      % for readecmwf_nearest
-addpath /asl/matlab/h4tools        % for rtpread & rtpwrite
-addpath /asl/matlab/airs/readers   % for readl1b_uniform
-addpath /asl/matlab/science        % for cal_seaemis
-addpath /asl/matlab/aslutil        % for radtot & ttorad
+%addpath /asl/matlab/gribtools      % for readecmwf_nearest
+%addpath /asl/matlab/h4tools        % for rtpread & rtpwrite
+%addpath /asl/matlab/airs/readers   % for readl1b_uniform
+%addpath /asl/matlab/science        % for cal_seaemis
+%addpath /asl/matlab/aslutil        % for radtot & ttorad
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
