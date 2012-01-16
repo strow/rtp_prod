@@ -12,6 +12,7 @@ addpath([base_dir1 '/clear'])
 addpath([base_dir1 '/readers'])
 addpath([base_dir1 '/rtp'])
 addpath([base_dir1 '/uniform'])
+addpath([base_dir1 '/utils'])
 addpath([base_dir1 '/unapod'])
 
 % ASL matlab utility box
