@@ -107,7 +107,7 @@ if exist(rtpfile,'file');
 
   % get our indexing value
   if(isfield(p0,'rtime') & isfield(p,'rtime') & ...
-    %  length(unique(sort(p.rtime))) == length(p.rtime))
+      length(unique(sort(p.rtime))) == length(p.rtime))
     % use time if it is unique per profile
     isel0 = [p0.rtime]; isel = [p.rtime];
   else
