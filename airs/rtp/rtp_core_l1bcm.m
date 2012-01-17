@@ -1,6 +1,6 @@
 airs_paths
 
-mkmetadata(JOB)
+%mkmetadata(JOB)
 
 % Fixed site matchup range {km}
 site_range = 55.5;  % we 55.5 km for AIRS
