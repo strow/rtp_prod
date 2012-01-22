@@ -52,14 +52,13 @@ pi = [3:715  720:1152 1157:1315 1:2 716:719 1153:1156 1316:1317];
 disp(['Processing ' datestr(JOB(1),26) ' with version: ' version])
 for hour = 0:23
   disp([' hour ' num2str(hour)])
-  f = findfiles(['/asl/data/cris/sdr4/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_met_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*.h5']);
-  rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_sdr4.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.' version '.rtp'];
+  f = findfiles(['/asl/data/cris/sdr60/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*.h5']);
+  rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_sdr60.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.' version '.rtp'];
+  disp(['  found ' num2str(length(f)) ' sdr60 files'])
 
   if length(f) == 0
-    f = findfiles(['/asl/data/cris/sdr60/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_met_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*.h5']);
-    rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_sdr60.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.' version '.rtp'];
-    disp(['  found ' num2str(length(f)) ' sdr60 files'])
-  else
+    f = findfiles(['/asl/data/cris/sdr4/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*.h5']);
+    rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_sdr4.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.' version '.rtp'];
     disp(['  found ' num2str(length(f)) ' sdr4 files'])
   end
   disp(['  output: ' rtpfile])
@@ -68,7 +67,11 @@ for hour = 0:23
   for i = 1:length(f)
     d = dir(f{i});
     disp(['Reading ' f{i}])
+try
     [p pattr]=readsdr_rtp(f{i});
+catch
+ continue % failure reading the file, try the next
+end
     p.findex = int32(ones(size(p.rtime)) * i);
 
     % Now change indices to g4 of SARTA
@@ -151,8 +154,15 @@ for hour = 0:23
   %bt1231 = rad2bt(head.vchan(731), prof.robs1(731,iok));
   %iclear = iok(abs(prof.udef(13,iok)) < 0.5 & bt1231 > 270);
   %prof.iudef(1,iclear) = bitor(prof.iudef(1,iclear),1);
+  if(all(prof.rlon < -900)); 
+    disp('Warning: Longitudes are bogus')
+    prof.landfrac = zeros(size(prof.rtime));
+    prof.rlon = zeros(size(prof.rtime))+360;
+    prof.rlat = zeros(size(prof.rtime));
+  end  % all the latitudes are bogus
 
   if ~isfield(prof,'landfrac')
+    disp('no landfrac')
     [prof.salti, prof.landfrac] = usgs_deg10_dem(prof.rlat, prof.rlon);
   end
 

@@ -364,6 +364,9 @@ if date_match == 0
   disp(['    grib records per day: ' num2str(rec_per_day)])
   disp(['    which matches       : ' datestr(min(gribdate)-0.5/rec_per_day) ' ' datestr(max(gribdate)+0.5/rec_per_day)])
   disp(['    rtime date span     : ' datestr(min(rtime)) ' ' datestr(max(rtime))])
+  disp(['    nan lats            : ' num2str(sum(isnan(prof.rlat)))])
+  disp(['    bad lats            : ' num2str(sum(abs(prof.rlat) > 90))])
+  disp(['    total fovs          : ' num2str(length(prof.rtime))])
   %unique(param)
   %fields'
 end
