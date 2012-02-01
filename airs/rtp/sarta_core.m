@@ -38,7 +38,12 @@ hattr = set_attr(hattr,'rtpfile',f{1});
 %%%%
 if strcmp(model,'ecm')
   disp(['  adding ecm profiles to ' bn])
+  try
   [head hattr prof pattr] =rtpadd_ecmwf_data(head,hattr,prof,pattr);
+  catch
+    disp(['  ERROR:  Failed adding ECMWF profile'])
+    continue
+  end
 elseif strcmp(model,'era')
   disp(['  adding era profiles to ' bn])
   system(['/asl/opt/bin/getera ' datestr(JOB(1),'yyyymmdd')])
@@ -48,6 +53,10 @@ elseif strcmp(model,'gfs')
   [head hattr prof pattr] =rtpadd_gfs(head,hattr,prof,pattr);
 else
   error('unknown profile model')
+end
+
+if ~isfield(prof,'wspeed')
+  prof.wspeed = zeros(size(prof.rtime));
 end
 
 %%%%
@@ -134,11 +143,15 @@ if out ~= 0; error(['  error running sarta on ' bn]); end
 %  Reading in final result section and copying rcalc over to previous rtp structure
 %
 %%%%
+try
 disp(['  reading in calcs for ' bn])
 [h hattr p pattr] = rtpread(tmp1);
 unlink(tmp1)
 prof.rcalc = p.rcalc;
 clear p;
+catch
+  disp(['ERROR: Could not read in calc rtp file'])
+end
 
 %%%%
 %

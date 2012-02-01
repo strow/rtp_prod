@@ -51,16 +51,25 @@ pattr = set_attr(pattr,'rtime','Seconds since 2000','profiles');
 %%%%
 if strcmp(model,'ecm')
   disp(['  adding ecm profiles to ' bn])
+  try
   [head hattr prof pattr] =rtpadd_ecmwf_data(head,hattr,prof,pattr);
+  catch
+    disp(['ERROR: Reading in ecmwf data'])
+    continue
+  end
 elseif strcmp(model,'era')
   disp(['  adding era profiles to ' bn])
-  %system(['/asl/opt/bin/getera ' datestr(JOB(1),'yyyymmdd')]);
+  system(['/asl/opt/bin/getera ' datestr(JOB(1),'yyyymmdd')])
   [head hattr prof pattr] =rtpadd_era_data(head,hattr,prof,pattr);
 elseif strcmp(model,'gfs')
   disp(['  adding gfs profiles to ' bn])
   [head hattr prof pattr] =rtpadd_gfs(head,hattr,prof,pattr);
 else
   error('unknown profile model')
+end
+
+if ~isfield(prof,'wspeed')
+  prof.wspeed = zeros(size(prof.rtime));
 end
 
 

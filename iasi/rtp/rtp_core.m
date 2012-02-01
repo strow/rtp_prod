@@ -99,7 +99,13 @@ nodata = -9999;
   disp(['lockfile: ' outfile])
   if ~lockfile(outfile); continue; end
 
+  head.pfields = 0;
+  try
   [head, hattr, prof, pattr, summary, isubset] = iasi_uniform_and_allfov_func([indir '/*IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '*'],allfov);
+  catch
+    disp(['ERROR: iasi_uniform_and_allfov failed']);
+    continue
+  end
 
   if exist('prof','var') & ~isempty(prof)
     prof = structmerge(prof)

@@ -305,7 +305,13 @@ for ic = 1:length(iasifiles)
   p.rlat(abs(p.rlat) > 1000) = nan;
   p.rlon(abs(p.rlon) > 1000) = nan;
   %
-  [h hattr p pattr] = rtpadd_ecmwf_data(struct,{},p,pattr,{'SKT' 'TCC', 'CI'});
+  h.pfields = 0;
+  try
+    [h hattr p pattr] = rtpadd_ecmwf_data(h,{},p,pattr,{'SKT' 'TCC', 'CI'});
+  catch
+    disp(['Missing ECMWF data, using gfs'])
+    [h hattr p pattr] = rtpadd_gfs(h,{},p,pattr);
+  end
   %
   datestr(datenum(2000,1,1,0,0,[min(p.rtime) max(p.rtime)]))
 %%% uncomment for testing
