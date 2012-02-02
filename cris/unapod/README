@@ -1,0 +1,30 @@
+% CrIS_unapod
+%
+% MATLAB toolbox to remove Hamming apodization from radiance spectra
+% computed with the UMBC April/November 2009 CrIS "g4" database.
+% The code works as follows:
+%
+% 1) Spectra split into three bands with 4 guard channels
+% at each end of each band.
+%
+% For each band:
+%
+% 2) First & last guard channels are repeated 6 times to create fake
+%    channels extending the spectrum a little farther past the true
+%    band edges.
+%
+% 3) A rolloff is applied to 8 channels (4 fake and 2 guard) at each
+%    band edge.
+%
+% 4) The spectrum is converted to a interferogram using ifft.
+%
+% 5) The interferogram is divided by the Hamming apodization
+%    function.
+%
+% 6) The interferogram is converted to spectra using fft.
+%
+
+%%% end of file %%%
+
+
+
