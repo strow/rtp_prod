@@ -25,6 +25,15 @@ if ~exist([fname],'file')
   error(['GRIB file does not exist ' fname])
 end
 
+if exist([fname '.inv'],'file')
+  %disp('Found inv file')
+  d = dir([fname '.inv']);
+  if d.bytes < 1000
+    %disp('  Bad inv file')
+    unlink([fname '.inv'])
+  end
+end
+
 % check to see if inventory file exists
 if ~(exist([fname '.inv'],'file'))
   % if it doesn't, lets make one and read it into memory
