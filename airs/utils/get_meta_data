@@ -36,7 +36,7 @@ for file in $list; do
 
   if [ ! -s "$output" ]; then
     echo $gran "->" $output
-    curl -s -g "$url/$file.dods?CalFlag[0:1:134][0:1:2377],dust_flag[0:1:134][0:1:89],topog[0:1:134][0:1:89],scanang[0:1:134][0:1:89],sun_glint_distance[0:1:134][0:1:89],Latitude[0:1:134][0:1:89],Longitude[0:1:134][0:1:89]" > $output
+    curl -s -g "$url/$file.dods?CalFlag[0:1:134][0:1:2377],dust_flag[0:1:134][0:1:89],topog[0:1:134][0:1:89],scanang[0:1:134][0:1:89],sun_glint_distance[0:1:134][0:1:89],Latitude[0:1:134][0:1:89],Longitude[0:1:134][0:1:89],Time[0:1:134][0:1:89]" > $output
   fi
 done
 
