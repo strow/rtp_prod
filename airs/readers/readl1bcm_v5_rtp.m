@@ -152,7 +152,7 @@ if any(cmdata.findex == 0) & exist(['/asl/data/airs/META_DATA/' datestr(mtime-1,
   % load previous day for gran 0
   %d = load(['/asl/data/airs/META_DATA/' datestr(mtime-1,'yyyy') '/AIRS_' datestr(mtime-1,'yyyymmdd') '.mat'],'CalFlag','dust_flag','topog','scanang','sun_glint_distance');
   disp(['reading /asl/data/rtprod_airs/raw_meta_data/' datestr(mtime-1,'yyyy') '/' num2str(jday(mtime-1),'%03d') '/meta_cdtssll.240']);
-  [sa sgd top cf df lat lon] = getdata_opendap_file(['/asl/data/rtprod_airs/raw_meta_data/' datestr(mtime-1,'yyyy') '/' num2str(jday(mtime-1),'%03d') '/meta_cdtssll.240']);
+  [sa sgd top cf df lat lon time] = getdata_opendap_file(['/asl/data/rtprod_airs/raw_meta_data/' datestr(mtime-1,'yyyy') '/' num2str(jday(mtime-1),'%03d') '/meta_cdtssll.240']);
 
   for i = find(cmdata.findex == 0)
     calflag(:,i) = cf(:,cmdata.atrack(i));
@@ -167,7 +167,7 @@ end
 %d = load(['/asl/data/airs/META_DATA/' datestr(mtime,'yyyy') '/AIRS_' datestr(mtime,'yyyymmdd') '.mat'],'CalFlag','dust_flag','topog','scanang','sun_glint_distance');
 for gran = unique(sort(cmdata.findex(cmdata.findex > 0)))
   disp(['reading /asl/data/rtprod_airs/raw_meta_data/' datestr(mtime,'yyyy') '/' num2str(jday(mtime),'%03d') '/meta_cdtssll.' num2str(gran,'%03d')]);
-  [sa sgd top cf df lat lon] = getdata_opendap_file(['/asl/data/rtprod_airs/raw_meta_data/' datestr(mtime,'yyyy') '/' num2str(jday(mtime),'%03d') '/meta_cdtssll.' num2str(gran,'%03d')]);
+  [sa sgd top cf df lat lon time] = getdata_opendap_file(['/asl/data/rtprod_airs/raw_meta_data/' datestr(mtime,'yyyy') '/' num2str(jday(mtime),'%03d') '/meta_cdtssll.' num2str(gran,'%03d')]);
   for i = find(cmdata.findex == gran)
     calflag(:,i) = cf(:,cmdata.atrack(i));
     cmdata.dustflag(1,i)=df(cmdata.xtrack(i),cmdata.atrack(i));
