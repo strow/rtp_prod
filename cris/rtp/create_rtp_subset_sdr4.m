@@ -1,4 +1,4 @@
 rtpset='subset';
 data_path='/asl/data/cris/sdr4';
-src='_noaa_ops';
+src='_ada';
 rtp_core

@@ -52,13 +52,14 @@ pi = [3:715  720:1152 1157:1315 1:2 716:719 1153:1156 1316:1317];
 disp(['Processing ' datestr(JOB(1),26) ' with version: ' version])
 for hour = 0:23
   disp([' hour ' num2str(hour)])
-  f = findfiles(['/asl/data/cris/sdr60/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*.h5']);
-  rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_sdr60.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.' version '.rtp'];
+  f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*' src '.h5']);
+  data_type = basename(data_path);
+  rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type src '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.' version '.rtp'];
   disp(['  found ' num2str(length(f)) ' sdr60 files'])
 
   if length(f) == 0
-    f = findfiles(['/asl/data/cris/sdr4/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*.h5']);
-    rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_sdr4.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.' version '.rtp'];
+    f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*' src '.h5']);
+    rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type src '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.' version '.rtp'];
     disp(['  found ' num2str(length(f)) ' sdr4 files'])
   end
   disp(['  output: ' rtpfile])
@@ -179,6 +180,23 @@ end
   dv = datevec(JOB(1));
   [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
  
+keyboard
+  %  A proxy for solzen for the given orbit
+  if(~isfield(prof,'solzen') | any(prof.solzen < 1000))
+    center_fov = prof.xtrack == 45;
+    lat_dir = diff(prof.rlat(center_fov));
+    sol_zen = ([lat_dir lat_dir(end)] < 0)*90 + 45;
+    prof.solzen = sol_zen(prof.atrack);
+  end
+
+
+  if(~isfield(prof,'zobs')); prof.zobs = ones(size(prof.rtime)) * 830610; end
+  if(~isfield(prof,'wspeed')); prof.wspeed = ones(size(prof.rtime)) * 0; end
+
+  if(~isfield(prof,'satzen') | any(prof.satzen < 1000)) 
+    zang = vaconv(prof.scanang,prof.zobs,prof.salti);
+    prof.satzen = 1./cos(deg2rad(zang));
+  end
 
   [head,hattr,prof,pattr,summary] = rtp_cris_subset(head,hattr,prof,pattr,strcmp(rtpset,'subset'));
   if isempty(prof); disp('ERROR: no data returned'); continue; end  % if no data was returned

@@ -93,7 +93,7 @@ disp('subsetting RTP to clear test channels')
 disp('writing pre-klayers tmp RTP file')
 rtpwrite(tmp_rtp1,head,hattr,prof,pattr);
 
-keyboard
+%keyboard
 % Run klayers and SARTA
 disp('running klayers')
 eval(['! ' KLAYERS ' fin=' tmp_rtp1 ' fout=' tmp_rtp2 ' > ' tmp_jout]);
