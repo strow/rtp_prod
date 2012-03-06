@@ -48,14 +48,19 @@ version = 'v1';
 si = [1:1305 1308:1311 1316:1319 1324:1327];
 % Proxy index
 pi = [3:715  720:1152 1157:1315 1:2 716:719 1153:1156 1316:1317];
+if ~exist('data_str','var')
+  data_str = '';
+end
     
 disp(['Processing ' datestr(JOB(1),26) ' with version: ' version])
 for hour = 0:23
   disp([' hour ' num2str(hour)])
+  disp(['searching: ' data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*' src '.h5']);
   f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*' src '.h5']);
   data_type = basename(data_path);
-  rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type src '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.' version '.rtp'];
+  rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type data_str src '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.' version '.rtp'];
   disp(['  found ' num2str(length(f)) ' sdr60 files'])
+  disp(['  creating ' rtpfile])
 
   if length(f) == 0
     f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*' src '.h5']);
@@ -67,10 +72,12 @@ for hour = 0:23
   clear prof pattr head hattr
   for i = 1:length(f)
     d = dir(f{i});
+    %if(d.bytes < 172281920); disp('file too small'); continue; end
     disp(['Reading ' f{i}])
 try
     [p pattr]=readsdr_rtp(f{i});
 catch
+ disp([' failure reading ' f{i} ]);
  continue % failure reading the file, try the next
 end
     p.findex = int32(ones(size(p.rtime)) * i);
@@ -104,9 +111,9 @@ end
   % This is to catch the data point which have latitude values of -9999 and to keep the
   %   values / fovs we will map them to a equator point that has an invalid rlon point
   disp([' bad rlat = ' num2str(sum(prof.rlat < -999))])
-  prof.rlon(abs(prof.rlat) > 999) = -9999;
-  prof.rlat(abs(prof.rlat) > 999) = 0;
-  prof.rlat(abs(prof.rlon) > 999) = 0;
+  bad_loc = abs(prof.rlat) > 999 | abs(prof.rlon) > 999;
+  prof.rlat(bad_loc) = 0;
+  prof.rlon(bad_loc) = 360;
   disp([' bad rlat = ' num2str(sum(prof.rlat < -999))])
 
   % Get head.vchan from fm definitions above
@@ -175,30 +182,41 @@ end
     [head hattr prof pattr] = rtpadd_ecmwf_data(head,hattr,prof,pattr);
   end
 
+  if(~isfield(prof,'zobs')); prof.zobs = ones(size(prof.rtime)) * 830610; end
+  if(~isfield(prof,'wspeed')); prof.wspeed = ones(size(prof.rtime)) * 0; end
+
   disp('adding emissivity');
   rtime = rtpget_date(prof,pattr);
   dv = datevec(JOB(1));
   [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
  
-keyboard
   %  A proxy for solzen for the given orbit
-  if(~isfield(prof,'solzen') | any(prof.solzen < 1000))
-    center_fov = prof.xtrack == 45;
-    lat_dir = diff(prof.rlat(center_fov));
-    sol_zen = ([lat_dir lat_dir(end)] < 0)*90 + 45;
-    prof.solzen = sol_zen(prof.atrack);
+  %if(~isfield(prof,'solzen') | any(prof.solzen < 1000))
+  %  center_fov = prof.xtrack == 15;
+  %  lat_dir = diff(prof.rlat(center_fov));
+  %  sol_zen = ([lat_dir(1) lat_dir lat_dir(end)] < 0)*90 + 45;
+  %keyboard
+  %  prof.solzen = reshape(repmat(sol_zen,15,1),1,[]);
+  %  prof.solzen = prof.solzen(1:length(prof.rtime));
+  %end
+
+
+
+  if(isfield(prof,'scanang'))
+    if(~isfield(prof,'satzen')) 
+      zang = vaconv(prof.scanang,prof.zobs,prof.salti);
+      prof.satzen = 1./cos(deg2rad(zang));
+    end
+  else
+    prof
+    disp('  missing scanang!');
   end
 
 
-  if(~isfield(prof,'zobs')); prof.zobs = ones(size(prof.rtime)) * 830610; end
-  if(~isfield(prof,'wspeed')); prof.wspeed = ones(size(prof.rtime)) * 0; end
-
-  if(~isfield(prof,'satzen') | any(prof.satzen < 1000)) 
-    zang = vaconv(prof.scanang,prof.zobs,prof.salti);
-    prof.satzen = 1./cos(deg2rad(zang));
-  end
-
+  try
   [head,hattr,prof,pattr,summary] = rtp_cris_subset(head,hattr,prof,pattr,strcmp(rtpset,'subset'));
+  catch
+  end
   if isempty(prof); disp('ERROR: no data returned'); continue; end  % if no data was returned
 
 

@@ -49,7 +49,13 @@ end
 
 % Determine geofile from pdfile
 [sdrdir,~,~] = fileparts(pdfile);
-geofile = fullfile(sdrdir,pd_file_a.N_GEO_Ref)
+if isfield(pd_file_a,'N_GEO_Ref')
+  geofile = fullfile(sdrdir,pd_file_a.N_GEO_Ref)
+else
+  f = dir(regexprep(pdfile,{'SCRIS' '_c[0-9]+'},{'GCRSO' '*'}));
+  geofile = fullfile(sdrdir,f.name);
+end
+
 if exist(geofile) ~= 2
    geofile
    error('Geo file does not exist')

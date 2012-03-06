@@ -5,7 +5,7 @@
 #
 #
 
-POST='V1_ecm'
+POST='ecm_15grid'
 prod='cris'
 
 
@@ -35,7 +35,8 @@ lockfile -0 -r0 -l3600 $lock || exit
 arr=(`echo $1 | sed "s/:/ /g"`)  # split the input argument into two sets of numbers
 for date in `/asl/opt/bin/datelist ${arr[0]}:${arr[2]}`; do
     year=${date:0:4}; mo=${date:4:2}; day=${date:6:2}
-    filemask="$filemask '/asl/data/rtprod_$prod/$year/$mo/$day/${prod}*.rtp'";
+    #filemask="$filemask '/asl/data/rtprod_$prod/$year/$mo/$day/cris_rdr60_allfov*.rtp'";
+    filemask="$filemask '/strowdata1/s1/sergio/CRIS/$year/$mo/$day/uniform_clear_cris_rdr60_allfov*.rtp'";
 done
 echo filemask=$filemask
 
@@ -46,12 +47,11 @@ defaults="addpath /asl/matlab/rtptoolsV201/;\
 gtops = struct; \
 gtops.clrflag = 1:2; \
 gtops.dbtsst_bins = [-5 5]; \
-gtops.stemp_bins = [273 inf]; \
-gtops.rlat_bins=[-70 -60 -50 -45 -40 -35 -30:2.5:30 35 40 45 50 60 70]; \
-gtops.secang_bins=[1 1.028 1.1 1.31 1.72]; \
-gtops.dbt_bins=[-25 25]; \
+gtops.ifov_bins = 1:10; \
+gtops.rlat_bins=-90:15:90; \
+gtops.rlon_bins=-180:15:180; \
+gtops.filter='addpath /asl/matlab/cris/unapod/;prof.robs1 = boxg4_to_ham(head.ichan, prof.robs1);'; \
 gtops.landfrac_bins=[0 0.001]; \
-gtops.ifov_bins=1:10; \
 gtops.solzen_bins=[0 90 180]; \
 gtops.calflag_bit=nan; \
 gtops.reason_bins=1; \
@@ -62,7 +62,7 @@ gtops.filemask={$filemask}; \
 
 # Execute matlab
 matlab -nodisplay -nodesktop -nojvm -nosplash -r "$defaults;  \
-  gstats_2010(gtops,'${out}'); exit;" 
+  gstats_2012(gtops,'${out}'); exit;" 
 
 # Clear the lock file to allow the process to be re-ran
 /bin/rm -f $lock &> /dev/null
