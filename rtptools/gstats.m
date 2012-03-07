@@ -408,7 +408,7 @@ for f = 1:length(files) % main file loop
     end
 %%XXXXXXXXXXXXX HACKS FOR BAD FILES END
 
-    [head, hattr, prof, pattr] = rtpgrow(head, hattr, prof, pattr);
+    [head, hattr, prof, pattr] = rtpgrow(head, hattr, prof, pattr,dirname(fname));
     if ~isfield(prof,'robs1'); disp(['  Missing robs1 - skipping ' fname]); continue; end
 %    if strcmp(fname(end),'1') & exist([fname(1:end-1) '2'],'file')
 %      fname2 = [fname(1:end-1) '2'];
@@ -431,6 +431,10 @@ for f = 1:length(files) % main file loop
     gs.gtops.rtp_sarta_exec = get_attr(hattr,'sarta_exec');
     gs.gtops.rtp_klayers = get_attr(hattr,'klayers');
     gs.gtops.rtp_klayers_exec = get_attr(hattr,'klayers_exec');
+    if length(gs.gtops.rtp_klayers_exec) == 0
+      disp('  WARNING: Missing klayers_exec, using airs wetwater default');
+      gs.gtops.rtp_klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs';
+    end
 
   catch e
     e
@@ -579,9 +583,11 @@ for f = 1:length(files) % main file loop
       warn_robs_calflag = 1; % supress further warnings
     end
     prof.robs1(prof.robs1 == 0 | (prof.robs1 < -100)) = nan;  % what to do with fake channels
-    if isfield(prof,'rcalc') 
-      prof.rcalc(isnan(prof.robs1)) = nan; % set all rcalc to nans in robs1
-    end
+
+    % clean up any noisy data from the calcs when it is bad in the obs
+    %if isfield(prof,'rcalc') 
+    %  prof.rcalc(isnan(prof.robs1)) = nan; % set all rcalc to nans in robs1
+    %end
   end
 
 try
@@ -740,7 +746,8 @@ try
     end
   end
 catch e; e
-  %keyboard; 
+  e.message
+  keyboard; 
   disp(['error point 1 ' outfile])
   continue
 end
