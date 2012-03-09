@@ -44,7 +44,12 @@ hattr = set_attr(hattr,'rtpfile',f{1});
 %%%%
 if strcmp(model,'ecm')
   disp(['  adding ecm profiles to ' bn])
+  try
   [head hattr prof pattr] =rtpadd_ecmwf_data(head,hattr,prof,pattr);
+  catch
+    disp(['  ERROR adding data for ' outfile])
+    continue
+  end
 elseif strcmp(model,'era')
   disp(['  adding era profiles to ' bn])
   system(['/asl/opt/bin/getera ' datestr(JOB(1),'yyyymmdd')])

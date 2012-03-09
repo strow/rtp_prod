@@ -50,7 +50,7 @@ head = head_in; hattr = hattr_in; prof = prof_in; pattr = pattr_in;
 
 
 % Convert boxcar (ie unapodized) to Hamming apodization
-disp('running proxy_box_to_ham')
+disp('running boxg4_to_ham')
 
 %replaces proxy_box_to_ham
 prof.robs1 = boxg4_to_ham(head.ichan, prof.robs1);

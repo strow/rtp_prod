@@ -61,6 +61,11 @@ for hour = 0:23
   rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type data_str src '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.' version '.rtp'];
   disp(['  found ' num2str(length(f)) ' sdr60 files'])
   disp(['  creating ' rtpfile])
+  if exist(rtpfile,'file')
+    disp('  skipping');
+    continue
+  end
+  if ~lockfile(rtpfile); continue; end
 
   if length(f) == 0
     f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*' src '.h5']);
@@ -76,7 +81,9 @@ for hour = 0:23
     disp(['Reading ' f{i}])
 try
     [p pattr]=readsdr_rtp(f{i});
-catch
+catch e
+ e
+ %keyboard
  disp([' failure reading ' f{i} ]);
  continue % failure reading the file, try the next
 end
@@ -174,6 +181,10 @@ end
     [prof.salti, prof.landfrac] = usgs_deg10_dem(prof.rlat, prof.rlon);
   end
 
+  % get rid of negative times
+  ikeep = prof.rtime > 0 & prof.rtime < 0.5E9;
+  prof = structfun(@(x) x(:,ikeep),prof,'UniformOutput',0);
+
   % This is for the rtp_cris_subset algorithm:
   disp('running rtpadd_ecmwf');
   if(JOB(1) > datenum(2012,1,1))
@@ -213,9 +224,12 @@ end
   end
 
 
+
   try
   [head,hattr,prof,pattr,summary] = rtp_cris_subset(head,hattr,prof,pattr,strcmp(rtpset,'subset'));
-  catch
+  catch e
+    e
+    %keyboard
   end
   if isempty(prof); disp('ERROR: no data returned'); continue; end  % if no data was returned
 
@@ -230,7 +244,10 @@ end
   mkdirs(dirname(rtpfile))
   disp(['Writing out rtp file: ' rtpfile]);
   rtpwrite(rtpfile,head,hattr,prof,pattr)
-  save([rtpfile(1:end-3) 'summary.mat'],'-struct','summary')
+  if exist('summary','var')
+    save([rtpfile(1:end-3) 'summary.mat'],'-struct','summary')
+  end
+  clear summary head prof hattr pattr
 
 end % hour loop
 
