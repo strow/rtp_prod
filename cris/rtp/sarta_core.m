@@ -46,8 +46,10 @@ if strcmp(model,'ecm')
   disp(['  adding ecm profiles to ' bn])
   try
   [head hattr prof pattr] =rtpadd_ecmwf_data(head,hattr,prof,pattr);
-  catch
+  catch e
+    e
     disp(['  ERROR adding data for ' outfile])
+    keyboard
     continue
   end
 elseif strcmp(model,'era')

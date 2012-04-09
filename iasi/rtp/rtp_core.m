@@ -23,25 +23,31 @@ outdir = [prod_dir '/' datestr(JOB(1),26)];
 tmpfile1 = mktemp('IASI_L1C1');
 tmpfile2 = mktemp('IASI_L1C2');
 
-for hour = 0:23
+span = 0:23;
+if strcmp(rtpset,'full')
+  span = 0:24*6-1;
+end
+
+for hour = span
 disp(['hour=' num2str(hour)])
 
 % File name
 prefix = 'IASI_L1_CLR';
 if strcmp(rtpset,'full')
   allfov = 1;
-  outfile = [outdir '/iasi_l1c_full.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.v1.summary.mat'];
-  rtp_outfile = [outdir '/iasi_l1c_full.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.v1.rtp'];
+  outfile = [outdir '/iasi_l1c_full.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%03d') '.v1.summary.mat'];
+  rtp_outfile = [outdir '/iasi_l1c_full.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%03d') '.v1.rtp'];
+  mask=[indir '/IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(floor(hour/6),'%02d') num2str(mod(hour,6),'%01d') '*'];
 else
   allfov = 0;
   outfile = [outdir '/iasi_l1c.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.v1.summary.mat'];
   rtp_outfile = [outdir '/iasi_l1c.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.v1.rtp'];
+  mask=[indir '/IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '*'];
 end
 
 
 disp([' RTP outfile: ' outfile])
 
-mask=[indir '/IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '*'];
 disp([' matching IASI file mask: ' mask])
 [files dates] = findfiles(mask);
 disp(['   found ' num2str(length(files)) ' files'])
@@ -101,7 +107,8 @@ nodata = -9999;
 
   head.pfields = 0;
   try
-  [head, hattr, prof, pattr, summary, isubset] = iasi_uniform_and_allfov_func([indir '/*IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '*'],allfov);
+  %[head, hattr, prof, pattr, summary, isubset] = iasi_uniform_and_allfov_func([indir '/*IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '*'],allfov);
+  [head, hattr, prof, pattr, summary, isubset] = iasi_uniform_and_allfov_func(mask,allfov);
   catch
     disp(['ERROR: iasi_uniform_and_allfov failed']);
     continue

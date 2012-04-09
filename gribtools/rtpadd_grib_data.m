@@ -216,6 +216,11 @@ for irec = find(ismember(gribdate,round(rtime*rec_per_day)/rec_per_day))'
   if ~isfield(prof,'ptime'); prof.ptime = nan(1,nprof,'single'); end
   prof.ptime(1,idate) = (gribdate(irec)-rtime_st)*86400;
 
+  if length(find(levs == level(irec))) == 0
+    disp(['WARNING: bad level for record: ' num2str(irec) '  for level ' num2str(level(irec))])
+    continue;
+  end
+
   % assign the field to the correct profile field
   switch param{irec}
     % Parameter "SP" surface pressure (Pa)
@@ -251,7 +256,6 @@ for irec = find(ismember(gribdate,round(rtime*rec_per_day)/rec_per_day))'
     case 'T'; if ~isfield(prof,'ptemp') | size(prof.ptemp,1) ~= nlev; prof.ptemp = nan(nlev,nprof,'single'); end
       prof.ptemp(find(levs == level(irec)),idate) = d(iprof(idate));
 
-    
     % Parameter "Q" specific humidity (kg/kg)
     case 'Q'; if ~isfield(prof,'gas_1') | size(prof.gas_1,1) ~= nlev; prof.gas_1 = nan(nlev,nprof,'single'); end
       prof.gas_1(find(levs == level(irec)),idate) = d(iprof(idate));

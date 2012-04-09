@@ -65,14 +65,17 @@ for hour = 0:23
     disp('  skipping');
     continue
   end
-  if ~lockfile(rtpfile); continue; end
 
   if length(f) == 0
     f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*' src '.h5']);
     rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type src '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.' version '.rtp'];
     disp(['  found ' num2str(length(f)) ' sdr4 files'])
   end
+
+  if length(f) == 0; continue; end  % no files found = continue to next hour
+  mkdirs(dirname(rtpfile))
   disp(['  output: ' rtpfile])
+  if ~lockfile(rtpfile); continue; end
 
   clear prof pattr head hattr
   for i = 1:length(f)

@@ -40,7 +40,7 @@ debug = 0;
 if nargin == 5 
   if strcmpi(varargin{1},'debug')
     debug = 1;
-  else exist(varargin{1},'dir')
+  elseif exist(varargin{1},'dir')
     searchdir = varargin{1};
   end
 end

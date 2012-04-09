@@ -121,6 +121,7 @@ gt.rlat_bins = [];
 gt.rlon_bins = [];
 gt.xtrack_bins = [];
 gt.atrack_bins = [];
+gt.xtrack_eo_bins = [];
 
 % fov selection
 gt.fov_bins = [];
@@ -400,14 +401,13 @@ for f = 1:length(files) % main file loop
       hattr = set_attr(hattr,'rtpfile',['/asl/data/rtprod_airs/' dn(31:end) '/' bn(6:end-1)]);
     end
 
-    if strcmp(rtpfile(1:8),'/scratch')
+    if strcmp(rtpfile(1:min(end,8)),'/scratch')
       disp('  WARNING XXX resetting parent for bad rtp file');
       bn=basename(fname);
       dn=dirname(fname);
       hattr = set_attr(hattr,'rtpfile',[dn '/' bn(9:end-1)]);
     end
 %%XXXXXXXXXXXXX HACKS FOR BAD FILES END
-
     [head, hattr, prof, pattr] = rtpgrow(head, hattr, prof, pattr,dirname(fname));
     if ~isfield(prof,'robs1'); disp(['  Missing robs1 - skipping ' fname]); continue; end
 %    if strcmp(fname(end),'1') & exist([fname(1:end-1) '2'],'file')
@@ -437,8 +437,8 @@ for f = 1:length(files) % main file loop
     end
 
   catch e
-    e
-    %keyboard
+    e.stack
+    keyboard
     disp(['Error reading or growing file: ' fname])
        failed = fopen(['~/badfiles.txt'],'a');
        fwrite(failed,[fname 10],'char');
@@ -466,7 +466,7 @@ for f = 1:length(files) % main file loop
   end
 
   if length(prof.rtime) == 0; continue; end
-  if ~isfield(prof,'rcalc'); error(['  Stats Error: rcalc missing after executing ' gt.filter]); end
+  if ~isfield(gtops,'skip_calc') & ~isfield(prof,'rcalc'); error(['  Stats Error: rcalc missing after executing ' gt.filter]); end
 
   % site subset filter
   if ~isempty(gt.site_bins)
@@ -509,7 +509,7 @@ for f = 1:length(files) % main file loop
     inc_fields = union(inc_fields,{'rlat_avg' 'rlon_avg' 'siterad_avg'}); % make sure we are returning lat/lon
   end
 
-  if ~isfield(prof,'rcalc'); error('  Stats Error: rcalc missing after doing site selection'); end
+  if ~isfield(gtops,'skip_calc') & ~isfield(prof,'rcalc'); error('  Stats Error: rcalc missing after doing site selection'); end
   if length(prof.rtime) == 0; continue; end
 
   % klayers filter
@@ -523,7 +523,7 @@ for f = 1:length(files) % main file loop
   end
 
   %prof.udef = ud;
-  if ~isfield(prof,'rcalc'); error(['  Stats Error: rcalc missing after executing ' gt.klayers]); end
+  if ~isfield(gtops,'skip_calc') & ~isfield(prof,'rcalc'); error(['  Stats Error: rcalc missing after executing ' gt.klayers]); end
   if length(prof.rtime) == 0; continue; end
 
   % save some memory
@@ -547,7 +547,7 @@ for f = 1:length(files) % main file loop
   niok = length(iok);
   if ~exist('freq','var'); freq = head.vchan(iok); end  % load the frequencies from the head structure
   if ~isfield(gs.gtops,'freq'); gs.gtops.freq = (freq); end  % store the frequencies in the gtops structure
-  if ~isfield(prof,'rcalc'); error('  Stats Error: rcalc missing!'); end
+  if ~isfield(gtops,'skip_calc') & ~isfield(prof,'rcalc'); error('  Stats Error: rcalc missing!'); end
 
   % use calflag to clean the data:
   if isfield(prof,'robs1') 
@@ -696,6 +696,8 @@ try
           %keyboard
         end
       %case 'clear'; prof.clear = bitand(prof.udef(1,:),1);  %deprecated for iudef get attr method
+      case 'xtrack_eo'
+        prof.xtrack_eo = mod(prof.xtrack,2);
       case 'transcom'
         load TranscomRegionMatrix
         ii = sub2ind(size(RegionMatrix),max(1,min(180,round(-prof.rlat+89.5))),mod(round(prof.rlon-0.5),360)+1);

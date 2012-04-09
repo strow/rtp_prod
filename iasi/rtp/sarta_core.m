@@ -17,11 +17,12 @@ end
 %JOB = datenum(2011,5,29);
 
 clear f
-file_list = findfiles([prod_dir '/' datestr(JOB(1),'yyyy/mm/dd') '/iasi_l1c.' datestr(JOB(1),'yyyy.mm.dd') '*.rtp_1']);
+file_list = findfiles(input_glob);
 
 disp(['  Found a total of ' num2str(length(file_list)) ' files to add model data'])
 
 for f = file_list
+try % if a file goes bad skip it and go to the next
 bn = basename(f{1});
 
 %outfile = [dirname(f{1}) '/calc_' basename(f{1},'_1Z')];
@@ -143,8 +144,9 @@ for tmp1 = outfiles
   unlink(tmp1)
   if out ~= 0; error(['  error running klayers on ' bn]); end
 
-  disp(['  running sarta on ' bn])
-  out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ' > /dev/null']);
+  disp(['  running sarta on ' bn ' (' tmp2 ')'])
+  %out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ' > /dev/null']);
+  out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ' ']);
   unlink(tmp2)
   if out ~= 0; error(['  error running sarta on ' bn]); end
 end
@@ -181,5 +183,10 @@ rtpwrite_12([outfile 'Z'],head,hattr,prof,pattr);
 unlink(tmp1)
 unlink(tmp2)
 clear head hattr prof pattr p
+
+catch; 
+disp('ERRORED OUT')
+prof
+end
 
 end

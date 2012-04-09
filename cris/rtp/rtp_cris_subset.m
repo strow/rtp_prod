@@ -1,5 +1,6 @@
 function [head hattr prof pattr summary] = rtp_cris_subset(head_in,hattr_in,prof_in,pattr_in,subset)
 
+% function [head hattr prof pattr summary] = rtp_cris_subset(head_in,hattr_in,prof_in,pattr_in,subset)
 % 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Program xuniform_clear_template
@@ -49,6 +50,16 @@ disp(['loading data: '])
 head = head_in; hattr = hattr_in; prof = prof_in; pattr = pattr_in;
 
 
+% detect bad prof structures and correct:
+if any(prof_in.xtrack == 90) & any(prof.atrack == 12)
+  disp('WARNING: modifying rtp structure to fit cris params')
+  prof.findex = ones(size(prof.rtime),'int32');
+  prof.atrack = int32(floor((single(prof.atrack)+2)/3));
+  prof.xtrack = int32(floor((single(prof.xtrack)+2)/3));
+end
+prof
+
+
 % Convert boxcar (ie unapodized) to Hamming apodization
 disp('running boxg4_to_ham')
 
@@ -62,7 +73,7 @@ prof.robs1 = boxg4_to_ham(head.ichan, prof.robs1);
 
 % Run xuniform
 disp('running xuniform')
-[dbtun, mbt] = xuniform(head, prof, idtestu);
+[dbtun, mbt] = xuniform2(head, prof, idtestu);
 nobs = length(dbtun);
 ibad1 = find(mbt < 150);
 

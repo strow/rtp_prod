@@ -104,9 +104,10 @@ hattr = rm_attr(hattr,'klayers');
 klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
 if JOB(1) < datenum(2003,10,01)
   %sarta='/asl/packages/sartaV108/BinV201/sarta_apr08_m140x_385_wcon_nte';
-  sarta_exec='/asl/packages/sartaV108/BinV201/sarta_apr08_m140x_370_wcon_nte';
+  %sarta_exec='/asl/packages/sartaV108/BinV201/sarta_apr08_m140x_370_wcon_nte';
+  sarta_exec='/asl/packages/sartaV108/BinV201/sarta_airs_PGEv6_preNov2003_wcon_nte';
 else
-  sarta_exec='/asl/packages/sartaV108/BinV201/sarta_apr08_m140_wcon_nte';
+  sarta_exec='/asl/packages/sartaV108/BinV201/sarta_airs_PGEv6_postNov2003_wcon_nte';
 end
 
 hattr = set_attr(hattr,'sarta_exec',sarta_exec);
