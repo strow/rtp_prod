@@ -1,8 +1,9 @@
-function varargout = getdata_opendap_file(file, field)
-% Usage: getdata_opendap_file(file, field)
+function varargout = getdata_opendap_file(file)
+% Usage: getdata_opendap_file(file)
 %
 % file - predownloaded opendap file
-% field - field name of the data to retrieve
+%
+% note all fields must be known/predefinied and in order to retrieve data from the file correctly
 %
 
 

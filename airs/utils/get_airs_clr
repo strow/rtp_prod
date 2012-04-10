@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+#  This function will download and update the airs meta data.  The output path is in the output_path
+#    variable and the directory structure is yyyy/jjj and then the opendap result.
+#
+#  USAGE:
+#
+#    ./get_meta_data 20110101
+#
+
+output_path=/asl/data/rtprod_airs/raw_airs_clr
+jd=`tojd ${1:0:8}`
+
+eo=$(( ( ${1:3:1} % 2 ) + 1 ))
+date_path="${1:0:4}/${jd:4:3}"
+url="http://airscal${eo}u.ecs.nasa.gov/opendap/Aqua_AIRS_Level1/AIRIBQAP.005/$date_path/"
+echo Downloading list for $date_path
+list=`curl -s $url | sed '/dds/!d;s/.*"\(AIR.*hdf\).dds".*/\1/'`
+echo "  searching for needed downloads"
+for file in $list; do
+  gran=${file:16:3}
+  output_dir=$output_path/$date_path
+  #echo $gran $output_path/
+  if [ ! -d "$output_dir" ]; then
+    mkdir -p $output_dir;
+  fi
+  #  CalFlag dust_flag topog scanang sun_glint_distance
+
+  output=$output_dir/meta_cdtssll.$gran
+  if [ -s "$output" ]; then
+    size=`stat -c%s $output`
+    if [ $size -lt 710000 ]; then
+      rm $output
+    fi
+  fi
+
+  if [ ! -s "$output" ]; then
+    echo $gran "->" $output
+    curl -s -g "$url/$file.dods?nadirTAI[0:1:134],satheight[0:1:134],sat_lat[0:1:134],sat_lon[0:1:134],Latitude[0:1:134][0:1:89],Longitude[0:1:134][0:1:89],Time[0:1:134][0:1:89]" > $output
+    curl -s -g "$url/$file.html" | grep coremetadata.INVENTORYMETADATA.ORBITCALCULATEDSPATIALDOMAIN.ORBITCALCULATEDSPATIALDOMAINCONTAINER.EQUATORCROSSINGDATE.VALUE > $output.eq_x_tai
+  fi
+done
+
