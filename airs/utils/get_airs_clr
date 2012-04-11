@@ -36,8 +36,9 @@ for file in $list; do
 
   if [ ! -s "$output" ]; then
     echo $gran "->" $output
-    curl -s -g "$url/$file.dods?nadirTAI[0:1:134],satheight[0:1:134],sat_lat[0:1:134],sat_lon[0:1:134],Latitude[0:1:134][0:1:89],Longitude[0:1:134][0:1:89],Time[0:1:134][0:1:89]" > $output
-    curl -s -g "$url/$file.html" | grep coremetadata.INVENTORYMETADATA.ORBITCALCULATEDSPATIALDOMAIN.ORBITCALCULATEDSPATIALDOMAINCONTAINER.EQUATORCROSSINGDATE.VALUE > $output.eq_x_tai
+    #curl -s -g "$url/$file.dods?nadirTAI[0:1:134],satheight[0:1:134],sat_lat[0:1:134],sat_lon[0:1:134],Latitude[0:1:134][0:1:89],Longitude[0:1:134][0:1:89],Time[0:1:134][0:1:89]" > $output
+    s=`curl -s -g "$url/$file.html" | grep coremetadata.INVENTORYMETADATA.ORBITCALCULATEDSPATIALDOMAIN.ORBITCALCULATEDSPATIALDOMAINCONTAINER.EQUATORCROSSINGTIME.VALUE`
+    echo ${s#*:} > $output.eq_x_tai
   fi
 done
 
