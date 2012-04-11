@@ -1,0 +1,67 @@
+#!/bin/sh
+#
+# Run gstats for a given date range and save it to a predeclared folder.  
+#  For usage and detailed information run this script without any arguments.
+#
+#
+
+POST='v33a_02_la_dcc_ecm'
+prod='cris'
+
+
+# catch a user kill signal and clean up any temporary / old files sitting around
+on_die()
+{
+  echo "Dying..."
+  /bin/rm -f $lock
+  exit
+}
+trap 'on_die' 2 3 5 15
+
+
+# choose and create output directory
+dir=/asl/data/rtprod_$prod/gstats/gsx_$POST
+mkdir -p $dir 2> /dev/null
+
+# the output file name 
+out=$dir/${prod}_daily_${1:0:8}.mat
+
+# create / test to see if this is already being processed by creating a temporary lock file
+lock=$dir/.${prod}_${1:0:8}.lock
+echo lockfile=$lock
+lockfile -0 -r0 -l3600 $lock || exit
+
+year=${1:0:4}
+mo=${1:4:2}
+day=${1:6:2}
+
+filemask="'/asl/data/rtprod_$prod/$year/$mo/$day/ecm.${prod}_v33a_02_sub_cspp_dev*.rtpZ'";
+echo filemask=$filemask
+
+
+# Start up matlab with this setup:
+
+defaults="cris_paths; \
+gtops = struct; \
+gtops.clrflag = 1:2; \
+gtops.dbtsst_bins = [-5 5]; \
+gtops.stemp_bins = [273 inf]; \
+gtops.dbt_bins=[-25 25]; \
+gtops.rlat_bins=[-70 -60 -50 -45 -40 -35 -30:2.5:30 35 40 45 50 60 70]; \
+gtops.atrack_bins=1:5; \
+gtops.landfrac_bins=[0 0.001]; \
+gtops.ifov_bins=1:10; \
+gtops.solzen_bins=[0 90 180]; \
+gtops.calflag_bit=nan; \
+gtops.reason_bins=3; \
+gtops.inc_fields={'ptemp','dbt','rcalc','robs1','rtime_avg','secang_avg','stemp','gas_1','gas_2_avg','gas_3','gas_4_avg','gas_5_avg','gas_6_avg','gtotal_avg','spres','salti_avg','cfrac_avg','wspeed_avg','palts_avg','plevs','solzen','secang'}; \
+gtops.filemask={$filemask}; \
+"
+
+
+# Execute matlab
+matlab -nodisplay -nodesktop -nojvm -nosplash -r "$defaults;  \
+  gstats(gtops,'${out}'); exit;" 
+
+# Clear the lock file to allow the process to be re-ran
+/bin/rm -f $lock &> /dev/null
