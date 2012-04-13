@@ -50,7 +50,7 @@ end
 
 disp('using rtpadd_era_data')
 rec_per_day = 4;
-for d = unique(sort(round([rtime-0 rtime rtime+0] * rec_per_day) / rec_per_day));
+for d = unique(sort(round([rtime-0.1 rtime rtime+0.1] * rec_per_day) / rec_per_day));
   disp(['reading era file for: ' datestr(d)])
   %ename = ['/asl/data/ecmwf/era/' datestr(d,'yyyymm') '_cld'];
   ename = ['/asl/data/era/' datestr(d,'yyyy/mm') '/' datestr(d,'yyyymmdd') '_lev.grib'];
