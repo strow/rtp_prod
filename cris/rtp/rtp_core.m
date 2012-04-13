@@ -53,12 +53,13 @@ if ~exist('data_str','var')
 end
     
 disp(['Processing ' datestr(JOB(1),26) ' with version: ' version])
-for hour = 0:23
-  disp([' hour ' num2str(hour)])
-  disp(['searching: ' data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*' src '.h5']);
-  f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*' src '.h5']);
+for decihour = 0:24*6-1
+  hour = floor(decihour / 6)
+  disp([' hour ' num2str(hour) ' '  num2str(mod(decihour,6),'%01d')])
+  disp(['searching: ' data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/GCRSO-SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') num2str(mod(decihour,6),'%01d') '*' src '.h5']);
+  f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/GCRSO-SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') num2str(mod(decihour,6),'%01d') '*' src '.h5']);
   data_type = basename(data_path);
-  rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type data_str src '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.' version '.rtp'];
+  rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type data_str src '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(decihour,'%03d') '.' version '.rtp'];
   disp(['  found ' num2str(length(f)) ' sdr60 files'])
   disp(['  creating ' rtpfile])
   if exist(rtpfile,'file')
@@ -67,8 +68,8 @@ for hour = 0:23
   end
 
   if length(f) == 0
-    f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') '*' src '.h5']);
-    rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type src '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%02d') '.' version '.rtp'];
+    f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' num2str(hour,'%02d') num2str(mod(decihour,6),'%01d')  '*' src '.h5']);
+    rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type src '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(decihour,'%03d') '.' version '.rtp'];
     disp(['  found ' num2str(length(f)) ' sdr4 files'])
   end
 
@@ -83,10 +84,10 @@ for hour = 0:23
     %if(d.bytes < 172281920); disp('file too small'); continue; end
     disp(['Reading ' f{i}])
 try
-    [p pattr]=readsdr_rtp(f{i});
+    [p pattr]=readsdr2_rtp(f{i});
 catch e
  e
- %keyboard
+ keyboard
  disp([' failure reading ' f{i} ]);
  continue % failure reading the file, try the next
 end
