@@ -205,11 +205,18 @@ prof.iudef(5,:) = ones(size(prof.rtime)) * double(pd_gran0_a.N_Beginning_Orbit_N
 %
 % Interpolate X,Y,Z at MidTime to rtime
 if (isfield(geo,'SCPosition') & isfield(geo,'MidTime'))
+  try
    xyz = geo.SCPosition; % [3 x 4*n]
    mtime = double(geo.MidTime)*1E-6 - seconds1958to2000; % [1 x 4*n]
-   prof.udef(10,:) = interp1(mtime,xyz(1,:),prof.rtime,'linear','extrap');
-   prof.udef(11,:) = interp1(mtime,xyz(2,:),prof.rtime,'linear','extrap');
-   prof.udef(12,:) = interp1(mtime,xyz(3,:),prof.rtime,'linear','extrap');
+   isub = prof.rtime > 0;
+   msel = [logical(1); diff(mtime) > 0];
+   prof.udef(10,isub) = interp1(mtime(msel),xyz(1,msel),prof.rtime(isub),'linear','extrap');
+   prof.udef(11,isub) = interp1(mtime(msel),xyz(2,msel),prof.rtime(isub),'linear','extrap');
+   prof.udef(12,isub) = interp1(mtime(msel),xyz(3,msel),prof.rtime(isub),'linear','extrap');
+  catch e;
+   e
+   keyboard
+  end
 end
 %
 prof.iudef( 8,:) = QAbitsLW;

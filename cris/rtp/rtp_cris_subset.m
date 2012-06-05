@@ -73,7 +73,7 @@ prof.robs1 = boxg4_to_ham(head.ichan, prof.robs1);
 
 % Run xuniform
 disp('running xuniform')
-[dbtun, mbt] = xuniform2(head, prof, idtestu);
+[dbtun, mbt] = xuniform3(head, prof, idtestu);
 nobs = length(dbtun);
 ibad1 = find(mbt < 150);
 
@@ -177,10 +177,19 @@ summary.site_number = uint16(isite);
 % Subset RTP and save output
 if (nkeep > 0)
    % Subset to RTP for {clear, site, DCC, random}
-   if(subset ~= 1)
+   chkeep = [];
+   if(subset == 0)
+     disp('   Subsetting for all');
      ikeep = 1:nobs;
+   elseif(subset == 2)
+     disp('   Subsetting for channels');
+     %iasi_chkeep = [1021 2345 3476 4401];
+     chkeep = [401 731 957 1142];
+     ikeep = 1:nobs;
+   else
+     disp('   Subsetting for clear');
    end
-   [head, prof] = subset_rtp(head,prof,[],[],ikeep);
+   [head, prof] = subset_rtp(head,prof,[],chkeep,ikeep);
    isite = isite(ikeep);
    iclrflag = iclrflag(ikeep);
    ireason = ireason(ikeep);
