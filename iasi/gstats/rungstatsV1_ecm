@@ -9,40 +9,47 @@ POST='V1_ecm'
 prod='iasi'
 
 
-# catch a user kill signal and clean up any temporary / old files sitting around
-on_die()
-{
-  echo "Dying..."
-  /bin/rm -f $lock
-  exit
-}
-trap 'on_die' 2 3 5 15
+# cd into a temporary directory to get things out of the way
+#cd $2
 
+rand=`uuidgen`
 
-# choose and create output directory
-dir=/asl/data/rtprod_$prod/gstats/gsx_daily_$POST
-mkdir -p $dir 2> /dev/null
+arr=(`echo $1 | sed "s/:/ /g"`)
+if [ ${#arr[@]} == 2 ]; then # if no step size is given
+  arr=( ${arr[0]} 1 ${arr[1]} );
+elif [ ${#arr[@]} == 1 ]; then # of no end is given
+  arr=( ${arr[0]} 1 ${arr[0]} );
+fi
 
-# the output file name 
-out=$dir/${prod}_daily_${1:0:8}.mat
+if [ ${#arr[@]} -eq 3 ] && [ ${#arr[0]} -eq 8 ]; then # we run daily
+  dir=/asl/data/rtprod_$prod/gstats/gsx_${arr[1]}day$POST
+  mkdir $dir 2> /dev/null
 
-# create / test to see if this is already being processed by creating a temporary lock file
-lock=$dir/.${prod}_${1:0:8}.lock
-echo lockfile=$lock
-lockfile -0 -r0 -l3600 $lock || exit
+  out=$dir/$prod-${arr[1]}day_${arr[0]}.mat
+  lock=$dir/.$prod-${arr[1]}day_${arr[0]}.lock
+  #if [ -e $out ]; then exit; fi
+  echo lockfile = $lock
+  lockfile -0 -r0 -l3600 $lock || exit
 
-# Loop over the given date range and create a file mask of all the rtp files
-arr=(`echo $1 | sed "s/:/ /g"`)  # split the input argument into two sets of numbers
-for date in `/asl/opt/bin/datelist ${arr[0]}:${arr[2]}`; do
+  for date in `/asl/opt/bin/datelist ${arr[0]}:${arr[2]}`; do
     year=${date:0:4}; mo=${date:4:2}; day=${date:6:2}
-    filemask="$filemask '/asl/data/rtprod_$prod/$year/$mo/$day/ecm.${prod}*.rtp_1Z'";
-done
+    filemask="$filemask '/asl/data/rtprod_$prod/$year/$mo/$day/ecm.${prod}_l1c.*.rtp_1Z'";
+  done
+else
+  echo "I don't know what you want to do!
+  Maybe you want to try one of the following:
+
+  $ ./`basename $0` 20070514:20090301  # make daily stats in gs_daily$POST/
+"
+  exit
+fi
+
 echo filemask=$filemask
 
 
 # Start up matlab with this setup:
 
-defaults="addpath /asl/matlab/rtptoolsV201/;\
+defaults="addpath ../rtp;iasi_paths\
 gtops = struct; \
 gtops.clrflag = 1:2; \
 gtops.dbtsst_bins = [-5 5]; \
@@ -62,7 +69,7 @@ gtops.filemask={$filemask}; \
 
 # Execute matlab
 matlab -nodisplay -nodesktop -nojvm -nosplash -r "$defaults;  \
-  gstats_2010(gtops,'${out}'); exit;" 
+  gstats(gtops,'${out}'); exit;" 
 
 # Clear the lock file to allow the process to be re-ran
 /bin/rm -f $lock &> /dev/null
