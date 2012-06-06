@@ -51,7 +51,7 @@ elseif strcmp(model,'era')
 elseif strcmp(model,'gfs')
   disp(['  adding gfs profiles to ' bn])
   [head hattr prof pattr] =rtpadd_gfs(head,hattr,prof,pattr);
-elseif strcmp(model,'merra')
+elseif strcmp(model,'mra')
   disp(['  adding merra profiles to ' bn]);
   [head hattr prof pattr] =rtpadd_merra(head,hattr,prof,pattr);
 else
