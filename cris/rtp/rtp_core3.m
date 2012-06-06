@@ -104,7 +104,11 @@ for decihour = span
     d = dir(f{i});
     %if(d.bytes < 172281920); disp('file too small'); continue; end
     disp(['Reading ' f{i}])
+try
     [p pattr]=readsdr_rtp(f{i});
+catch
+  continue
+end
     p.findex = int32(ones(size(p.rtime)) * i);
 
     % Now change indices to g4 of SARTA

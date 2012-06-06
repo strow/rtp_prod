@@ -67,7 +67,6 @@ gtops.filemask={$filemask}; \
 
 
 # Execute matlab
-echo $defaults
 matlab -nodisplay -nodesktop -nojvm -nosplash -r "$defaults; \
   gstats(gtops,'${out}'); exit;" 
 
