@@ -32,7 +32,7 @@ if [ ${#arr[@]} -eq 3 ] && [ ${#arr[0]} -eq 8 ]; then # we run daily
 
   for date in `/asl/opt/bin/datelist ${arr[0]}:${arr[2]}`; do
     year=${date:0:4}; mo=${date:4:2}; day=${date:6:2}
-    filemask="$filemask /asl/data/rtprod_$prod/$year/$mo/$day/ecm.cris_*sub*.rtpZ'";
+    filemask="$filemask '/asl/data/rtprod_$prod/$year/$mo/$day/ecm.cris_*sub*.rtpZ'";
   done
 else
   echo "I don't know what you want to do!
@@ -48,7 +48,7 @@ echo filemask=$filemask
 
 # Start up matlab with this setup:
 
-defaults="addpath ../rtp; cris_paths;\
+defaults="addpath ../rtp; cris_paths; \
 gtops = struct; \
 gtops.clrflag = 1:2; \
 gtops.dbtsst_bins = [-5 5]; \
@@ -67,7 +67,8 @@ gtops.filemask={$filemask}; \
 
 
 # Execute matlab
-matlab -nodisplay -nodesktop -nojvm -nosplash -r "$defaults;  \
+echo $defaults
+matlab -nodisplay -nodesktop -nojvm -nosplash -r "$defaults; \
   gstats(gtops,'${out}'); exit;" 
 
 # Clear the lock file to allow the process to be re-ran
