@@ -120,6 +120,8 @@ hattr = set_attr(hattr,'klayers_exec',klayers_exec);
 % write out an rtp file for sarta
 disp(['  writing out rtp file for sarta ' bn])
 tmp = mktemp();
+if isfield(prof,'robs1'); prof = rmfield(prof,'robs1'); end
+if isfield(prof,'rcalc'); prof = rmfield(prof,'rcalc'); end
 outfiles = rtpwrite_12(tmp,head,hattr,prof,pattr);
 
 for tmp1 = outfiles
@@ -131,7 +133,8 @@ for tmp1 = outfiles
   if out ~= 0; error(['  error running klayers on ' bn]); end
 
   disp(['  running sarta on ' bn])
-  out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ' > /dev/null']);
+  out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ]);
+  %out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ' > /dev/null']);
   unlink(tmp2)
   if out ~= 0; error(['  error running sarta on ' bn]); end
 end

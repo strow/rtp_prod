@@ -216,7 +216,7 @@ for irec = find(ismember(gribdate,round(rtime*rec_per_day)/rec_per_day))'
   if ~isfield(prof,'ptime'); prof.ptime = nan(1,nprof,'single'); end
   prof.ptime(1,idate) = (gribdate(irec)-rtime_st)*86400;
 
-  if length(find(levs == level(irec))) == 0
+  if length(find(levs == level(irec))) == 0 & ( strcmp(param{irec},'T') | strcmp(param{irec},'Q') | strcmp(param{irec},'CC') | strcmp(param{irec},'O3') | strcmp(param{irec},'CIWC') | strcmp(param{irec},'CLWC') )
     disp(['WARNING: bad level for record: ' num2str(irec) '  for level ' num2str(level(irec))])
     continue;
   end
@@ -230,6 +230,7 @@ for irec = find(ismember(gribdate,round(rtime*rec_per_day)/rec_per_day))'
     % Parameter "SKT" skin temperature (K)
     case 'SKT'; if ~isfield(prof,'stemp'); prof.stemp = nan(1,nprof,'single'); end
       prof.stemp(1,idate) = d(iprof(idate));
+      %disp(['skt ' num2str(sum(idate))])
       
     % Parameter "10U"/"10V" 10 meter u/v wind component (m/s)
     case '10U'; if ~exist('wind_u','var'); wind_u = nan(1,nprof,'single'); end
@@ -255,6 +256,7 @@ for irec = find(ismember(gribdate,round(rtime*rec_per_day)/rec_per_day))'
     % Parameter "T" temperature (K)
     case 'T'; if ~isfield(prof,'ptemp') | size(prof.ptemp,1) ~= nlev; prof.ptemp = nan(nlev,nprof,'single'); end
       prof.ptemp(find(levs == level(irec)),idate) = d(iprof(idate));
+      %disp('t')
 
     % Parameter "Q" specific humidity (kg/kg)
     case 'Q'; if ~isfield(prof,'gas_1') | size(prof.gas_1,1) ~= nlev; prof.gas_1 = nan(nlev,nprof,'single'); end
