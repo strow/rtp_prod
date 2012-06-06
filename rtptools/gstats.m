@@ -1,6 +1,6 @@
 function gs = gstats(gtops,outfile);
 %--- Global Statistics for RTP files ---
-% function gs = gstats_2010_site(gtops,outfile);
+% function gs = gstats(gtops,outfile);
 %
 % Calculate radiance (not BT) stats from RTP granules specified
 % by gfile.  Variables set in the "default selection parameters"

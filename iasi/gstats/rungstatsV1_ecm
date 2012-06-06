@@ -49,7 +49,7 @@ echo filemask=$filemask
 
 # Start up matlab with this setup:
 
-defaults="addpath ../rtp;iasi_paths\
+defaults="addpath ../rtp;iasi_paths;\
 gtops = struct; \
 gtops.clrflag = 1:2; \
 gtops.dbtsst_bins = [-5 5]; \
