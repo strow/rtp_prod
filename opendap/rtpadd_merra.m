@@ -105,7 +105,7 @@ function [head hattr prof pattr] = rtpadd_merra(head,hattr,prof,pattr)
     % For each profile, find the last valid level. 
     % 
     tprof.plevs = plevs*ones(1, nfovs);
-    tprof.nlevs = nlevs.*zeros(1, nfovs);
+    tprof.nlevs = nlevs.*ones(1, nfovs);
     tprof.nlevs(1,:) = nlevs-sum(isnan(ptemp));
 
     tprof.ptemp = ptemp;
