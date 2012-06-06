@@ -435,6 +435,10 @@ for f = 1:length(files) % main file loop
       disp('  WARNING: Missing klayers_exec, using airs wetwater default');
       gs.gtops.rtp_klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs';
     end
+    if isfield(prof,'rcalc') & isfield(prof,'robs1') & size(prof.rcalc,2) ~= size(prof.robs1,2)
+      disp('  ERROR:  rcalc and robs1 have different nfov');
+      continue;
+    end
 
   catch e
     e.stack

@@ -250,6 +250,10 @@ elseif BDS_NumBits == 16
   %DATA = fread(fh,(BDS_LEN-BDS_DataStart-1)/2,'uint16=>double')*scale+BDS_RefValue;
 end
 
+if isfield(rec,'rec.PDS_OrigCenter') & rec.PDS_OrigCenter == 7
+  DATA = DATA - BDS_RefValue + BDS_RefValue * scale;
+end
+
 if bitget(GDSBMS,7)
   BMS_DATA = double(BMS_DATA);
   BMS_DATA(BMS_DATA==0) = NaN;

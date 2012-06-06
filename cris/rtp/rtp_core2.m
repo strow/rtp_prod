@@ -51,29 +51,48 @@ pi = [3:715  720:1152 1157:1315 1:2 716:719 1153:1156 1316:1317];
 if ~exist('data_str','var')
   data_str = '';
 end
-    
-disp(['Processing ' datestr(JOB(1),26) ' with version: ' version])
-for decihour = 0:24*6-1
-  hour = floor(decihour / 6)
-  hourstr = [num2str(hour,'%02d') num2str(mod(decihour,6),'%01d')];
 
-  disp([' hour ' num2str(hour) ' '  hourstr])
-  disp(['searching: ' data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/GCRSO-SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
-  f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/GCRSO-SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
+span = 0:23;
+if strcmp(rtpset,'full')
+  span = 0:24*6-1;
+elseif strcmp(rtpset,'full4ch')
+  span = 0:23;
+end
+
+disp(['Processing ' datestr(JOB(1),26) ' with version: ' version])
+for decihour = span
+
+  if strcmp(rtpset,'full')
+    hour = floor(decihour / 6);
+    hourstr = [num2str(hour,'%02d') num2str(mod(decihour,6),'%01d')];
+    timestr = [num2str(decihour,'%03d')];
+  else
+    hour = decihour;
+    hourstr = [num2str(hour,'%02d')];
+    timestr = [num2str(hour,'%02d')];
+  end
+
+  disp([' time: ' timestr '  search: '  hourstr '*'])
+  disp(['searching: ' data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(floor(mat2jd(JOB(1))),'%03d') '/GCRSO-SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
+  f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(floor(mat2jd(JOB(1))),'%03d') '/GCRSO-SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
   data_type = basename(data_path);
-  rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type data_str src '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(decihour,'%03d') '.' version '.rtp'];
-  disp(['  found ' num2str(length(f)) ' sdr60 files'])
-  disp(['  creating ' rtpfile])
+  rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type data_str src '.' datestr(JOB(1),'yyyy.mm.dd') '.' timestr '.' version '.rtp'];
+  disp(['  found ' num2str(length(f)) ' GCRSO-SCRIS files'])
+
+  if length(f) == 0
+    disp('NO GCRSO-SCRIS files found, trying alternate hash')
+    f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(floor(mat2jd(JOB(1))),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
+    disp([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(floor(mat2jd(JOB(1))),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
+    rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type data_str src '.' datestr(JOB(1),'yyyy.mm.dd') '.' timestr '.' version '.rtp'];
+    disp(['  found ' num2str(length(f)) ' SCRIS files'])
+  end
+
   if exist(rtpfile,'file')
     disp('  skipping');
     continue
   end
-
-  if length(f) == 0
-    f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(mat2jd(JOB(1)),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
-    rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type src '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(decihour,'%03d') '.' version '.rtp'];
-    disp(['  found ' num2str(length(f)) ' sdr4 files'])
-  end
+  disp(['  found ' num2str(length(f)) ' sdr60 files'])
+  disp(['  creating ' rtpfile])
 
   if length(f) == 0; continue; end  % no files found = continue to next hour
   mkdirs(dirname(rtpfile))
@@ -85,14 +104,7 @@ for decihour = 0:24*6-1
     d = dir(f{i});
     %if(d.bytes < 172281920); disp('file too small'); continue; end
     disp(['Reading ' f{i}])
-try
     [p pattr]=readsdr_rtp(f{i});
-catch e
- e
- keyboard
- disp([' failure reading ' f{i} ]);
- continue % failure reading the file, try the next
-end
     p.findex = int32(ones(size(p.rtime)) * i);
 
     % Now change indices to g4 of SARTA
@@ -231,12 +243,20 @@ end
 
 
 
-  try
-  [head,hattr,prof,pattr,summary] = rtp_cris_subset(head,hattr,prof,pattr,strcmp(rtpset,'subset'));
-  catch e
-    e
-    %keyboard
+  %try
+  if strcmp(rtpset,'subset')
+    subtest = 1;
+  elseif strcmp(rtpset,'full4ch')
+    subtest = 2;
+  else
+    subtest = 0; % full
   end
+
+  [head,hattr,prof,pattr,summary] = rtp_cris_subset(head,hattr,prof,pattr,subtest);
+  %catch e
+  %  e
+  %  %keyboard
+  %end
   if isempty(prof); disp('ERROR: no data returned'); continue; end  % if no data was returned
 
 

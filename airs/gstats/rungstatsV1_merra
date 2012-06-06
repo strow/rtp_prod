@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Run gstats for a given date range and save it to a predeclared folder.  
 #  For usage and detailed information run this script without any arguments.
 #
 #
 
-POST='V1_dcc_ecm'
+POST='V1_merra'
 prod='airs'
 
 
@@ -35,32 +35,32 @@ lockfile -0 -r0 -l3600 $lock || exit
 arr=(`echo $1 | sed "s/:/ /g"`)  # split the input argument into two sets of numbers
 for date in `/asl/opt/bin/datelist ${arr[0]}:${arr[2]}`; do
     year=${date:0:4}; mo=${date:4:2}; day=${date:6:2}
-    filemask="$filemask '/asl/data/rtprod_$prod/$year/$mo/$day/ecm.airs_l1bcm.*.rtpZ'";
+    filemask="$filemask '/asl/data/rtprod_$prod/$year/$mo/$day/merra.airs_l1bcm.*.rtpZ'";
 done
 echo filemask=$filemask
 
 
 # Start up matlab with this setup:
 
-defaults="addpath /asl/matlab/rtptoolsV201/;\
-gtops = struct; \
-gtops.clrflag = 1:2; \
-gtops.dbt1291_bins = [-4 4]; \
-gtops.stemp_bins = [273 inf]; \
-gtops.rlat_bins=[-90:4:90]; \
-gtops.landfrac_bins=[0 0.001]; \
-gtops.solzen_bins=[0 90 180]; \
-gtops.calflag_bit=nan; \
+defaults="airs_paths; gtops = struct; \
+gtops.rlat_bins=[-70 -60 -50 -45 -40 -35 -30:2.5:30 35 40 45 50 60 70]; \
+gtops.secang_bins=[1 1.028 1.1 1.31 1.72]; \
 gtops.reason_bins=1; \
-gtops.ifov_bins=1:5; \
-gtops.inc_fields={'ptemp','dbt','rcalc','robs1','rtime_avg','secang_avg','stemp','gas_1','gas_2_avg','gas_3','gas_4_avg','gas_5_avg','gas_6_avg','gtotal_avg','spres','salti_avg','cfrac_avg','wspeed_avg','palts_avg','plevs','solzen','secang'}; \
+gtops.filter='prof=strong_filter(head,prof,prof.iudef(1,:));'; \
+gtops.dbt_bins=[-25 25]; \
+gtops.landfrac_bins=[0 0.001]; \
+gtops.mmw_bins=[0 65]; \
+gtops.mmw_udef=5; \
+gtops.solzen_bins=0:90:180; \
+gtops.inc_fields={'mmw_avg','ptemp','dbt','rcalc','robs1','rtime_avg','secang_avg','stemp','gas_1','gas_2_avg','gas_3','gas_4_avg','gas_5_avg','gas_6_avg','gtotal_avg','spres','salti_avg','cfrac_avg','wspeed_avg','palts_avg','plevs','solzen','secang'}; \
 gtops.filemask={$filemask}; \
 "
 
 
+
 # Execute matlab
 matlab -nodisplay -nodesktop -nojvm -nosplash -r "$defaults;  \
-  gstats_2010(gtops,'${out}'); exit;" 
+  gstats(gtops,'${out}'); exit;" 
 
 # Clear the lock file to allow the process to be re-ran
 /bin/rm -f $lock &> /dev/null

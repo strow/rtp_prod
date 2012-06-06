@@ -7,6 +7,8 @@
 %  Written by Paul Schou  17 Jun 2011
 iasi_paths
 
+system('sleep $(( $RANDOM % 30 ))');
+
 if ~exist('model','var')
   model='ecm';
 end

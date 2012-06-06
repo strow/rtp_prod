@@ -49,7 +49,6 @@ if strcmp(model,'ecm')
   catch e
     e
     disp(['  ERROR adding data for ' outfile])
-    keyboard
     continue
   end
 elseif strcmp(model,'era')
@@ -133,8 +132,8 @@ for tmp1 = outfiles
   if out ~= 0; error(['  error running klayers on ' bn]); end
 
   disp(['  running sarta on ' bn])
-  out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ]);
-  %out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ' > /dev/null']);
+  %out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ]);
+  out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ' > /dev/null']);
   unlink(tmp2)
   if out ~= 0; error(['  error running sarta on ' bn]); end
 end
