@@ -125,6 +125,9 @@ hour
     else
       ifov = gdata.findex <= 10;
     end
+    if sum(ifov) == 0
+      continue
+    end
     [head prof] = subset_rtp(head, gdata, [], [], find(ifov));
 
     % fix for zobs altitude
