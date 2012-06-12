@@ -59,7 +59,7 @@ gtops.filemask={$filemask}; \
 "
 
 out_tmp=`mktemp`
-matlab -nodesktop -nosplash -r "$defaults;  \
+matlab -nodesktop -nosplash -nodisplay -nojvm -r "$defaults;  \
   addpath ../rtp/;airs_paths; \
   gstats(gtops,'$out');  \
   exit;"
