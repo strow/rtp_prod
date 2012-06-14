@@ -134,15 +134,15 @@ rtpwrite(tmp1,head,hattr,p,pattr);
 
 disp(['  running klayers on ' bn])
 tmp2 = mktemp();
-out = system([get_attr(hattr,'klayers_exec') ' fin=' tmp1 ' fout=' tmp2]);
-%out = system([get_attr(hattr,'klayers_exec') ' fin=' tmp1 ' fout=' tmp2 ' > /dev/null']);
+%out = system([get_attr(hattr,'klayers_exec') ' fin=' tmp1 ' fout=' tmp2]);
+out = system([get_attr(hattr,'klayers_exec') ' fin=' tmp1 ' fout=' tmp2 ' > /dev/null']);
 unlink(tmp1)
 if out ~= 0; error(['  error running klayers on ' bn]); end
 
 tmp1 = mktemp();
 disp(['  running sarta on ' bn])
-out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1]);
-%out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ' > /dev/null']);
+%out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1]);
+out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ' > /dev/null']);
 unlink(tmp2)
 if out ~= 0; error(['  error running sarta on ' bn]); end
 
