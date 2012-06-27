@@ -27,20 +27,28 @@ function [head hattr prof pattr] = rtpadd_merra(head,hattr,prof,pattr)
   if(head.ptype~=0)
     disp('You have an RTP file that is a level file. All previous layer information will be removed');
     while head.ngas>0
-      prof=rmfield(prof,['gas_' num2str(head.glist(1))]);
-      head.ngas  = head.ngas-1;
-      head.glist = head.glist(2:end,1);
-      head.gunit = head.gunit(2:end,1);
-      head.ptype = 0;
+      if(isfield(prof,['gas_' num2str(head.glist(1))]))
+	prof=rmfield(prof,['gas_' num2str(head.glist(1))]);
+	head.ngas  = head.ngas-1;
+	head.glist = head.glist(2:end,1);
+	head.gunit = head.gunit(2:end,1);
+	head.ptype = 0;
+      else
+	warning(['Non existing field gas_' num2str(head.glist(1)) ' indicated by headers. Fixing']);
+	head.ngas  = head.ngas-1;
+	head.glist = head.glist(2:end,1);
+	head.gunit = head.gunit(2:end,1);
+	head.ptype = 0;
+      end
     end
   end
  
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Get the data times:
-  mtimes = AirsDate(prof.rtime);
+  mtimes = AirsDate(prof.rtime); % [mtimes]=days
 
-  threehours = round((mtimes-mtimes(1))*8);
-  u3hours = unique(threehours);
+  threehours = round((mtimes-mtimes(1))*8); % [threehours]=3-hour long units
+  u3hours = unique(threehours); % unique list of the used 3-hour intervals
   n3hours = numel(u3hours);
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,14 +62,14 @@ function [head hattr prof pattr] = rtpadd_merra(head,hattr,prof,pattr)
     tprof = ProfSubset2(prof,ifov);
 
     % Get required 3hr time slot
-    reqtime = mtimes(1) + ((i3hours-1)*8);
+    reqtime = mtimes(1) + u3hours(i3hours)/8; % [day]=[day]+[3hr]/8
 
 
     %%%%%%%%%%%%%%%%%%%% 
     % Set profile variables
 
     % ptime
-    tprof.ptime = ones(1,nfovs).*AirsDate(reqtime,-1);
+    tprof.ptime = ones(1,nfovs).*AirsDate(reqtime,-1); % [sec]
     tprof.plat = tprof.rlat;
     tprof.plon = tprof.rlon;
 
