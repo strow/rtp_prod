@@ -9,3 +9,16 @@ function psub=ProfSubset2(prof, subset)
 
 psub=structfun(@(x) (x(:,subset,:,:)), prof, 'UniformOutput', false);
 
+
+function func(x,subset)
+  if(rank(x)==2)
+    x(:,subset);
+  elseif(rank(x)==3)
+    x(:,:,subset);
+  elseif(rank(x)==4)
+    x(:,:,:,subset);
+  else
+    error('ProfSubset2_git not configured to handle more than rank=4');
+  end
+end
+
