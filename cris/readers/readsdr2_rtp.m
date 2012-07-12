@@ -48,7 +48,7 @@ end
 % Read the Product_Data file
 [pd pd_file_a pd_aggr_a pd_sdr_a pd_gran0_a] = readsdr_raw2pd_all(pdfile);
 
-% Determine geofile from pdfile
+% Use the merged pdfile and geofile
 geofile = pdfile;
 
 % Create a structure of quality flag info
@@ -59,6 +59,10 @@ clear qa
 
 % Read the Geolocation file
 [geo] = readsdr_rawgeo(geofile);
+
+%[geo2, agatt, attr4] = read_GCRSO(geofile)
+
+%keyboard
 
 % We have no means to check the match of pd and geo files but we
 % can at least can check they have the same number of observations
@@ -187,14 +191,26 @@ prof.robsqual = qual;
 % Assign non-standard fields
 prof.udef = zeros(20,nobs,'single');
 prof.iudef = zeros(10,nobs,'int32');
+
+prof.iudef(3,:) = ones(size(prof.rtime)) * str2num(pd_gran0_a.N_Granule_ID{1}(4:end));
+prof.iudef(4,:) = ones(size(prof.rtime)) * double(pd_gran0_a.Descending_Indicator);
+prof.iudef(5,:) = ones(size(prof.rtime)) * double(pd_gran0_a.N_Beginning_Orbit_Number);
+
 %
 % Interpolate X,Y,Z at MidTime to rtime
 if (isfield(geo,'SCPosition') & isfield(geo,'MidTime'))
+  try
    xyz = geo.SCPosition; % [3 x 4*n]
    mtime = double(geo.MidTime)*1E-6 - seconds1958to2000; % [1 x 4*n]
-   prof.udef(10,:) = interp1(mtime,xyz(1,:),prof.rtime,'linear','extrap');
-   prof.udef(11,:) = interp1(mtime,xyz(2,:),prof.rtime,'linear','extrap');
-   prof.udef(12,:) = interp1(mtime,xyz(3,:),prof.rtime,'linear','extrap');
+   isub = prof.rtime > 0;
+   msel = [logical(1); diff(mtime) > 0];
+   prof.udef(10,isub) = interp1(mtime(msel),xyz(1,msel),prof.rtime(isub),'linear','extrap');
+   prof.udef(11,isub) = interp1(mtime(msel),xyz(2,msel),prof.rtime(isub),'linear','extrap');
+   prof.udef(12,isub) = interp1(mtime(msel),xyz(3,msel),prof.rtime(isub),'linear','extrap');
+  catch e;
+   e
+   keyboard
+  end
 end
 %
 prof.iudef( 8,:) = QAbitsLW;
@@ -203,6 +219,9 @@ prof.iudef(10,:) = QAbitsSW;
 
 
 pattr = {{'profiles' 'rtime' 'seconds since 0z 1 Jan 2000'}, ...
+         {'profiles' 'iudef(3,:)' 'Granule ID {granid}'}, ...
+         {'profiles' 'iudef(4,:)' 'Descending Indicator {descending_ind}'}, ...
+         {'profiles' 'iudef(5,:)' 'Beginning Orbit Number {orbit_num}'}, ...
          {'profiles' 'iudef(8,:)' 'longwave QA bits {QAbitsLW}'}, ...
          {'profiles' 'iudef(9,:)' 'mediumwave QA bits {QAbitsMW}'}, ...
          {'profiles' 'iudef(10,:)' 'shortwave QA bits {QAbitsSW}'}, ...

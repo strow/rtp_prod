@@ -149,7 +149,7 @@ end
   head.ichan = (1:1329)';
   head.vchan = fm;
   head.ptype = 0;
-  head.pfields = 5;  % Paul had = 4 here
+  head.pfields = 5;
   head.ngas = 0;
   head.nchan = length(fm);
   head.pltfid = -9999;
