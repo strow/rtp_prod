@@ -36,6 +36,7 @@ hattr = set_attr(hattr,'rtpfile',f{1});
 %  ECMWF Matchup section
 %
 %%%%
+pattr=set_attr(pattr,'rtime','Seconds since 1993');
 if strcmp(model,'ecm')
   disp(['  adding ecm profiles to ' bn])
   try

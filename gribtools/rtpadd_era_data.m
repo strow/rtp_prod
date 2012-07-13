@@ -55,12 +55,23 @@ for d = unique(sort(round([rtime-0.1 rtime rtime+0.1] * rec_per_day) / rec_per_d
   %ename = ['/asl/data/ecmwf/era/' datestr(d,'yyyymm') '_cld'];
   ename = ['/asl/data/era/' datestr(d,'yyyy/mm') '/' datestr(d,'yyyymmdd') '_lev.grib'];
   disp(['  ' ename])
-  if ~exist(ename,'file')
-    system(['/asl/opt/bin/getera ' datestr(d,'yyyymmdd')])
-  end
+
+  % If the file is empty, remove it
+  %if exist(ename,'file')
+  %  t = dir(ename);
+  %  if t.bytes == 0
+  %    unlink(ename);
+  %  end
+  %end
+
+  % Uncomment this section if you want automatic era downloading to take place
+  %if ~exist(ename,'file')
+  %  system(['/asl/opt/bin/getera ' datestr(d,'yyyymmdd')])
+  %end
   if ~exist(ename,'file')
     error(['Missing era file: ' ename])
   end
+
   [head, hattr, prof, pattr] = rtpadd_grib_data(ename,head,hattr,prof,pattr,fields,rec_per_day,180);
   ename = ['/asl/data/era/' datestr(d,'yyyy/mm') '/' datestr(d,'yyyymmdd') '_sfc.grib'];
   disp(['  ' ename])

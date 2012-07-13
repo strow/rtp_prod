@@ -49,14 +49,15 @@ end
 
 % Determine geofile from pdfile
 [sdrdir,~,~] = fileparts(pdfile);
-if isfield(pd_file_a,'N_GEO_Ref')
-  geofile = fullfile(sdrdir,pd_file_a.N_GEO_Ref)
-else
+%if isfield(pd_file_a,'N_GEO_Ref')
+%  geofile = fullfile(sdrdir,pd_file_a.N_GEO_Ref)
+%else
   f = dir(regexprep(pdfile,{'SCRIS' '_c[0-9]+'},{'GCRSO' '*'}));
   geofile = fullfile(sdrdir,f.name);
-end
+%end
 
 if exist(geofile) ~= 2
+   f
    geofile
    error('Geo file does not exist')
 end
@@ -69,6 +70,10 @@ clear qa
 
 % Read the Geolocation file
 [geo] = readsdr_rawgeo(geofile);
+
+%[geo2, agatt, attr4] = read_GCRSO(geofile)
+
+%keyboard
 
 % We have no means to check the match of pd and geo files but we
 % can at least can check they have the same number of observations
