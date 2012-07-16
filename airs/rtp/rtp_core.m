@@ -10,7 +10,7 @@ julian = JOB(1) - datenum(datevec(JOB(1)).*[1 0 0 0 0 0]);
 indir = ['/asl/data/airs/AIRIBRAD/' datestr(JOB(1),10) '/' num2str(julian,'%03d')]
 outdir = [prod_dir '/' datestr(JOB(1),26)];
 
-system(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 1 AIRIBRAD.005 > /dev/null'])
+%system(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 1 AIRIBRAD.005 > /dev/null'])
 
 tmpfile = mktemp('AIRS_L1');
 
@@ -56,9 +56,7 @@ if ~isequal(dates, dates2) | ~isequal(rtp_dates, rtp_dates2)
   clear prof summary_arr;
   for i = 1:length(files)  % loop over granule files for a day
     disp(files{i})
-    try
-      [eq_x_tai, f, gdata]=readl1b_all(files{i});
-    catch; disp(['ERROR ' files{i}]); continue; end
+    [eq_x_tai, f, gdata]=readl1b_all(files{i});
 
     data.rtime = gdata.rtime(:)';  %'
     nok = length(data.rtime);
