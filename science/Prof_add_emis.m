@@ -173,7 +173,28 @@ models='Land(Wisconsin:/asl/data/iremis/CIMSS/); ';
       ddd=iremis_files_ndate(idates(ineed(iload)))-datenum(yyyy,'yyyy')+1;
       filedate=[yyyy num2str(ddd,'%03d')];
       filename=[iremisdir '/iremis_' filedate '.mat'];
-      dat(iload)=load(filename);
+      if(exist(filename,'file'))
+	dat(iload)=load(filename);
+      else
+        disp(['Prof_add_emis: The emissivity file ' filename 'is missing! Will look for a file of another year...']);
+        for itt1=[-1 1];
+	  filedate=[num2str(str2num(yyyy)+itt1) num2str(ddd,'%03d')];
+	  filename=[iremisdir '/iremis_' filedate '.mat'];
+          if(~exist(filename))
+            disp(['Attempt: file ' filename ' does not exist...']);
+            filename='';
+            continue;
+          else
+            disp(['Using file ' filename '.']);
+            dat(iload)=load(filename);
+            break  
+          end
+          % Find use an arbitrary existing file
+          filedate='2006001';
+	  filename=[iremisdir '/iremis_' filedate '.mat'];
+          dat(iload)=load(filename);
+        end
+      end
       idxname=[iremisdir '/iremis_' filedate '_idx.mat'];
       idx(iload)=load(idxname);
     end
