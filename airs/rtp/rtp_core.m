@@ -19,11 +19,11 @@ hr_span = (JOB(2)-JOB(1))*24;
 
 for gran = 1:240
 
-outfile = [outdir '/summary_AIRS_L1B_' datestr(JOB(1),'yyyy.mm.dd') num2str(gran,'%03d') '.mat'];
-rtp_outfile = [outdir '/AIRS_L1B_' datestr(JOB(1),'yyyy.mm.dd') num2str(gran,'%03d') '.rtp'];
+outfile = [outdir '/summary_AIRS_L1B_' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(gran,'%03d') '.mat'];
+rtp_outfile = [outdir '/AIRS_L1B_' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(gran,'%03d') '.rtp'];
 
 files = []; dates = [];
-  [f d] = findfiles([indir '/AIRS.' datestr(JOB(1),'yyyy.mm.dd') num2str(gran,'.%03d') '*.hdf']);
+  [f d] = findfiles([indir '/AIRS.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(gran,'.%03d') '*.hdf']);
   files = [files f];
   dates = [dates d];
 [rtp_files rtp_dates] = findfiles([rtp_outfile]); % check if the rtp outfiles already exist
