@@ -7,18 +7,18 @@ function psub=ProfSubset2(prof, subset)
 % Concept by Breno Imbiriba 2007.03.10
 %  vectorized by Paul Schou 2012
 
-psub=structfun(@(x) (x(:,subset,:,:)), prof, 'UniformOutput', false);
+psub=structfun(@(x) (func(x,subset)), prof, 'UniformOutput', false);
 
 
-function func(x,subset)
-  if(rank(x)==2)
-    x(:,subset);
-  elseif(rank(x)==3)
-    x(:,:,subset);
-  elseif(rank(x)==4)
-    x(:,:,:,subset);
+function y=func(x,subset)
+  if(ndims(x)==2)
+    y=x(:,subset);
+  elseif(ndims(x)==3)
+    y=x(:,:,subset);
+  elseif(ndims(x)==4)
+    y=x(:,:,:,subset);
   else
     error('ProfSubset2_git not configured to handle more than rank=4');
   end
 end
-
+end
