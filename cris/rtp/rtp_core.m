@@ -208,12 +208,12 @@ end
   prof = structfun(@(x) x(:,ikeep),prof,'UniformOutput',0);
 
   % This is for the rtp_cris_subset algorithm:
-  disp('running rtpadd_ecmwf');
-  if(JOB(1) > datenum(2012,1,1))
-    [head hattr prof pattr] =rtpadd_gfs(head,hattr,prof,pattr);
-  else
+  %if(JOB(1) > datenum(2012,1,1))
+  %  [head hattr prof pattr] =rtpadd_gfs(head,hattr,prof,pattr);
+  %else
+    disp('running rtpadd_ecmwf');
     [head hattr prof pattr] = rtpadd_ecmwf_data(head,hattr,prof,pattr);
-  end
+  %end
 
   if(~isfield(prof,'zobs')); prof.zobs = ones(size(prof.rtime)) * 830610; end
   if(~isfield(prof,'wspeed')); prof.wspeed = ones(size(prof.rtime)) * 0; end

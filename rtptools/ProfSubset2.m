@@ -6,6 +6,7 @@ function psub=ProfSubset2(prof, subset)
 %
 % Concept by Breno Imbiriba 2007.03.10
 %  vectorized by Paul Schou 2012
+%  updated by Breno Imbiriba to extend to multiple dimensions
 
 psub=structfun(@(x) (func(x,subset)), prof, 'UniformOutput', false);
 
@@ -18,7 +19,7 @@ function y=func(x,subset)
   elseif(ndims(x)==4)
     y=x(:,:,:,subset);
   else
-    error('ProfSubset2_git not configured to handle more than rank=4');
+    error('ProfSubset2_git not configured to handle more than ndims=4');
   end
 end
 end
