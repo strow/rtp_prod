@@ -20,8 +20,7 @@ function [pd pd_file_a pd_aggr_a pd_sdr_a pd_gran0_a] = readsdr_rawpd_all(file);
 
 d = dir(file);
 if (length(d) ~= 1)
-   hfile
-   error('bad filename')
+   error(['bad filename: ' file ]);
 end
 
 %Get hdf5 file info
