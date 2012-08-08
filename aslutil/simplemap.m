@@ -1,13 +1,20 @@
-function [data_out handle] = simplemap(varargin)
-% function [data handle] = simplemap(data,detail) 
+function [data_out handle ibin out] = simplemap(varargin)
+% function [data handle ibin stats] = simplemap(...) 
 %   Makes a plot of data spaced evenly on a cartesian coordinate map. 
 %
 % This routine was made to provide a very simple to use visualization
 %  toolbox where maps are overlayed on a satellite image / coast outlines
 %
 % Inputs:
-%   data   - Matrix with data to display on map
-%   detail - modifiers, see examples below
+%   rlat/lon - location coordinates in vectors for data matrix
+%   data     - Matrix with data to display on map, either 2D or a vector
+%     *see below for usage and explainations*
+%
+% Outputs:
+%   data_out - Matrix of data displayed on map
+%   handle   - axis handle of the matlab figure
+%   ibin     - binning for each of the data points
+%   stats    - statistics per bin, structure with min/max/mean/mode/kurtosis/skewness
 %
 % Example of usage:
 %   data = rand(10);                   % generate a random data set
@@ -196,7 +203,7 @@ if length(to_bin) > 0
     %if size(to_bin{1},1) == 1 & size(to_bin{2},1) == 1
     %  [to_bin{1} to_bin{2}] = meshgrid(to_bin{1},to_bin{2});
     %end
-    data = binprofdyn(to_bin{1},to_bin{2},to_bin{3},lat_range(1):to_bin{4}:lat_range(2),lon_range(1):to_bin{4}:lon_range(2));
+    [data count ibin] = binprofdyn(to_bin{1},to_bin{2},to_bin{3},lat_range(1):to_bin{4}:lat_range(2),lon_range(1):to_bin{4}:lon_range(2));
   end
 end
 
@@ -358,4 +365,32 @@ hold off
 if nargout > 0
   handle = pa;
   data_out = data;
+end
+ 
+if nargout > 3
+  dim = size(data);
+  out = struct;
+  out.min = nan(dim);
+  out.max = nan(dim);
+  out.mode = nan(dim);
+  out.mean = nan(dim);
+  out.std = nan(dim);
+  out.skewness = nan(dim);
+  out.kurtosis = nan(dim);
+  out.count = count;
+
+  for i = 1:max(ibin(:))
+    i_sel  = ibin == i & ~isnan(to_bin{3});
+    if sum(i_sel) == 0
+      continue
+    end
+    subset = to_bin{3}(i_sel);
+    out.min(i) = min(subset);
+    out.max(i) = max(subset);
+    out.mode(i) = mode(subset);
+    out.mean(i) = mean(subset);
+    out.std(i) = std(subset);
+    out.skewness(i) = skewness(subset);
+    out.kurtosis(i) = kurtosis(subset);
+  end
 end
