@@ -59,9 +59,13 @@
 0	3	1	PRMSL	Pressure reduced to MSL	Pa
 0	3	2	PTEND	Pressure tendency	Pa s-1
 0	3	3	ICAHT	ICAO standard atmosphere reference height	m
+0	3	4	GP	Geopotential	(m^2)/(s^2)
 0	3	5	HGT	Geopotential height	gpm
 0	3	6	DIST	Geometric height	m
-0	3	9	GP A	Geopotential height anomaly	gpm
+0	3	7	HSTDV Standard deviation of height	m
+0	3	8	PRESA	Pressure anomaly	Pa
+0	3	9	GPA	Geopotential height anomaly	gpm
+0	3	10	DEN	Density	kg/(m^3)
 0	3	192	MSLET	MSLP (Eta model reduction)	Pa
 0	3	193	5WAVH	5-wave geopotential height	gpm
 0	3	194	U-GWD	Zonal flux of gravity wave stress	N m-2
