@@ -1,10 +1,8 @@
 function ht = p2h(pin)
 %this function takes pressure in mb, and converts to height in m
 
-load /asl/matlab/clouds/airsheights.dat
-load /asl/matlab/clouds/airslevels.dat
-%load airsheights.dat
-%load airslevels.dat
+load airsheights.dat
+load airslevels.dat
 
 h=airsheights;
 p=airslevels;
