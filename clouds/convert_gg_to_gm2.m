@@ -57,9 +57,7 @@ kAvogadro = 6.022142E+26;  %molecules per kilomole
 T0 = 273.15;
 P0 = 1013.5;
 
-%load airslevels.dat
-load /asl/matlab/clouds/airslevels.dat
-
+load airslevels.dat
 
 MDAIR = 28.966; % g/mol
 MASSF = 18;     % g/mol for both water and ice!
