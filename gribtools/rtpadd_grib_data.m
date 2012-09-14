@@ -232,9 +232,9 @@ for irec = find(ismember(gribdate,round(rtime*rec_per_day)/rec_per_day))'
       prof.stemp(1,idate) = d(iprof(idate));
       %disp(['skt ' num2str(sum(idate))])
       
-    % Parameter "SST" skin temperature (K)
-    case 'SST'; if ~isfield(prof,'sst'); prof.sst = nan(1,nprof,'single'); end
-      prof.sst(1,idate) = d(iprof(idate));
+    % Parameter "SSTK" skin temperature (K)
+    case 'SSTK'; if ~isfield(prof,'sstk'); prof.sstk = nan(1,nprof,'single'); end
+      prof.sstk(1,idate) = d(iprof(idate));
       %disp(['skt ' num2str(sum(idate))])
       
     % Parameter "10U"/"10V" 10 meter u/v wind component (m/s)
