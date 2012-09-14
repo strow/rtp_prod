@@ -14,7 +14,11 @@ clear f
 for f = findfiles(input_glob);
 bn = basename(f{1});
 
-outfile = [dirname(f{1}) '/' model '.' basename(f{1},'Z') 'Z'];
+if ~exist('string','var')
+  string = '';
+end
+
+outfile = [dirname(f{1}) '/' model string '.' basename(f{1},'Z') 'Z'];
 
 if exist(outfile,'file');
   continue;
@@ -61,6 +65,16 @@ end
 
 if ~isfield(prof,'wspeed')
   prof.wspeed = zeros(size(prof.rtime));
+end
+
+%%%%
+%
+%  Add landfrac to the profile if requested
+%
+%%%%
+if exist('usgs','var')
+  s = abs(prof.rlat) <= 90;
+  [prof.salti(s) prof.landfrac(s)] = usgs_deg10_dem(prof.rlat(s),prof.rlon(s));
 end
 
 %%%%

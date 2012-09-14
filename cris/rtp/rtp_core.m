@@ -107,6 +107,7 @@ for decihour = span
 try
     [p pattr]=readsdr_rtp(f{i});
 catch
+    disp(['ERROR:  Problem reading in file ' f{i}])
   continue
 end
     p.findex = int32(ones(size(p.rtime)) * i);
@@ -207,6 +208,50 @@ end
   ikeep = prof.rtime > 0 & prof.rtime < 0.5E9;
   prof = structfun(@(x) x(:,ikeep),prof,'UniformOutput',0);
 
+  %%  A proxy for solzen for the given orbit
+  if(~isfield(prof,'solzen') | all(prof.solzen < 1000))
+    disp('  patching solzen - missing or has bad values')
+    center_fov = prof.xtrack == 15;
+    lat_dir = diff(prof.rlat(center_fov));
+    sol_zen = ([lat_dir lat_dir(end)] < 0)*90 + 45;
+    %keyboard
+    prof.solzen = reshape(repmat(sol_zen,max(prof.xtrack(:)),1),1,[]);
+  %  prof.solzen = prof.solzen(1:length(prof.rtime));
+  end
+
+  % A proxy for satzen
+  if(isfield(prof,'scanang'))
+    if(~isfield(prof,'satzen') | all(prof.satzen < -900)) 
+      disp('  patching satzen - missing or has bad values')
+      zang = vaconv(prof.scanang,prof.zobs,prof.salti);
+      prof.satzen = 1./cos(deg2rad(zang));
+    end
+  else
+    disp('  missing scanang!  approximating satzen');
+    prof.satzen = abs(double(prof.xtrack) - 15.5) * 4;
+  end
+
+  if isfield(prof,'satazi') & all(prof.satazi < -900)
+    prof = rmfield(prof,'satazi');
+  end
+  if isfield(prof,'solazi') & all(prof.solazi < -900)
+    prof = rmfield(prof,'solazi');
+  end
+
+  if all(prof.rlat == 0) & all(prof.rlon == 0)
+    disp('Bad Lat / Lon data, replacing--')
+    prof.rlat(:) = nan; prof.rlon(:) = nan;
+    isel = find(abs(double(prof.xtrack) - 15.5) < 2);
+    %prof.fovLon(:) = nan; prof.fovLat(:) = nan;
+    %isel = find(prof.xtrack == 15 & prof.solzen < 90);
+    for i = 1:length(isel)
+      geo = geonav_single(iasi2mattime(prof.rtime(isel(i)))-.0003,prof.satzen(isel(i)));
+      prof.rlat(isel(i)) = geo.fovLat(prof.ifov(isel(i)));
+      prof.rlon(isel(i)) = geo.fovLon(prof.ifov(isel(i))); 
+    end
+    %plot(prof.fovLat,prof.rlat)
+  end
+
   % This is for the rtp_cris_subset algorithm:
   %if(JOB(1) > datenum(2012,1,1))
   %  [head hattr prof pattr] =rtpadd_gfs(head,hattr,prof,pattr);
@@ -223,28 +268,6 @@ end
   dv = datevec(JOB(1));
   [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
  
-  %  A proxy for solzen for the given orbit
-  %if(~isfield(prof,'solzen') | any(prof.solzen < 1000))
-  %  center_fov = prof.xtrack == 15;
-  %  lat_dir = diff(prof.rlat(center_fov));
-  %  sol_zen = ([lat_dir(1) lat_dir lat_dir(end)] < 0)*90 + 45;
-  %keyboard
-  %  prof.solzen = reshape(repmat(sol_zen,15,1),1,[]);
-  %  prof.solzen = prof.solzen(1:length(prof.rtime));
-  %end
-
-
-
-  if(isfield(prof,'scanang'))
-    if(~isfield(prof,'satzen')) 
-      zang = vaconv(prof.scanang,prof.zobs,prof.salti);
-      prof.satzen = 1./cos(deg2rad(zang));
-    end
-  else
-    prof
-    disp('  missing scanang!');
-  end
-
 
 
   %try

@@ -81,13 +81,15 @@ clear qa
 % Create "prof" structure by subsetting data
 prof = [];
 %
+if isfield(geo,'Latitude') & all(geo.Latitude < -900) & isfield(geo,'Longitude') & all(geo.Longitude < -900)
+   
+end
 if (isfield(geo,'Latitude'))
    junk = geo.Latitude;
    s = size(junk);
    nobs = round(prod(s)); % exact integer
    prof.rlat = single( reshape(junk,1,nobs) );
 else
-   geo
    error('Missing required field Latitude')
 end
 %
