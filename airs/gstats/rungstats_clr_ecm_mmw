@@ -3,9 +3,11 @@
 # Run gstats for a given date range and save it to a predeclared folder.  
 #  For usage and detailed information run this script without any arguments.
 #
-#
+# Usage:
+# clustcmd -q long_contrib -l log -N gstats -n 8 -p 8 rungstats_clr_ecm_mmw 20110415
 
-POST='ctr_era_l1c'
+
+POST='mmw_clr_ecm'
 prod='airs'
 
 # cd into a temporary directory to get things out of the way
@@ -44,32 +46,26 @@ else
 fi
 
 
-if [ ! -e l1c ]; then
-  echo The link to the l1c repository does not exist, please clone the git repository and link the l1c directory to l1c.
-  echo
-  echo "  "git clone /asl/packages/git/l1c.git ~/l1c
-  echo "  "ln -s ~/l1c .
-  exit 1
-fi
-
 #
 #  Run the job!
 #
 #gtops.dbtsst_bins=[274 inf]; \
 
 defaults="gtops = struct; \
-gtops.rlat_bins=[-70 -60 -50 -45 -40 -35 -30:2.5:30 35 40 45 50 60 70]; \
-gtops.secang_bins=[1 1.028 1.1 1.31 1.72]; \
+gtops.dbtsst_bins = [-5 5]; \
+gtops.stemp_bins = [273 inf]; \
+gtops.rlat_bins=[-90 -50 -30 0 30 50 90]; \
+gtops.secang_bins=[1 1.1]; \
 gtops.landfrac_bins=[0 0.001]; \
+gtops.reason_bins=1; \
 gtops.solzen_bins=0:90:180; \
-gtops.filter='addpath l1c; [prof head] = l1c_gstats_filter(prof,head);'; \
+gtops.mmw_bins=[0:4:64]; \
 gtops.inc_fields={'ptemp','dbt','rcalc','robs1','rtime_avg','secang_avg','stemp','gas_1','gas_2_avg','gas_3','gas_4_avg','gas_5_avg','gas_6_avg','gtotal_avg','spres','salti_avg','cfrac_avg','wspeed_avg','palts_avg','plevs','solzen','secang'}; \
 gtops.filemask={$filemask}; \
 "
 
-
 out_tmp=`mktemp`
-matlab -nodesktop -nosplash -r "$defaults;  \
+matlab -nodesktop -nosplash  -r "$defaults;  \
   addpath ../rtp/;airs_paths; \
   gstats(gtops,'$out');  \
   exit;"
