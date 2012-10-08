@@ -521,7 +521,7 @@ for f = 1:length(files) % main file loop
 
   % klayers filter
   %ud = prof.udef;
-  if ~isempty(gt.klayers)
+  if mod(head.pfields,2) == 1 & ~isempty(gt.klayers)
 
     disp(['  running klayers filter: ' gt.klayers]);
     eval([gt.klayers ';']);
@@ -687,15 +687,21 @@ try
         %  end
         %end
         if ~isfield(prof,'reason')
-         if any(prof.iudef(1,:) > 0);
+         if isfield(prof,'iudef') & any(prof.iudef(1,:) > 0);
           disp('  Warning: Using iudef(1,:) for reason');
           prof.reason = prof.iudef(1,:);
-         else
+         elseif isfield(prof,'udef')
           disp('  Warning: using udef(1,:) instead of iudef for reason');
           prof.reason = prof.udef(1,:);
+         else
+          disp('  Warning: no reason bin, but reason binning was requested');
+          exit;
          end
         end
         prof.reason(prof.reason < 0) = 0; % clear out the negatives
+        if any(isnan(prof.reason(:))) | any(double(prof.reason(:)) < 0)
+          error('  Reason bin has non valid values, are you sure you want to bin by reason?');
+        end
         if isfield(gt,'reason_bins') & length(gt.reason_bins) == 1
           %disp(['  reason count: ' num2str(sum(prof.reason > 0)) ' ' num2str(length(find(prof.reason== 1))) ' ' num2str(length(find(bitand(prof.reason,1))))])
           %prof.reason = bitand(double(prof.reason),double(gt.reason_bins));
