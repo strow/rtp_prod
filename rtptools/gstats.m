@@ -938,7 +938,7 @@ for i = 1:length(inc_fields);
 
   % do the statistics
   if strcmp(field,'rlon')
-    gs.rlon_avg = angle(rlon_sum);
+    gs.rlon_avg = -angle(rlon_sum) * 180 / pi;
   else
     eval(sprintf('gs.%s_avg = %s(%s_sum ./ double(%s_count));',field,fclass,field,field))
   end
