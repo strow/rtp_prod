@@ -521,7 +521,7 @@ for f = 1:length(files) % main file loop
 
   % klayers filter
   %ud = prof.udef;
-  if mod(head.pfields,2) == 1 & ~isempty(gt.klayers)
+  if ~isfield(gtops,'skip_calc') & mod(head.pfields,2) == 1 & ~isempty(gt.klayers)
 
     disp(['  running klayers filter: ' gt.klayers]);
     eval([gt.klayers ';']);
