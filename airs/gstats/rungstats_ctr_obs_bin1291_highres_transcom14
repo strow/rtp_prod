@@ -1,0 +1,77 @@
+#!/bin/sh
+#
+# Run gstats for a given date range and save it to a predeclared folder.  
+#  For usage and detailed information run this script without any arguments.
+#
+# Usage:
+# clustcmd -q long_contrib -l log -N gstats -n 8 -p 8 rungstats_clr_ecm_secang 20110415
+
+
+POST='ctr_obs_bin1291_highres_transcom14'
+prod='airs'
+
+# cd into a temporary directory to get things out of the way
+#cd $2
+
+rand=`uuidgen`
+
+arr=(`echo $1 | sed "s/:/ /g"`)
+if [ ${#arr[@]} == 2 ]; then # if no step size is given
+  arr=( ${arr[0]} 1 ${arr[1]} );
+elif [ ${#arr[@]} == 1 ]; then # of no end is given
+  arr=( ${arr[0]} 1 ${arr[0]} );
+fi
+
+if [ ${#arr[@]} -eq 3 ] && [ ${#arr[0]} -eq 8 ]; then # we run daily
+  dir=/asl/data/rtprod_$prod/gstats/gsx_${arr[1]}day_$POST
+  mkdir $dir 2> /dev/null
+
+  out=$dir/$prod-${arr[1]}day_${arr[0]}.mat
+  lock=$dir/.$prod-${arr[1]}day_${arr[0]}.lock
+  #if [ -e $out ]; then exit; fi
+  echo lockfile = $lock
+  lockfile -0 -r0 -l3600 $lock || exit
+
+  for date in `/asl/opt/bin/datelist ${arr[0]}:${arr[2]}`; do
+    year=${date:0:4}; mo=${date:4:2}; day=${date:6:2}
+    filemask="$filemask '/asl/data/rtprod_$prod/$year/$mo/$day/airs_ctr.*.rtp'";
+  done
+else
+  echo "I don't know what you want to do!
+  Maybe you want to try one of the following:
+
+  $ ./`basename $0` 20070514:20090301  # make daily stats in gs_daily$POST/
+"
+  exit
+fi
+
+
+#
+#  Run the job!
+#
+#gtops.dbtsst_bins=[274 inf]; \
+
+defaults="gtops = struct; \
+gtops.skip_calc = true; \
+gtops.bto_id1291_bins=280:0.5:310; \
+gtops.transcom_bins=[14 15]; \
+gtops.solzen_bins=0:90:180; \
+gtops.inc_fields={'rtime_avg','rlat_avg','rlon_avg','salti_avg','secang','solzen','robs1'}; \
+gtops.filemask={$filemask}; \
+"
+
+#gtops.skip_calc = true; \
+#gtops.inc_fields={'ptemp','dbt','rcalc','robs1','rtime_avg','secang_avg','stemp','gas_1','gas_2_avg','gas_3','gas_4_avg','gas_5_avg','gas_6_avg','gtotal_avg','spres','salti_avg','cfrac_avg','wspeed_avg','palts_avg','plevs','solzen','secang','rlat_avg','rlon_avg'}; \
+
+out_tmp=`mktemp`
+matlab -nodesktop -nosplash -r "$defaults;  \
+  addpath ../rtp/;airs_paths; \
+  gstats(gtops,'$out');  \
+  exit;"
+
+if [ -s $out_tmp.mat ]; then
+  mv $out_tmp.mat ${out}
+fi
+
+/bin/rm -f $out_tmp $out_tmp.mat $lock
+
