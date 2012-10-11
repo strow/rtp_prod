@@ -7,7 +7,7 @@
 # clustcmd -q long_contrib -l log -N gstats -n 8 -p 8 rungstats_clr_ecm_secang 20110415
 
 
-POST='ctr_obs_bin1291_transcom14'
+POST="ctr_obs_bin1291_transcom14"
 prod='airs'
 
 # cd into a temporary directory to get things out of the way
@@ -53,7 +53,7 @@ fi
 
 defaults="gtops = struct; \
 gtops.skip_calc = true; \
-gtops.bto_id1291_bins=200:5:320; \
+gtops.bto_id1291_bins=190:2.5:320; \
 gtops.transcom_bins=[14 15]; \
 gtops.solzen_bins=0:90:180; \
 gtops.inc_fields={'rtime_avg','rlat_avg','rlon_avg','salti_avg','secang','solzen','robs1'}; \

@@ -7,6 +7,8 @@
 # clustcmd -q long_contrib -l log -N gstats -n 8 -p 8 rungstats_clr_ecm_secang 20110415
 
 
+#for it in `seq 1 22`; do tt=`fixsize $it 2` ;sed "s/14/$tt/;s/15/$((10#$tt+1))/" rungstats_ctr_obs_bin1291_highres_transcomX > rungstats_ctr_obs_bin1291_highres_transcom$tt; done
+
 POST='ctr_obs_bin1291_highres_transcom14'
 prod='airs'
 
@@ -53,7 +55,7 @@ fi
 
 defaults="gtops = struct; \
 gtops.skip_calc = true; \
-gtops.bto_id1291_bins=280:0.5:310; \
+gtops.bto_id1291_bins=265:0.5:320; \
 gtops.transcom_bins=[14 15]; \
 gtops.solzen_bins=0:90:180; \
 gtops.inc_fields={'rtime_avg','rlat_avg','rlon_avg','salti_avg','secang','solzen','robs1'}; \
