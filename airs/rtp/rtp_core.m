@@ -51,7 +51,10 @@ if ~isequal(dates, dates2) | ~isequal(rtp_dates, rtp_dates2)
   mkdirs(outdir,'+w +x','g');
 
   % declare we are working on this day so we don't have two processes working on the same day
-  if ~lockfile(outfile); continue; end
+  if ~lockfile(outfile); 
+    disp(['  Lockfile exists for file ' outfile '. Skipping.']);
+    continue; 
+  end
 
   clear prof summary_arr;
   for i = 1:length(files)  % loop over granule files for a day
