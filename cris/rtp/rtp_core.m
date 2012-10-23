@@ -208,16 +208,16 @@ end
   ikeep = prof.rtime > 0 & prof.rtime < 0.5E9;
   prof = structfun(@(x) x(:,ikeep),prof,'UniformOutput',0);
 
-  %%  A proxy for solzen for the given orbit
-  if(~isfield(prof,'solzen') | all(prof.solzen < 1000))
-    disp('  patching solzen - missing or has bad values')
-    center_fov = prof.xtrack == 15;
-    lat_dir = diff(prof.rlat(center_fov));
-    sol_zen = ([lat_dir lat_dir(end)] < 0)*90 + 45;
-    %keyboard
-    prof.solzen = reshape(repmat(sol_zen,max(prof.xtrack(:)),1),1,[]);
-  %  prof.solzen = prof.solzen(1:length(prof.rtime));
-  end
+%  %%  A proxy for solzen for the given orbit
+%  if(~isfield(prof,'solzen') | all(prof.solzen < 1000))
+%    disp('  patching solzen - missing or has bad values')
+%    center_fov = prof.xtrack == 15;
+%    lat_dir = diff(prof.rlat(center_fov));
+%    sol_zen = ([lat_dir lat_dir(end)] < 0)*90 + 45;
+%    %keyboard
+%    prof.solzen = reshape(repmat(sol_zen,max(prof.xtrack(:)),1),1,[]);
+%  %  prof.solzen = prof.solzen(1:length(prof.rtime));
+%  end
 
   % A proxy for satzen
   if(isfield(prof,'scanang'))
@@ -238,7 +238,10 @@ end
     prof = rmfield(prof,'solazi');
   end
 
-  if all(prof.rlat == 0) & all(prof.rlon == 0)
+  rtime = rtpget_date(prof,pattr);
+
+%  if all(prof.rlat == 0) & all(prof.rlon == 0)
+  if all(rtime < datenum(2012,07,01))
     disp('Bad Lat / Lon data, replacing--')
     prof.rlat(:) = nan; prof.rlon(:) = nan;
     isel = find(abs(double(prof.xtrack) - 15.5) < 2);
@@ -263,8 +266,11 @@ end
   if(~isfield(prof,'zobs')); prof.zobs = ones(size(prof.rtime)) * 830610; end
   if(~isfield(prof,'wspeed')); prof.wspeed = ones(size(prof.rtime)) * 0; end
 
+  disp('adding solar');
+  [prof.solzen prof.solazi] = SolarZenAzi(rtime,prof.rlat,prof.rlon,prof.salti);
+  
+
   disp('adding emissivity');
-  rtime = rtpget_date(prof,pattr);
   dv = datevec(JOB(1));
   [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
  
