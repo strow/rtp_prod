@@ -240,8 +240,8 @@ end
 
   rtime = rtpget_date(prof,pattr);
 
-%  if all(prof.rlat == 0) & all(prof.rlon == 0)
-  if all(rtime < datenum(2012,07,01))
+  if all(prof.rlat == 0) & all(prof.rlon == 0)
+%  if all(rtime < datenum(2012,07,01))
     disp('Bad Lat / Lon data, replacing--')
     prof.rlat(:) = nan; prof.rlon(:) = nan;
     isel = find(abs(double(prof.xtrack) - 15.5) < 2);
@@ -267,7 +267,7 @@ end
   if(~isfield(prof,'wspeed')); prof.wspeed = ones(size(prof.rtime)) * 0; end
 
   disp('adding solar');
-  [prof.solzen prof.solazi] = SolarZenAzi(rtime,prof.rlat,prof.rlon,prof.salti);
+  [prof.solzen prof.solazi] = SolarZenAzi(rtime,prof.rlat,prof.rlon,prof.salti/1000);
   
 
   disp('adding emissivity');

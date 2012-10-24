@@ -29,15 +29,15 @@ jd = UTC + 1721058.5;
 d = jd-2451543.5;
 
 % Keplerian Elements for the Sun (geocentric)
-w = 282.9404+4.70935e-5*d; %    (longitude of perihelion degrees)
+w = 282.9404+4.70935e-5.*d; %    (longitude of perihelion degrees)
 a = 1.000000;%                  (mean distance, a.u.)
-e = 0.016709-1.151e-9*d;%       (eccentricity)
-M = mod(356.0470+0.9856002585*d,360);%   (mean anomaly degrees)
+e = 0.016709-1.151e-9.*d;%       (eccentricity)
+M = mod(356.0470+0.9856002585.*d,360);%   (mean anomaly degrees)
 L = w + M;                     %(Sun's mean longitude degrees)
 oblecl = 23.4393-3.563e-7.*d;  %(Sun's obliquity of the ecliptic)
 
 %auxiliary angle
-E = M+(180/pi).*e.*sin(M.*(pi/180)).*(1+e*cos(M.*(pi/180)));
+E = M+(180/pi).*e.*sin(M*(pi/180)).*(1+e.*cos(M*(pi/180)));
 
 %rectangular coordinates in the plane of the ecliptic (x axis toward
 %perhilion)
