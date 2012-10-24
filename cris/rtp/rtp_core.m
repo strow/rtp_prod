@@ -88,16 +88,22 @@ for decihour = span
   end
 
   if exist(rtpfile,'file')
-    disp('  skipping');
+    disp(['  RTP File ' rtpfile ' already exists. Skipping.']);
     continue
   end
   disp(['  found ' num2str(length(f)) ' sdr60 files'])
   disp(['  creating ' rtpfile])
 
-  if length(f) == 0; continue; end  % no files found = continue to next hour
+  if length(f) == 0; 
+    disp(['No CrIS Data Files. Skipping.']);
+    continue; 
+  end  % no files found = continue to next hour
   mkdirs(dirname(rtpfile))
   disp(['  output: ' rtpfile])
-  if ~lockfile(rtpfile); continue; end
+  if ~lockfile(rtpfile); 
+    disp(['  Lockfile exists for file ' rtpfile '. Skipping.']); 
+    continue; 
+  end
 
   clear prof pattr head hattr
   for i = 1:length(f)
@@ -133,6 +139,7 @@ end
   
   % if no files were loaded continue on to the next hour
   if ~exist('prof','var')
+    disp('No prof structure (no SDR files loaded) ! Skipping');
     continue
   end
 
@@ -290,7 +297,7 @@ end
   %  e
   %  %keyboard
   %end
-  if isempty(prof); disp('ERROR: no data returned'); continue; end  % if no data was returned
+  if isempty(prof); disp('ERROR: no data returned from rtp_cris_subset. Skipping.'); continue; end  % if no data was returned
 
 
   % A trap for missing zobs data, substitute CRiS altitude (correct?)

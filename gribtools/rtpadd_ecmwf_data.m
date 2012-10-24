@@ -53,6 +53,11 @@ for d = unique(sort(round([rtime(:)-.003 rtime(:) rtime(:)+.003] * rec_per_day) 
   disp(['reading ecmwf file for: ' datestr(d)])
   [Y M D h m s]= datevec(d);
   ename = ['/asl/data/ecmwf/' datestr(d,'yyyy/mm/') ecmwf_name(Y, M, D, h*10+m/6)];
-  [head, hattr, prof, pattr] = rtpadd_grib_data(ename,head,hattr,prof,pattr,fields,8,0);
-  pattr = set_attr(pattr,'profiles','ECMWF','profiles');
+  
+  if(numel(dir([ename '*']))>=0)
+    [head, hattr, prof, pattr] = rtpadd_grib_data(ename,head,hattr,prof,pattr,fields,8,0);
+    pattr = set_attr(pattr,'profiles','ECMWF','profiles');
+  else
+    error(['File Not Found: ' ename '.']);
+  end
 end

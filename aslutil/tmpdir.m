@@ -6,24 +6,36 @@ function fname = tmpdir()
 
 % Written:  28 June 2011 - Paul Schou
 
-import java.io.*;
+  dirT = '/tmp/';
+  if ~isempty(getenv('TMPDIR'))
+    dirT = getenv('TMPDIR');
+  end
 
-dirS = '/dev/shm/';
-if ~isempty(getenv('SHMDIR'))
-  dirS = getenv('SHMDIR');
-end
-
-dirT = '/tmp/';
-if ~isempty(getenv('TMPDIR'))
-  dirT = getenv('TMPDIR');
-end
-
-t=File(dirT);
-s=File(dirS);
-
-if rand < t.getFreeSpace / (t.getFreeSpace+s.getFreeSpace)
   fname = dirT;
-else
-  %fname = dirS;
-  fname = dirT;
+
+
+  if(false)
+    import java.io.*;
+
+    dirS = '/dev/shm/';
+    if ~isempty(getenv('SHMDIR'))
+      dirS = getenv('SHMDIR');
+    end
+
+    dirT = '/tmp/';
+    if ~isempty(getenv('TMPDIR'))
+      dirT = getenv('TMPDIR');
+    end
+
+    t=File(dirT);
+    s=File(dirS);
+
+    if rand < t.getFreeSpace / (t.getFreeSpace+s.getFreeSpace)
+      fname = dirT;
+    else
+      %fname = dirS;
+      fname = dirT;
+    end
+  end
+
 end
