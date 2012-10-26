@@ -83,7 +83,7 @@ version_str = 'IASI processing v1.1';
     disp('match fail: version')
   end
   if isequal(dates,dates2) & isequal(rtp_dates,rtp_dates2) & strcmp(version_str,version_str2)
-    disp('The file date lists match, doing nothing!');
+    disp(['The file date lists match, doing nothing! Skipping.']);
     continue
   end
  end
@@ -109,14 +109,17 @@ nodata = -9999;
 
   % declare we are working on this day so we don't have two processes working on the same day
   disp(['lockfile: ' outfile])
-  if ~lockfile(outfile); continue; end
+  if ~lockfile(outfile); 
+    disp(['Lock File ' outfile ' exists. Skipping']);
+    continue; 
+  end
 
   head.pfields = 0;
   try
   %[head, hattr, prof, pattr, summary, isubset] = iasi_uniform_and_allfov_func([indir '/*IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(hour,'%02d') '*'],allfov);
   [head, hattr, prof, pattr, summary, isubset] = iasi_uniform_and_allfov_func(mask,allfov);
   catch
-    disp(['ERROR: iasi_uniform_and_allfov failed']);
+    disp(['ERROR: iasi_uniform_and_allfov failed. Skipping.']);
     continue
   end
 

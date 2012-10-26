@@ -59,13 +59,19 @@ if length(cTYPE) == 1
 
   icefound   = -1;
   waterfound = -1;
-  cc = convert_gg_to_gm2(cT,cB,cngwat,profX.plevs(:,ii),profX.ptemp(:,ii));
+  %cc = convert_gg_to_gm2(cT,cB,cngwat,profX.plevs(:,ii),profX.ptemp(:,ii));
+  cc = convert_gg_to_gm2(cT,cB,cngwat,plevs,ptemp);
 
   kk = 1;
 
   prof.cngwat(jj)  = cc(kk);
-  prof.cprtop(jj)  = profX.plevs(cT(kk),ii);
-  prof.cprbot(jj)  = profX.plevs(cB(kk),ii);
+  if iLevsVers == 1
+    prof.cprtop(jj)  = profX.plevs(cT(kk),ii);
+    prof.cprbot(jj)  = profX.plevs(cB(kk),ii);
+  elseif iLevsVers == 2
+    prof.cprtop(jj)  = plevs(cT(kk));
+    prof.cprbot(jj)  = plevs(cB(kk));
+  end
   prof.cfrac(jj)   = cfrac;
   if cTYPE(kk) == 'I'
     prof.ctype(jj)  = 201;
@@ -96,12 +102,18 @@ if length(cTYPE) == 2
 
   icefound   = -1;
   waterfound = -1;
-  cc = convert_gg_to_gm2(cT,cB,cngwat,profX.plevs(:,ii),profX.ptemp(:,ii));
+  %cc = convert_gg_to_gm2(cT,cB,cngwat,profX.plevs(:,ii),profX.ptemp(:,ii));
+  cc = convert_gg_to_gm2(cT,cB,cngwat,plevs,ptemp);
 
   kk = 1;
   prof.cngwat(jj)  = cc(kk);
-  prof.cprtop(jj)  = profX.plevs(cT(kk),ii);
-  prof.cprbot(jj)  = profX.plevs(cB(kk),ii);
+  if iLevsVers == 1
+    prof.cprtop(jj)  = profX.plevs(cT(kk),ii);
+    prof.cprbot(jj)  = profX.plevs(cB(kk),ii);
+  elseif iLevsVers == 2
+    prof.cprtop(jj)  = plevs(cT(kk));
+    prof.cprbot(jj)  = plevs(cB(kk));
+  end
   prof.cfrac(jj)   = cfrac;
   if cTYPE(kk) == 'I'
     prof.ctype(jj)  = 201;
@@ -115,8 +127,13 @@ if length(cTYPE) == 2
 
   kk = 2;
   prof.udef(11,jj)  = cc(kk);
-  prof.udef(13,jj)  = profX.plevs(cT(kk),ii);
-  prof.udef(14,jj)  = profX.plevs(cB(kk),ii);
+  if iLevsVers == 1
+    prof.udef(13,jj)  = profX.plevs(cT(kk),ii);
+    prof.udef(14,jj)  = profX.plevs(cB(kk),ii);
+  elseif iLevsVers == 2
+    prof.udef(13,jj)  = plevs(cT(kk));
+    prof.udef(14,jj)  = plevs(cB(kk));
+  end
   prof.udef(15,jj) = cfrac; %%cfrac2
   if cTYPE(kk) == 'I'
     prof.udef(17,jj) = 201;

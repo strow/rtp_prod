@@ -5,7 +5,7 @@
 #
 #
 
-POST='V1_ecm'
+POST='_clr_ecm'
 prod='cris'
 
 # cd into a temporary directory to get things out of the way

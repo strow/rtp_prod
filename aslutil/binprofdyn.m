@@ -1,5 +1,5 @@
-function [map ct_b std_b bin] = binprofdyn(lat,lon,data,lat_edges,lon_edges)
-% [map ct_b std_b ibin] = BINPROFDYN(lat,lon,data,lat_edges,lon_edges)
+function [map ct_b bin] = binprofdyn(lat,lon,data,lat_edges,lon_edges)
+% [map ct_b ibin] = BINPROFDYN(lat,lon,data,lat_edges,lon_edges)
 %                       = BINPROFDYN(lat,lon,data,deg_size)
 %                       = BINPROFDYN(lat,lon,data,lat_step,lon_step)
 %
@@ -14,7 +14,6 @@ function [map ct_b std_b bin] = binprofdyn(lat,lon,data,lat_edges,lon_edges)
 %
 %     Output :  map       : 2D averaged map
 %               ct_b      : counts per bin
-%               std_b     : std per bin (population: sqrt(sum(d^2)/N - m^2))
 %               ibin      : bin index for data points
 %
 % Examples of usage:
@@ -98,13 +97,7 @@ n(ct_b == 0) = nan;
 if nargout > 0 
     map = n;
     if nargout > 2
-        std_b = sqrt(accumarray(bin(all(bin>0,2),:),data(all(bin>0,2)).^2,[nlat nlon]) ./ ct_b - n.^2);
-    end
-    %if nargout < 4
-    %    return
-    %end
-    if nargout > 3
-        bin = sub2ind(size(map),bin(:,1),bin(:,2));
+        bin = sub2ind(size(map),bin(:,1),bin(:,2))';
     end
     return
 end

@@ -58,6 +58,7 @@ function gs = gstats(gtops,outfile);
 %    calflag_bit  - which bit to allow to pass {default 0, NaN to disable}
 %    site_bins    - num of a site to select (last bin is ignored) {ie: [1 2 nan]}
 %    siterad_bins - site radius of selection in degrees {default 5}
+%    transcom_bins - bin by the transcom bins for the regions {normal 0:23}
 %   --Dynamic selection bins/filters by channel--
 %    robs1_id#_bins - bin by robs1 channel id #
 %    rcalc_id#_bins - bin by rcalc channel id #
@@ -451,11 +452,13 @@ for f = 1:length(files) % main file loop
   end
   
   % remove gas numbers if they don't exist in the profile structure
-  for gnum = head.glist'
-    if ~isfield(prof,['gas_' num2str(gnum)])
-      head.gunit = head.gunit(head.glist ~= gnum);
-      head.glist = head.glist(head.glist ~= gnum);
-      head.ngas = head.ngas - 1;
+  if isfield(head,'glist')
+    for gnum = head.glist'
+      if ~isfield(prof,['gas_' num2str(gnum)])
+        head.gunit = head.gunit(head.glist ~= gnum);
+        head.glist = head.glist(head.glist ~= gnum);
+        head.ngas = head.ngas - 1;
+      end
     end
   end
 
@@ -518,7 +521,7 @@ for f = 1:length(files) % main file loop
 
   % klayers filter
   %ud = prof.udef;
-  if ~isempty(gt.klayers)
+  if ~isfield(gtops,'skip_calc') & mod(head.pfields,2) == 1 & ~isempty(gt.klayers)
 
     disp(['  running klayers filter: ' gt.klayers]);
     eval([gt.klayers ';']);
@@ -684,15 +687,21 @@ try
         %  end
         %end
         if ~isfield(prof,'reason')
-         if any(prof.iudef(1,:) > 0);
+         if isfield(prof,'iudef') & any(prof.iudef(1,:) > 0);
           disp('  Warning: Using iudef(1,:) for reason');
           prof.reason = prof.iudef(1,:);
-         else
+         elseif isfield(prof,'udef')
           disp('  Warning: using udef(1,:) instead of iudef for reason');
           prof.reason = prof.udef(1,:);
+         else
+          disp('  Warning: no reason bin, but reason binning was requested');
+          exit;
          end
         end
         prof.reason(prof.reason < 0) = 0; % clear out the negatives
+        if any(isnan(prof.reason(:))) | any(double(prof.reason(:)) < 0)
+          error('  Reason bin has non valid values, are you sure you want to bin by reason?');
+        end
         if isfield(gt,'reason_bins') & length(gt.reason_bins) == 1
           %disp(['  reason count: ' num2str(sum(prof.reason > 0)) ' ' num2str(length(find(prof.reason== 1))) ' ' num2str(length(find(bitand(prof.reason,1))))])
           %prof.reason = bitand(double(prof.reason),double(gt.reason_bins));
@@ -929,7 +938,7 @@ for i = 1:length(inc_fields);
 
   % do the statistics
   if strcmp(field,'rlon')
-    gs.rlon_avg = angle(rlon_sum);
+    gs.rlon_avg = -angle(rlon_sum) * 180 / pi;
   else
     eval(sprintf('gs.%s_avg = %s(%s_sum ./ double(%s_count));',field,fclass,field,field))
   end

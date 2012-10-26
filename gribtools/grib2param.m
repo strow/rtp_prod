@@ -8,7 +8,7 @@ function lbl = grib2param(dis,cat,parm)
 
 persistent d c p l
 if isempty(d)
-  [d c p l]=textread('/asl/matlab/gribtools/grib2table.txt','%n%n%n%s%*[^\n]');
+  [d c p l]=textread('grib2table.txt','%n%n%n%s%*[^\n]');
 end
 
 if isstr(dis)

@@ -1,6 +1,6 @@
-function [rtime rtime_st] = rtpgetdate(head,hattr,prof,pattr)
-%function [rtime rtime_st] = rtpgetdate(head,hattr,prof,pattr)
-% - or -  [rtime rtime_st] = rtpgetdate(prof,pattr)
+function [rtime rtime_st] = rtpget_date(head,hattr,prof,pattr)
+%function [rtime rtime_st] = rtpget_date(head,hattr,prof,pattr)
+% - or -  [rtime rtime_st] = rtpget_date(prof,pattr)
 %
 %  Get the matlab time for a given rtp structure
 
@@ -17,7 +17,7 @@ rtime_str = get_attr(pattr,'rtime');
 %if debug; disp(['rtime str = ' rtime_str]); end
 if length(rtime_str) > 4
   st_year = str2num(rtime_str(end-4:end));
-  if st_year < 1993
+  if st_year < 1900
     error('Invalid start year in rtime attribute')
   end
 else

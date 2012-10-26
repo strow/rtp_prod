@@ -54,10 +54,16 @@ if strcmp(filename(max(1,end-2):end),'.gz')
   copyfile(filename,[tmpname '.gz']);
   delete(tmpname);
   %disp(['  gunzip ' tmpname '.gz'])
-  try
-    gunzip([tmpname '.gz'])
-  catch
-    error(['Error gunzipping: ' tmpname '.gz, is the drive full?'])
+  [status result] = system(['gunzip ' tmpname '.gz']);
+  if(status>0)
+    disp('Error running shell gunzip:');
+    disp(result);
+    error('Gunzip Error');
+%  try
+%    gunzip([tmpname '.gz'])
+%  catch
+%    error(['Error gunzipping: ' tmpname '.gz, is the drive full?'])
+%  end
   end
   unlink([tmpname '.gz'])
 else

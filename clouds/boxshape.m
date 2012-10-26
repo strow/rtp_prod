@@ -1,9 +1,12 @@
-function [yOUT,wT,wB,peakN,N,maxN,minN] = boxshape(yIN);
+function [yOUT,wT,wB,peakN,N,maxN,minN] = boxshape(yIN,rGaussianCutoff);
 
 %% this takes in function y and returns a boxy approx "yOUT" to it, as well
 %% as number of maxima, number of minima, location of max/min, index of 
 %% boxy approx
 %% input      yIN   vector containing function
+%%     rGaussianCutOff = 0.250;   %% done for ages, till July 2012; might put cloud too high/wide
+%%     rGaussianCutOff = 0.375;   %% done after July 2012, trying to put cloud little lower/thin
+                                  %% and therefore closer to maxpart of cloud
 
 %% output    yOUT   vector containing box approx
 %%             wT   left  edge of box shapes
@@ -110,7 +113,7 @@ if sumYmax == 1
 
   %%% make sure you get half width on one side then the other side
   iM   = find(maxN == 1);
-  haha = find(yIN <= 0.25*yIN(iM));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM));
   hahaT = haha(find(haha < iM)); wT = max(hahaT);  %pT = plevs(wT);
   hahaB = haha(find(haha > iM)); wB = min(hahaB);  %pB = plevs(wB);
     if length(wB) == 0
@@ -135,7 +138,7 @@ if sumYmax == 2
     end
 
   jj = 1;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iM(jj));               
     hahaT = haha(hahaT);
     wT(1) = max(hahaT);
@@ -150,7 +153,7 @@ if sumYmax == 2
   yOUT(wT(jj):wB(jj)) = yOUT(wT(jj):wB(jj)) + peakN(jj);
 
   jj = 2;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iM(jj) & haha >= iO);  
     if (length(hahaT) > 0)  
       hahaT = haha(hahaT);
@@ -192,7 +195,7 @@ if sumYmax == 3
     end
 
   jj = 1;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iM(jj));               
     hahaT = haha(hahaT);
     wT(1) = max(hahaT);
@@ -207,7 +210,7 @@ if sumYmax == 3
   yOUT(wT(jj):wB(jj)) = yOUT(wT(jj):wB(jj)) + peakN(jj);
 
   jj = 2;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iM(jj) & haha >= iO(1));  
     if (length(hahaT) > 0)  
       hahaT = haha(hahaT);
@@ -230,7 +233,7 @@ if sumYmax == 3
   yOUT(wT(jj):wB(jj)) = yOUT(wT(jj):wB(jj)) + peakN(jj);
 
   jj = 3;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iM(jj) & haha >= iO(2));  
     if (length(hahaT) > 0)  
       hahaT = haha(hahaT);
@@ -272,7 +275,7 @@ if sumYmax == 4
     end
 
   jj = 1;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iM(jj));               
     hahaT = haha(hahaT);
     wT(1) = max(hahaT);
@@ -287,7 +290,7 @@ if sumYmax == 4
   yOUT(wT(jj):wB(jj)) = yOUT(wT(jj):wB(jj)) + peakN(jj);
 
   jj = 2;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iM(jj) & haha >= iO(1));
     if (length(hahaT) > 0)  
       hahaT = haha(hahaT);
@@ -310,7 +313,7 @@ if sumYmax == 4
   yOUT(wT(jj):wB(jj)) = yOUT(wT(jj):wB(jj)) + peakN(jj);
 
   jj = 3;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iO(2) & haha >= iO(3));  
     if (length(hahaT) > 0)  
       hahaT = haha(hahaT);
@@ -333,7 +336,7 @@ if sumYmax == 4
   yOUT(wT(jj):wB(jj)) = yOUT(wT(jj):wB(jj)) + peakN(jj);
 
   jj = 4;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iM(jj) & haha >= iO(3));  
     if (length(hahaT) > 0)  
       hahaT = haha(hahaT);
@@ -390,7 +393,7 @@ if sumYmax == 5
     end
 
   jj = 1;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iM(jj));               
     hahaT = haha(hahaT);
     wT(1) = max(hahaT);
@@ -405,7 +408,7 @@ if sumYmax == 5
   yOUT(wT(jj):wB(jj)) = yOUT(wT(jj):wB(jj)) + peakN(jj);
 
   jj = 2;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iM(jj) & haha >= iO(1));  
     if (length(hahaT) > 0)  
       hahaT = haha(hahaT);
@@ -428,7 +431,7 @@ if sumYmax == 5
   yOUT(wT(jj):wB(jj)) = yOUT(wT(jj):wB(jj)) + peakN(jj);
 
   jj = 3;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iO(2) & haha >= iO(3));  
     if (length(hahaT) > 0)  
       hahaT = haha(hahaT);
@@ -451,7 +454,7 @@ if sumYmax == 5
   yOUT(wT(jj):wB(jj)) = yOUT(wT(jj):wB(jj)) + peakN(jj);
 
   jj = 4;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iM(jj) & haha >= iO(3));  
     if (length(hahaT) > 0)  
       hahaT = haha(hahaT);
@@ -511,7 +514,7 @@ if sumYmax >= 6
     end
 
   jj = 1;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iM(jj));               
     hahaT = haha(hahaT);
     wT(1) = max(hahaT);
@@ -526,7 +529,7 @@ if sumYmax >= 6
   yOUT(wT(jj):wB(jj)) = yOUT(wT(jj):wB(jj)) + peakN(jj);
 
   jj = 2;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iM(jj) & haha >= iO(1));  
     if (length(hahaT) > 0)  
       hahaT = haha(hahaT);
@@ -549,7 +552,7 @@ if sumYmax >= 6
   yOUT(wT(jj):wB(jj)) = yOUT(wT(jj):wB(jj)) + peakN(jj);
 
   jj = 3;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iO(2) & haha >= iO(3));  
     if (length(hahaT) > 0)  
       hahaT = haha(hahaT);
@@ -572,7 +575,7 @@ if sumYmax >= 6
   yOUT(wT(jj):wB(jj)) = yOUT(wT(jj):wB(jj)) + peakN(jj);
 
   jj = 4;
-  haha = find(yIN <= 0.25*yIN(iM(jj)));
+  haha = find(yIN <= rGaussianCutoff*yIN(iM(jj)));
   hahaT = find(haha < iM(jj) & haha >= iO(3));  
     if (length(hahaT) > 0)  
       hahaT = haha(hahaT);
@@ -614,7 +617,7 @@ if iFound < 0
     yOUT = zeros(1,length(yIN));
     %%% make sure you get half width on one side then the other side
     iM   = find(maxN0 == 1);
-    haha = find(yIN <= 0.25*yIN(iM));
+    haha = find(yIN <= rGaussianCutoff*yIN(iM));
     hahaT = haha(find(haha < iM)); wT = max(hahaT);  %pT = plevs(wT);
     hahaB = haha(find(haha > iM)); wB = min(hahaB);  %pB = plevs(wB);
     if length(wB) == 0
@@ -637,7 +640,7 @@ if iFound < 0
     if mx > 0
       N = 1;
       wB = length(yIN);
-      wT = find(yIN <= 0.25*mx);
+      wT = find(yIN <= rGaussianCutoff*mx);
       wT = max(wT);
       peakN(1) = sum(yIN)/(wB-wT+1);
       yOUT(wT:wB) = peakN(1);
@@ -652,7 +655,7 @@ if iFound < 0
     if mx > 0
       N = 1;
       wB = length(yIN);
-      wT = find(yIN <= 0.25*mx);
+      wT = find(yIN <= rGaussianCutoff*mx);
       wT = max(wT);
       peakN(1) = sum(yIN)/(wB-wT+1);
       yOUT(wT:wB) = peakN(1);
