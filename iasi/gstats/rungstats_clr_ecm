@@ -1,0 +1,75 @@
+#!/bin/sh
+#
+# Run gstats for a given date range and save it to a predeclared folder.  
+#  For usage and detailed information run this script without any arguments.
+#
+#
+
+POST='clr_ecm'
+prod='iasi'
+
+
+# cd into a temporary directory to get things out of the way
+#cd $2
+
+rand=`uuidgen`
+
+arr=(`echo $1 | sed "s/:/ /g"`)
+if [ ${#arr[@]} == 2 ]; then # if no step size is given
+  arr=( ${arr[0]} 1 ${arr[1]} );
+elif [ ${#arr[@]} == 1 ]; then # of no end is given
+  arr=( ${arr[0]} 1 ${arr[0]} );
+fi
+
+if [ ${#arr[@]} -eq 3 ] && [ ${#arr[0]} -eq 8 ]; then # we run daily
+  dir=/asl/data/rtprod_$prod/gstats/gsx_${arr[1]}day_$POST
+  mkdir $dir 2> /dev/null
+
+  out=$dir/$prod-${arr[1]}day_${arr[0]}.mat
+  lock=$dir/.$prod-${arr[1]}day_${arr[0]}.lock
+  #if [ -e $out ]; then exit; fi
+  echo lockfile = $lock
+  lockfile -0 -r0 -l3600 $lock || exit
+
+  for date in `/asl/opt/bin/datelist ${arr[0]}:${arr[2]}`; do
+    year=${date:0:4}; mo=${date:4:2}; day=${date:6:2}
+    filemask="$filemask '/asl/data/rtprod_$prod/$year/$mo/$day/ecm.${prod}_l1c.*.rtp_1Z'";
+  done
+else
+  echo "I don't know what you want to do!
+  Maybe you want to try one of the following:
+
+  $ ./`basename $0` 20070514:20090301  # make daily stats in gs_daily$POST/
+"
+  exit
+fi
+
+echo filemask=$filemask
+
+
+# Start up matlab with this setup:
+
+defaults="addpath ../rtp;iasi_paths;\
+gtops = struct; \
+gtops.clrflag = 1:2; \
+gtops.dbtsst_bins = [-5 5]; \
+gtops.stemp_bins = [273 inf]; \
+gtops.rlat_bins=[-70 -60 -50 -45 -40 -35 -30:2.5:30 35 40 45 50 60 70]; \
+gtops.secang_bins=[1 1.028 1.1 1.31 1.72]; \
+gtops.dbt_bins=[-25 25]; \
+gtops.landfrac_bins=[0 0.001]; \
+gtops.ifov_bins=1:5; \
+gtops.solzen_bins=[0 90 180]; \
+gtops.calflag_bit=nan; \
+gtops.reason_bins=1; \
+gtops.inc_fields={'ptemp','dbt','rcalc','robs1','rtime_avg','secang_avg','stemp','gas_1','gas_2_avg','gas_3','gas_4_avg','gas_5_avg','gas_6_avg','gtotal_avg','spres','salti_avg','cfrac_avg','wspeed_avg','palts_avg','plevs','solzen','secang'}; \
+gtops.filemask={$filemask}; \
+"
+
+
+# Execute matlab
+matlab -nodisplay -nodesktop -nojvm -nosplash -r "$defaults;  \
+  gstats(gtops,'${out}'); exit;" 
+
+# Clear the lock file to allow the process to be re-ran
+/bin/rm -f $lock &> /dev/null
