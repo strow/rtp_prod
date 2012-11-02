@@ -749,10 +749,11 @@ try
           prof.mmw = mmwater_rtp(head,prof);
         end
       otherwise
-        if length(field) > 6 & strcmp(field(end-4:end),'_bins')
-          tmp = getudef(prof,pattr,field);
+        if ~strcmp(field(max(1,end-3):end),'_sel') & ...
+	     ~strcmp(field(max(1,end-3):end),'_bit')
+	  tmp = getudef(prof,pattr,field);
           if ~isempty(tmp);
-            prof.(field) = tmp;
+	    prof.(field) = tmp;
             clear tmp;
           else
             disp(['  Warning: Unknown field, ' field]);
