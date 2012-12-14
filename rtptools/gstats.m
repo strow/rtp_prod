@@ -172,7 +172,8 @@ if isfield(gtops,'inc_fields')
 else
   inc_fields = {'stemp_avg','rtime_avg','robs1','rcalc'};
 end    
-gtops.inc_fields = inc_fields;
+%gtops.inc_fields = inc_fields;
+gtops=rmfield(gtops,'inc_fields');
 
 
 % option to override defaults with gtops fields
@@ -299,32 +300,25 @@ start_time = datenum(clock);
 cur_bytes = 0;
 
 disp(['outfile: ' outfile])
+
+% -----------------------------
+%   Test if new request 
+%   matches existing files
+% -----------------------------
+
 if nargin == 2 & exist(outfile,'file')
   %%% fast way to get things done!
   %  exit
   %%
   disp('Found existing outfile, loading file modified times:');
+
   gs2 = load(outfile,'gtops','rcalc_count','robs1_count');
-  %disp(datestr(gs2.gtops.file_modified))
-  %disp('new:')
-  %disp(datestr(gs.gtops.file_modified))
+
   match = 1;
-  if isfield(gs2,'robs1_count') & isfield(gs2,'rcalc_count')
-    if ~isequal(gs2.rcalc_count,gs2.robs1_count)
-      disp('  The counts don''t match, will regenerate')
-      match = 0;
-    else
-      disp('  The counts match')
-    end
-  else
-    disp('  The counts are missing, will regenerate')
-    match = 0;
-  end
+
   if isfield(gs2,'gtops') & isstruct(gs2.gtops) & isfield(gs2.gtops,'file_modified') & isequal(gs.gtops.file_modified,gs2.gtops.file_modified)
-    disp('Times match -- checking gtops fields...')
     gt_fields = union(fieldnames(gtops),fieldnames(gs2.gtops));
-    %gtops 
-    %gs2.gtops
+
     for i = 1:length(gt_fields)
       fname = gt_fields{i};
       if ~isfield(gtops,fname) & strcmp(fname(max(1,end-4):end),'_bins'); 
@@ -348,7 +342,13 @@ end
 
 count =  zeros([1 nbins],'uint16');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% ---------------------------------
+% ---------------------------------
+%   Main Loop
+% ---------------------------------
+% ---------------------------------
+
 for f = 1:length(files) % main file loop
   fname = files{f};
 
@@ -372,18 +372,18 @@ for f = 1:length(files) % main file loop
   disp([basename(fname) 9 '[' num2str(f) '/' num2str(length(files)) ']  ' est_time])
 
 
+  % -----------------------------
   % Read the RTP file into memory
-  try
+  % Check if robs1 is present
+  % Get sarta/klayer exec names
+  % -----------------------------
+
+  try % I/O try
+
     [head, hattr, prof, pattr] = rtpread_12(fname);
-    %ud = prof.iudef;
-    %if any(prof.iudef(1,:) > 0);
-    %  disp('  Using iudef(1,:) for reason');
-    %  ud = prof.iudef;
-    %else
-    %  disp('  Warning: using udef(1,:) instead of iudef for reason');
-    %  ud = prof.udef;
-    %end
+
     fname2 = '';
+
     rtpfile = get_attr(hattr,'rtpfile');
 
 %%XXXXXXXXXXXXX HACKS FOR BAD FILES
@@ -409,52 +409,46 @@ for f = 1:length(files) % main file loop
       hattr = set_attr(hattr,'rtpfile',[dn '/' bn(9:end-1)]);
     end
 %%XXXXXXXXXXXXX HACKS FOR BAD FILES END
+
     [head, hattr, prof, pattr] = rtpgrow(head, hattr, prof, pattr,dirname(fname));
-    if ~isfield(prof,'robs1'); disp(['  Missing robs1 - skipping ' fname]); continue; end
-%    if strcmp(fname(end),'1') & exist([fname(1:end-1) '2'],'file')
-%      fname2 = [fname(1:end-1) '2'];
-%    end
-%    if strcmp(fname(end-1:end),'1Z') & exist([fname(1:end-2) '2Z'],'file')
-%      fname2 = [fname(1:end-2) '2Z'];
-%    end
-%    if ~isempty(fname2)
-%      [head2, hattr2, prof2, pattr2] = rtpread(fname2);
-%      [head2, hattr2, prof2, pattr2] = rtpgrow(head2, hattr2, prof2, pattr2);
-%      if isfield(prof,'rcalc'); prof.rcalc = [prof.rcalc;prof2.rcalc]; end
-%      if isfield(prof,'robs1'); prof.robs1 = [prof.robs1;prof2.robs1]; end
-%      if isfield(prof,'calflag'); prof.calflag = [prof.calflag;prof2.calflag]; end
-%      if isfield(head,'ichan'); head.ichan = [head.ichan;head2.ichan]; end
-%      if isfield(head,'vchan'); head.vchan = [head.vchan;head2.vchan]; end
-%      if isfield(head,'nchan'); head.nchan = head.nchan + head2.nchan; end
-%      clear head2 hattr2 prof2 pattr2
-%    end
+
+    if ~isfield(prof,'robs1'); 
+      disp(['  Missing robs1 - skipping ' fname]); 
+      continue; 
+    end
+
     gs.gtops.rtp_sarta = get_attr(hattr,'sarta');
     gs.gtops.rtp_sarta_exec = get_attr(hattr,'sarta_exec');
     gs.gtops.rtp_klayers = get_attr(hattr,'klayers');
     gs.gtops.rtp_klayers_exec = get_attr(hattr,'klayers_exec');
+
     if length(gs.gtops.rtp_klayers_exec) == 0
       disp('  WARNING: Missing klayers_exec, using airs wetwater default');
       gs.gtops.rtp_klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs';
     end
+
     if isfield(prof,'rcalc') & isfield(prof,'robs1') & size(prof.rcalc,2) ~= size(prof.robs1,2)
       disp('  ERROR:  rcalc and robs1 have different nfov');
       continue;
     end
 
-  catch e
+  catch e % I/O try 
     e.stack
     keyboard
-    disp(['Error reading or growing file: ' fname])
+    disp(['Error reading or growing file: ' fname]);
        failed = fopen(['~/badfiles.txt'],'a');
        fwrite(failed,[fname 10],'char');
        fclose(failed);
     continue
-  end
-  
-  % remove gas numbers if they don't exist in the profile structure
+  end  % I/O try
+ 
+
+  % Uniformity Bug Fix
+  % Remove gas numbers if they don't exist in the profile structure
   if isfield(head,'glist')
     for gnum = head.glist'
       if ~isfield(prof,['gas_' num2str(gnum)])
+	disp(['Warning: `prof` does not have gas ' num2str(gnum) '. Fix original RTP file: ' fname '! Adjusting local `head` to match `prof`.']);
         head.gunit = head.gunit(head.glist ~= gnum);
         head.glist = head.glist(head.glist ~= gnum);
         head.ngas = head.ngas - 1;
@@ -462,7 +456,8 @@ for f = 1:length(files) % main file loop
     end
   end
 
-  % user defined filter
+
+  % Applying User Defined Filter
   if ~isempty(gt.filter)
     before_nobs = length(prof.rtime);
     disp(['  Filtering with ' gt.filter '...'])
@@ -472,8 +467,17 @@ for f = 1:length(files) % main file loop
     clear before_nobs after_nobs
   end
 
-  if length(prof.rtime) == 0; continue; end
-  if ~isfield(gtops,'skip_calc') & ~isfield(prof,'rcalc'); error(['  Stats Error: rcalc missing after executing ' gt.filter]); end
+  % Filter effect:
+  if length(prof.rtime) == 0; 
+    disp(['Warning: No profiles left: length(prof.rtime)==0. Continuing.']);
+    continue; 
+  end
+
+
+  % Filter effect:
+  if ~isfield(gtops,'skip_calc') & ~isfield(prof,'rcalc'); 
+    error(['  Stats Error: rcalc missing after executing ' gt.filter]); 
+  end
 
   % site subset filter
   if ~isempty(gt.site_bins)
@@ -496,16 +500,8 @@ for f = 1:length(files) % main file loop
       % merge the results
       new_prof(i) = tmp_prof;
       clear tmp_prof;
-      % REMOVE ME -- debug lines
-      %plist
-      %s_dist(plist)
-      %load coast
-      %plot(tmp_prof.rlon,tmp_prof.rlat,'.',slon(gt.site_bins(i)),slat(gt.site_bins(i)),'x',long,lat,'-')
-
-      
-      %keyboard
-      %pause
     end
+
     if ~exist('new_prof','var'); disp('    no profiles left'); continue; end
     prof=structmerge(new_prof,2);
 
@@ -515,6 +511,7 @@ for f = 1:length(files) % main file loop
     disp(['    before site selection ' num2str(before_nobs) ' after ' num2str(length(prof.rtime))])
     inc_fields = union(inc_fields,{'rlat_avg' 'rlon_avg' 'siterad_avg'}); % make sure we are returning lat/lon
   end
+
 
   if ~isfield(gtops,'skip_calc') & ~isfield(prof,'rcalc'); error('  Stats Error: rcalc missing after doing site selection'); end
   if length(prof.rtime) == 0; continue; end
@@ -543,6 +540,10 @@ for f = 1:length(files) % main file loop
     prof.siterad = siterad;
   end
 
+
+  % -------------------------
+  %   Main Processing
+  % -------------------------
 
   disp('  Processing...')
 
@@ -597,7 +598,9 @@ for f = 1:length(files) % main file loop
     %end
   end
 
-try
+
+
+try % Main calculation try/catch loop
   %%%%%%
   %
   %  In this section we will work on setting up the dataset based on what is requested in 
@@ -635,92 +638,53 @@ try
     switch field
       % brightness temperatures calculations
       case 'btobs1'; if isfield(prof,'robs1'); prof.btobs1 = real(rad2bt(freq, prof.robs1)); end
+
       case 'btcalc'; if isfield(prof,'rcalc'); prof.btcalc = real(rad2bt(freq, prof.rcalc)); end
+
       case 'dbt'; if isfield(prof,'rcalc') & isfield(prof,'robs1')
         if ~isfield(prof,'btcalc') & length(freq) == size(prof.rcalc,1);
           prof.btcalc = real(rad2bt(freq, prof.rcalc)); end
         if ~isfield(prof,'btobs1'); prof.btobs1 = real(rad2bt(freq, prof.robs1)); end
         prof.dbt = prof.btobs1 - prof.btcalc; end
-      % other filters for calculations
-      %case 'dbt1231'; 
-      %  for iu = 1:20
-      %    if strcmp(get_attr(pattr,['L1bCM udef(' num2str(iu) ',:)']),'cx1231')
-      %      prof.dbt1231 = prof.udef(iu,:);
-      %      break;
-      %    elseif strcmp(regexp(get_attr(pattr,['udef(' num2str(iu) ',:)']),'{\w+}','match'),'{dbt1231u}')
-      %      prof.dbt1231 = prof.udef(iu,:);
-      %      break
-      %    end
-      %  end
-      %case 'dbtsst'; 
-      %  for iu = 1:20
-      %    if strcmp(get_attr(pattr,['L1bCM udef(' num2str(iu) ',:)']),'dbtsst')
-      %      prof.dbtsst = prof.udef(iu,:);
-      %      break
-      %    elseif strcmp(regexp(get_attr(pattr,['udef(' num2str(iu) ',:)']),'{\w+}','match'),'{dbtsst}')
-      %      prof.dbtsst = prof.udef(iu,:);
-      %      break
-      %    end
-      %  end
-      %case 'dbtq';   if any(abs(prof.udef(18,:)) < 9999); prof.dbtq = prof.udef(18,:); end
-      %case 'dbt820'; if any(abs(prof.udef(19,:)) < 9999); prof.dbt820 = prof.udef(19,:); end
-      %case 'dbt960'; if any(abs(prof.udef(20,:)) < 9999); prof.dbt960 = prof.udef(20,:); end
+
       case 'reason';
         reason = getudef(prof,pattr,'reason');
         if ~isempty(reason); prof.reason = reason; clear reason; end
-        %for iu = 1:20
-        %  if strcmp(get_attr(pattr,['L1bCM udef(' num2str(iu) ',:)']),'reason bitflags [1=clear,2=site,3=cloud,4=random]') ...
-        %      & all(prof.udef(iu,:) >= 0) & isequal(prof.udef(iu,:),uint16(prof.udef(iu,:)))
-        %    disp('  Using udef(1,:) for reason (L1bCM)');
-        %    prof.reason = prof.udef(iu,:);
-        %    break
-        %  elseif strcmp(regexp(get_attr(pattr,['iudef(' num2str(iu) ',:)']),'{\w+}','match'),'{reason_bit}') ...
-        %      & all(prof.iudef(iu,:) >= 0) & isequal(prof.udef(iu,:),uint16(prof.iudef(iu,:)))
-        %    disp('  Using iudef(1,:) for reason_bit');
-        %    prof.reason = prof.iudef(iu,:);
-        %    break
-        %  elseif strcmp(regexp(get_attr(pattr,['udef(' num2str(iu) ',:)']),'{\w+}','match'),'{reason}') ...
-        %      & all(prof.udef(iu,:) >= 0) & isequal(prof.udef(iu,:),uint16(prof.udef(iu,:)))
-        %    disp('  Using udef(1,:) for reason');
-        %    prof.reason = prof.udef(iu,:);
-        %    break
-        %  end
-        %end
         if ~isfield(prof,'reason')
-         if isfield(prof,'iudef') & any(prof.iudef(1,:) > 0);
-          disp('  Warning: Using iudef(1,:) for reason');
-          prof.reason = prof.iudef(1,:);
-         elseif isfield(prof,'udef')
-          disp('  Warning: using udef(1,:) instead of iudef for reason');
-          prof.reason = prof.udef(1,:);
-         else
-          disp('  Warning: no reason bin, but reason binning was requested');
-          exit;
-         end
+          if isfield(prof,'iudef') & any(prof.iudef(1,:) > 0);
+	    disp('  Warning: Using iudef(1,:) for reason');
+	    prof.reason = prof.iudef(1,:);
+          elseif isfield(prof,'udef')
+	    disp('  Warning: using udef(1,:) instead of iudef for reason');
+	    prof.reason = prof.udef(1,:);
+          else
+	    disp('  Warning: no reason bin, but reason binning was requested');
+	    exit;
+          end
         end
         prof.reason(prof.reason < 0) = 0; % clear out the negatives
         if any(isnan(prof.reason(:))) | any(double(prof.reason(:)) < 0)
           error('  Reason bin has non valid values, are you sure you want to bin by reason?');
         end
         if isfield(gt,'reason_bins') & length(gt.reason_bins) == 1
-          %disp(['  reason count: ' num2str(sum(prof.reason > 0)) ' ' num2str(length(find(prof.reason== 1))) ' ' num2str(length(find(bitand(prof.reason,1))))])
-          %prof.reason = bitand(double(prof.reason),double(gt.reason_bins));
           prof.reason = bitget(double(prof.reason),double(gt.reason_bins))*double(gt.reason_bins);
-          %keyboard
         end
-      %case 'clear'; prof.clear = bitand(prof.udef(1,:),1);  %deprecated for iudef get attr method
+
       case 'xtrack_eo'
         prof.xtrack_eo = mod(prof.xtrack,2);
+
       case 'transcom'
         load TranscomRegionMatrix
         ii = sub2ind(size(RegionMatrix),max(1,min(180,round(-prof.rlat+89.5))),mod(round(prof.rlon-0.5),360)+1);
         prof.transcom = RegionMatrix(ii);
+
       case 'emismin'; 
         if isfield(prof,'emis')
           prof.emismin = min(prof.emis,[],1);
         else
           disp('  Warning: emismin requested but emis doesn''t exist in rtp file');
         end
+
       case 'secang';
         if isfield(prof,'satzen')
           % Check satzen is plausible
@@ -730,6 +694,7 @@ try
           end
           prof.secang = 1.0./cos(prof.satzen*pi/180); % convert satzen to secang
         end
+
       case 'mmw'
         % water selection
         if (isfield(gt,'mmw_udef') & gt.mmw_udef > 0) % & gt.mmw_udef <= head.nudef)
@@ -748,6 +713,7 @@ try
           % Run klayers and then calc total water
           prof.mmw = mmwater_rtp(head,prof);
         end
+
       otherwise
         if ~strcmp(field(max(1,end-3):end),'_sel') & ...
 	     ~strcmp(field(max(1,end-3):end),'_bit')
@@ -761,12 +727,15 @@ try
         end
     end
   end
-catch e; e
+
+catch e; % Main calculation try
+  e
   e.message
   keyboard; 
   disp(['error point 1 ' outfile])
   continue
-end
+end % Main calculation try
+
 
   %%%%%%%% BEGIN Selection Filters %%%%%%%%
   %                                       %
@@ -806,6 +775,7 @@ end
 
   %                                     %
   %%%%%%%% END Selection Filters %%%%%%%%
+
 
   % do a matrix search for the matching fields
   [s pset]=ismember(ibin',gtbin','rows');
