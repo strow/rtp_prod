@@ -1,3 +1,20 @@
+%%%%%%
+%
+%  Main processing script to create AIRS RTP L1BCM files from raw data
+%
+%  Input variables:
+%    JOB = [start_date end_date] (in matlab format)
+%    data_str='' (a string for data variation)
+% 
+%  To use execute the script using
+%    $ clustcmd mkday_####.m 20090801:20090808
+%  from the command line.
+%
+
+
+
+
+
 airs_paths
 
 %mkmetadata(JOB)

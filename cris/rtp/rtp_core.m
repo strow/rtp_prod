@@ -1,8 +1,17 @@
 %
 %  Runtime function to make CrIS rtp files
 %
-%  Input: JOB - matlab datenum indicating the time to be processed
+%  Input: 
+%     JOB - matlab datenum indicating the time to be processed
+%    
+%     rtpset='subset';
+%     data_path='/asl/data/cris/sdr60';
+%     data_str='_subset';
+%     src='_noaa_ops';
 %
+%  Name is constructe like: ['cris_' data_type data_str src '.yyyy.mm.dd.hh.v1.rtp']
+%    data_type = basename(data_path) = sdr60 ; in the example
+% 
 %  All paths are hardcoded into the function and need to be changed as
 %  needed.
 %
@@ -17,10 +26,55 @@
 %     01 Jan 2012 - LLS changed zeros(20,...) to zeros(10,...).  
 %                   10 = max size for iudef, causing fmatch{} rtp error
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Sequence:
+%
+% 0.1 - **Totaly stupid hard coded JOB date - REMOVE IT!
+%         Now simply fail
+% 0.2 - go over CrIS pathes
+% 0.3 - Make up wavenumber grid
+% 0.4 - **Set up this "inan" array for hardcoded bad channels ??
+% 0.5 - **define "site_range" like for AIRS??
+% 0.6 - version number
+% 0.7 - ** setup 'si' and 'pi' index array - NEVER USED
+% 0.8 - **IF no data_str, set it to '' ?? will it be an allfovs??
+% 0.9 - 
+% 
+% 3.? - **Weird remapping of bad rlat/rlon. Leave them bad!!
+
+% Set up
+% Loop over hours or 0.1*hours (for an allfovs)
+  % Search for hdf files
+  % Load hdf files and construct the RTP structure
+  % Get rid of negative times
+  % Fill in fake Lat/Lons -   % Demaged file - some CrIS files may not have rlat,rlon,satzen 
+  % A proxy for satzen
+  % A trap for missing zobs data, substitute CRiS altitude (correct?)
+  % Look for bad lat/lons
+  % Add salti and landfrac
+  % Refill bad values
+  % Set up Header
+  % Test for bad band banks - Just a warning
+  % Fill ECMWF (and other fields) into the file 
+  %  *The subset algorithm seems to need % atmospheric model information.(???)*
+  % Perform data subsetting
+% Save Data File
+
+
+
+
+rn='rtp_core (cris)';
+greetings(rn);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Set up
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % If no job is specified, go to the test day
 if ~exist('JOB','var')
-  JOB = datenum(2011,3,10);
+  error('No JOB variable declared');
 end
 
 cris_paths
@@ -59,7 +113,13 @@ elseif strcmp(rtpset,'full4ch')
   span = 0:23;
 end
 
-disp(['Processing ' datestr(JOB(1),26) ' with version: ' version])
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Loop over hours or 0.1*hours (for an allfovs)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+disp(['Processing ' datestr(JOB(1),'yyyy/mm/dd') ' with version: ' version])
 for decihour = span
 
   if strcmp(rtpset,'full')
@@ -72,12 +132,21 @@ for decihour = span
     timestr = [num2str(hour,'%02d')];
   end
 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % Search for hdf files
+  %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
   disp([' time: ' timestr '  search: '  hourstr '*'])
   disp(['searching: ' data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(floor(mat2jd(JOB(1))),'%03d') '/GCRSO-SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
   f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(floor(mat2jd(JOB(1))),'%03d') '/GCRSO-SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
   data_type = basename(data_path);
   rtpfile = [prod_dir '/' datestr(JOB(1),26) '/cris_' data_type data_str src '.' datestr(JOB(1),'yyyy.mm.dd') '.' timestr '.' version '.rtp'];
   disp(['  found ' num2str(length(f)) ' GCRSO-SCRIS files'])
+
 
   if length(f) == 0
     disp('NO GCRSO-SCRIS files found, trying alternate hash')
@@ -88,34 +157,46 @@ for decihour = span
   end
 
   if exist(rtpfile,'file')
-    disp(['  RTP File ' rtpfile ' already exists. Skipping.']);
+    disp(['  RTP File ' rtpfile ' already exists. Skipping....']);
     continue
   end
+ 
+  if length(f) == 0; 
+    disp(['WARNING: No CrIS Data Files. Skipping....']);
+    continue; 
+  end  % no files found = continue to next hour
+
+
   disp(['  found ' num2str(length(f)) ' sdr60 files'])
   disp(['  creating ' rtpfile])
 
-  if length(f) == 0; 
-    disp(['No CrIS Data Files. Skipping.']);
-    continue; 
-  end  % no files found = continue to next hour
   mkdirs(dirname(rtpfile))
   disp(['  output: ' rtpfile])
   if ~lockfile(rtpfile); 
-    disp(['  Lockfile exists for file ' rtpfile '. Skipping.']); 
+    disp(['WARNING: Lockfile exists for file ' rtpfile '. Skipping....']); 
     continue; 
   end
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % Load hdf files and construct the RTP structure
+  %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   clear prof pattr head hattr
   for i = 1:length(f)
     d = dir(f{i});
     %if(d.bytes < 172281920); disp('file too small'); continue; end
+    
     disp(['Reading ' f{i}])
-try
-    [p pattr]=readsdr_rtp(f{i});
-catch
-    disp(['ERROR:  Problem reading in file ' f{i}])
-  continue
-end
+
+    try
+      [p pattr]=readsdr_rtp(f{i});
+    catch
+      disp(['ERROR:  Problem reading in file ' f{i}])
+      continue
+    end
+
     p.findex = int32(ones(size(p.rtime)) * i);
 
     % Now change indices to g4 of SARTA
@@ -143,15 +224,154 @@ end
     continue
   end
 
-  prof=structmerge(prof,2)
+  prof=structmerge(prof,2);
+
+
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % Demaged file - some CrIS files may 
+  % not have rlat,rlon,satzen
+  %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % Get rid of negative times
+  % 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  ikeep = prof.rtime > 0 & prof.rtime < 0.5E9;
+  if(numel(ikeep)~=numel(prof.rtime))
+    disp(['WARNING: There are ' num2str(numel(prof.rtime)-numel(ikeep)) ' bad profiles. Removing them.']);
+    prof = structfun(@(x) x(:,ikeep),prof,'UniformOutput',0);
+  end
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % Fill in fake Lat/Lons
+  %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  if ( (all(prof.rlat == 0) & all(prof.rlon == 0)) | ... 
+       (all(prof.rlat<-900) & all(prof.rlon<-999)) )
+    disp('WARNING: Demaged file: Bad Lat / Lon data, replacing--')
+    prof.rlat(:) = nan; 
+    prof.rlon(:) = nan;
+    isel = find(abs(double(prof.xtrack) - 15.5) < 2);
+    for i = 1:length(isel)
+      geo = geonav_single(iasi2mattime(prof.rtime(isel(i)))-.0003,prof.satzen(isel(i)));
+      prof.rlat(isel(i)) = geo.fovLat(prof.ifov(isel(i)));
+      prof.rlon(isel(i)) = geo.fovLon(prof.ifov(isel(i))); 
+    end
+  end
+
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % A proxy for satzen
+  % 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  if(isfield(prof,'scanang'))
+    if(~isfield(prof,'satzen') | all(prof.satzen < -900)) 
+      disp('WARNING:  patching satzen - missing or has bad values')
+      zang = vaconv(prof.scanang,prof.zobs,prof.salti);
+      prof.satzen = 1./cos(deg2rad(zang));
+    end
+  else
+    disp('WARNING:  missing scanang!  approximating satzen');
+    prof.satzen = abs(double(prof.xtrack) - 15.5) * 4;
+  end
+
+  if isfield(prof,'satazi') & all(prof.satazi < -900)
+    prof = rmfield(prof,'satazi');
+  end
+  if isfield(prof,'solazi') & all(prof.solazi < -900)
+    prof = rmfield(prof,'solazi');
+  end
+
+  rtime = rtpget_date(prof,pattr);
+
+ 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % A trap for missing zobs data, substitute CRiS altitude (correct?)
+  %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  if ~isfield(prof,'zobs') | all(prof.zobs < 1)
+    disp('WARNING: All zobs fields are missing! Using an estimate.');
+    prof.zobs = ones(size(prof.rtime)) * 820000;
+                                    % or 830610 ????
+    pattr = set_attr(pattr,'zobs','CrIS Estimated Altitude');
+  end
+ 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % DONE with Demaged file code
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+
+  if(all(prof.rlon < -900)); 
+    disp('Warning: Longitudes are bogus')
+    prof.landfrac = zeros(size(prof.rtime));
+    prof.rlon = zeros(size(prof.rtime))+360;
+    prof.rlat = zeros(size(prof.rtime));
+  end  % all the latitudes are bogus
+
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % Look for bad lat/lons
+  %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  % Warn if there are bad lat/lons  
+  ibad_loc = find(prof.rlat<-1000 | prof.rlon<-1000 | abs(prof.rlat)>90);
+  if(numel(ibad_loc)>0)
+    disp(['WARNING: there are ' num2str(numel(ibad_loc)) ' bad rlat/rlon points']);
+    % This is to catch the data point which have latitude values of -9999 and to keep the
+    %   values / fovs we will map them to a equator point that has an invalid rlon point
+    % Set these bad locations to 0,360 so that the USGS routine doesn't fail
+    prof.rlat(ibad_loc) = 0;
+    prof.rlon(ibad_loc) = 360;
+  end
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % Add salti and landfrac
+  %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  if ~isfield(prof,'landfrac')
+    disp('Adding salti and landfrac');
+    [prof.salti, prof.landfrac] = usgs_deg10_dem(prof.rlat, prof.rlon);
+  else
+    disp('Data seems to already contain landfrac or salti.');
+  end
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % Refill bad values
+  % 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  prof.rlat(ibad_loc)=-9999;
+  prof.rlon(ibad_loc)=-9999;
+  prof.salti(ibad_loc)=-9999;
+  prof.landfrac(ibad_loc)=-9999;
+
+
+
   
-  % This is to catch the data point which have latitude values of -9999 and to keep the
-  %   values / fovs we will map them to a equator point that has an invalid rlon point
-  disp([' bad rlat = ' num2str(sum(prof.rlat < -999))])
-  bad_loc = abs(prof.rlat) > 999 | abs(prof.rlon) > 999;
-  prof.rlat(bad_loc) = 0;
-  prof.rlon(bad_loc) = 360;
-  disp([' bad rlat = ' num2str(sum(prof.rlat < -999))])
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % 
+  % Set up Header
+  %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   % Get head.vchan from fm definitions above
   head.ichan = (1:1329)';
@@ -168,7 +388,7 @@ end
   hattr = set_attr('header','pltfid','NPP');
   hattr = set_attr(hattr,'instid','CrIS');
   hattr = set_attr(hattr,'rtpfile',rtpfile);
-  pattr = set_attr(pattr,'iudef(1,:)','Reason [1=clear,2=site,4=high cloud,8=random] {reason_bit}')
+  pattr = set_attr(pattr,'iudef(1,:)','Reason [1=clear,2=site,4=high cloud,8=random] {reason_bit}');
 
   %% Uniform test with different channels
   %pattr = set_attr(pattr,'udef(13,:)','dbt test: ch 401 499 731 {dbtun}');
@@ -176,12 +396,24 @@ end
   %prof.udef(13,:) = xuniform3(head, prof, idtest);
 
 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % 
+  % Test for bad band banks - Just a warning
+  %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
   % search for data in all three bands that are not bad
   idtest2=[499, 731, 1147];
   rmin = bt2rad(head.vchan(idtest2),170);
   nobs = length(prof.rtime);
   junk = sum(prof.robs1(idtest2,:) > rmin * ones(1,nobs));
   iok = find(junk == 3);
+  if(numel(iok)~=numel(junk))
+    disp(['WARNING: there are ' num2str(numel(junk)-numel(iok)) ' profiles with at least one bad BANK. Will not do anything!']);
+  end
+
+
+  % Declare iudef
 
   if ~isfield(prof,'iudef')
     prof.iudef = zeros(10,length(prof.rtime));
@@ -199,21 +431,9 @@ end
   %bt1231 = rad2bt(head.vchan(731), prof.robs1(731,iok));
   %iclear = iok(abs(prof.udef(13,iok)) < 0.5 & bt1231 > 270);
   %prof.iudef(1,iclear) = bitor(prof.iudef(1,iclear),1);
-  if(all(prof.rlon < -900)); 
-    disp('Warning: Longitudes are bogus')
-    prof.landfrac = zeros(size(prof.rtime));
-    prof.rlon = zeros(size(prof.rtime))+360;
-    prof.rlat = zeros(size(prof.rtime));
-  end  % all the latitudes are bogus
 
-  if ~isfield(prof,'landfrac')
-    disp('no landfrac')
-    [prof.salti, prof.landfrac] = usgs_deg10_dem(prof.rlat, prof.rlon);
-  end
 
-  % get rid of negative times
-  ikeep = prof.rtime > 0 & prof.rtime < 0.5E9;
-  prof = structfun(@(x) x(:,ikeep),prof,'UniformOutput',0);
+
 
 %  %%  A proxy for solzen for the given orbit
 %  if(~isfield(prof,'solzen') | all(prof.solzen < 1000))
@@ -226,52 +446,26 @@ end
 %  %  prof.solzen = prof.solzen(1:length(prof.rtime));
 %  end
 
-  % A proxy for satzen
-  if(isfield(prof,'scanang'))
-    if(~isfield(prof,'satzen') | all(prof.satzen < -900)) 
-      disp('  patching satzen - missing or has bad values')
-      zang = vaconv(prof.scanang,prof.zobs,prof.salti);
-      prof.satzen = 1./cos(deg2rad(zang));
-    end
-  else
-    disp('  missing scanang!  approximating satzen');
-    prof.satzen = abs(double(prof.xtrack) - 15.5) * 4;
-  end
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % The subset algorithm seems to need 
+  % atmospheric model information.(???)
+  % Fill ECMWF (and other fields) into the file
+  %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  if isfield(prof,'satazi') & all(prof.satazi < -900)
-    prof = rmfield(prof,'satazi');
-  end
-  if isfield(prof,'solazi') & all(prof.solazi < -900)
-    prof = rmfield(prof,'solazi');
-  end
-
-  rtime = rtpget_date(prof,pattr);
-
-  if all(prof.rlat == 0) & all(prof.rlon == 0)
-%  if all(rtime < datenum(2012,07,01))
-    disp('Bad Lat / Lon data, replacing--')
-    prof.rlat(:) = nan; prof.rlon(:) = nan;
-    isel = find(abs(double(prof.xtrack) - 15.5) < 2);
-    %prof.fovLon(:) = nan; prof.fovLat(:) = nan;
-    %isel = find(prof.xtrack == 15 & prof.solzen < 90);
-    for i = 1:length(isel)
-      geo = geonav_single(iasi2mattime(prof.rtime(isel(i)))-.0003,prof.satzen(isel(i)));
-      prof.rlat(isel(i)) = geo.fovLat(prof.ifov(isel(i)));
-      prof.rlon(isel(i)) = geo.fovLon(prof.ifov(isel(i))); 
-    end
-    %plot(prof.fovLat,prof.rlat)
-  end
-
-  % This is for the rtp_cris_subset algorithm:
-  %if(JOB(1) > datenum(2012,1,1))
-  %  [head hattr prof pattr] =rtpadd_gfs(head,hattr,prof,pattr);
-  %else
-    disp('running rtpadd_ecmwf');
+  disp('running rtpadd_ecmwf');
+  try
     [head hattr prof pattr] = rtpadd_ecmwf_data(head,hattr,prof,pattr);
-  %end
+  catch err
+    Etc_show_error(err);
+    say('Error reading ECMWF data... Continuing to the next iteration...');
+    continue
+  end
 
-  if(~isfield(prof,'zobs')); prof.zobs = ones(size(prof.rtime)) * 830610; end
-  if(~isfield(prof,'wspeed')); prof.wspeed = ones(size(prof.rtime)) * 0; end
+  if(~isfield(prof,'wspeed')); 
+    prof.wspeed = ones(size(prof.rtime)) * 0; 
+  end
 
   disp('adding solar');
   [prof.solzen prof.solazi] = SolarZenAzi(rtime,prof.rlat,prof.rlon,prof.salti/1000);
@@ -282,8 +476,12 @@ end
   [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
  
 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % Perform data subsetting
+  %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  %try
   if strcmp(rtpset,'subset')
     subtest = 1;
   elseif strcmp(rtpset,'full4ch')
@@ -293,20 +491,23 @@ end
   end
 
   [head,hattr,prof,pattr,summary] = rtp_cris_subset(head,hattr,prof,pattr,subtest);
-  %catch e
-  %  e
-  %  %keyboard
-  %end
-  if isempty(prof); disp('ERROR: no data returned from rtp_cris_subset. Skipping.'); continue; end  % if no data was returned
 
 
-  % A trap for missing zobs data, substitute CRiS altitude (correct?)
-  if ~isfield(prof,'zobs') | all(prof.zobs < 1)
-    prof.zobs = ones(size(prof.rtime)) * 820000;
-    pattr = set_attr(pattr,'zobs','CrIS Estimated Altitude');
-  end
+  if isempty(prof); 
+    disp('ERROR: no data returned from rtp_cris_subset. Skipping....'); 
+    continue; 
+  end  % if no data was returned
 
-  %[head hattr prof pattr] = rtpadd_ecmwf_data(head, hattr, prof, pattr);
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Save Data File
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
   mkdirs(dirname(rtpfile))
   disp(['Writing out rtp file: ' rtpfile]);
   rtpwrite(rtpfile,head,hattr,prof,pattr)
@@ -317,6 +518,9 @@ end
 
 end % hour loop
 
+farewell(rn);
+
+% END OF SCRIPT
 
 % $$$ % How to load SARTA channel ordering from instrument ordering (SDR files)
 % $$$ % si is indexing for Sarta

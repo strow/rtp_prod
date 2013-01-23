@@ -35,12 +35,15 @@ end
 
 %disp(['rtpfile: ' rtpfile]);
 searchdir = './';
+openedfile = '';
 
 debug = 0;
 if nargin == 5 
   if strcmpi(varargin{1},'debug')
     debug = 1;
-  elseif exist(varargin{1},'dir')
+  elseif exist(varargin{1},'file')
+    openedfile = varargin{1};
+  else exist(varargin{1},'dir')
     searchdir = varargin{1};
   end
 end
@@ -49,7 +52,9 @@ end
 if exist([searchdir '/' basename(rtpfile)],'file')
   rtpfile = [searchdir '/' basename(rtpfile)];
 end
-if isempty(rtpfile); return; end
+if isempty(rtpfile); 
+  error(['  RTPGROW: rtpfile variable is empty! The code should not get to this point! Something is WRONG']);
+end
 
 % just in case the file we are referenced to was also trimmed:
 if ~exist(rtpfile,'file') & exist([rtpfile 'Z'],'file')
@@ -61,10 +66,21 @@ if ~exist(rtpfile,'file') & exist([rtpfile(1:end-1) 'Z'],'file')
   rtpfile = [rtpfile(1:end-1) 'Z'];
 end
 
+% in the case the file is actually a pair of files
+if ~exist(rtpfile,'file') & exist([rtpfile '_1'],'file')
+  disp('  RTPGROW: parent file may refer to a pair of rtp files')
+  rtpfile = [rtpfile '_1'];
+end
+
 % Let's check our current path for the same file:
 if exist(basename(rtpfile),'file')
   disp(['  RTPGROW: Using rtpfile in ' pwd '/ as parent'])
   rtpfile = basename(rtpfile);
+end
+
+if isequal(openedfile,rtpfile)
+  % parent file is self. Nothing to be done.
+  return
 end
 
 if exist(rtpfile,'file');
@@ -97,7 +113,7 @@ if exist(rtpfile,'file');
           disp('growing again');
           [h0 ha0 p0 pa0] = rtpgrow(h0,ha0,p0,pa0,'debug');
         else
-          [h0 ha0 p0 pa0] = rtpgrow(h0,ha0,p0,pa0);
+          [h0 ha0 p0 pa0] = rtpgrow(h0,ha0,p0,pa0,rtpfile);
         end
       end
     end

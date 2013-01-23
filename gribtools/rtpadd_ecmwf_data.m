@@ -33,31 +33,38 @@ function [head, hattr, prof, pattr] = rtpadd_ecmwf_data(head, hattr, prof, pattr
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Edit this section as needed
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Sequence
+% 
+% 0.1 Setup - rec_per_day - this is set in more than one place!!! This is inconsistent!
+% 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  rn='rtpadd_ecmwf_data';
+  greetings(rn);
 
-min_H2O_gg = 3.1E-7;  % 0.5 pppm
-min_O3_gg = 1.6E-8;   % 0.01 ppm
-new_file = [];
-rec_per_day = 8;
+  new_file = [];
+  rec_per_day = 8;
 
-if ~exist('fields','var')
-  fields = [];
-end
-[rtime rtime_st] = rtpget_date(head,hattr,prof,pattr);
-
-rtime = rtime(~isnan(rtime));
-
-for d = unique(sort(round([rtime(:)-.003 rtime(:) rtime(:)+.003] * rec_per_day) / rec_per_day))';
-  disp(['reading ecmwf file for: ' datestr(d)])
-  [Y M D h m s]= datevec(d);
-  ename = ['/asl/data/ecmwf/' datestr(d,'yyyy/mm/') ecmwf_name(Y, M, D, h*10+m/6)];
-  
-  if(numel(dir([ename '*']))>=0)
-    [head, hattr, prof, pattr] = rtpadd_grib_data(ename,head,hattr,prof,pattr,fields,8,0);
-    pattr = set_attr(pattr,'profiles','ECMWF','profiles');
-  else
-    error(['File Not Found: ' ename '.']);
+  if ~exist('fields','var')
+    fields = [];
   end
+  [rtime rtime_st] = rtpget_date(head,hattr,prof,pattr);
+
+  rtime = rtime(~isnan(rtime));
+
+  for d = unique(sort(round([rtime(:)-.003 rtime(:) rtime(:)+.003] * rec_per_day) / rec_per_day))';
+    say(['reading ecmwf file for: ' datestr(d)])
+    [Y M D h m s]= datevec(d);
+    ename = ['/asl/data/ecmwf/' datestr(d,'yyyy/mm/') ecmwf_name(Y, M, D, h*10+m/6)];
+    
+    if(numel(dir([ename '*']))>=0)
+      [head, hattr, prof, pattr] = rtpadd_grib_data(ename,head,hattr,prof,pattr,fields,8,0);
+      pattr = set_attr(pattr,'profiles','ECMWF','profiles');
+    else
+      error(['File Not Found: ' ename '.']);
+    end
+  end
+
+  farewell(rn);
 end

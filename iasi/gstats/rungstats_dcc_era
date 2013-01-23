@@ -5,7 +5,7 @@
 #
 #
 
-POST='dcc_ecm'
+POST='dcc_era'
 prod='iasi'
 
 
@@ -33,7 +33,7 @@ if [ ${#arr[@]} -eq 3 ] && [ ${#arr[0]} -eq 8 ]; then # we run daily
 
   for date in `/asl/opt/bin/datelist ${arr[0]}:${arr[2]}`; do
     year=${date:0:4}; mo=${date:4:2}; day=${date:6:2}
-    filemask="$filemask '/asl/data/rtprod_$prod/$year/$mo/$day/ecm.${prod}_l1c.*.rtp_1Z'";
+    filemask="$filemask '/asl/data/rtprod_$prod/$year/$mo/$day/era.${prod}_l1c.*.rtp_1Z'";
   done
 else
   echo "I don't know what you want to do!

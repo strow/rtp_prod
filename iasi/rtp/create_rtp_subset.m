@@ -1,2 +1,2 @@
-rtpset='subset'
-rtp_core
+rtpset='subset';
+rtp_core;

@@ -16,7 +16,7 @@ function [head, hattr, prof, pattr] = rtpadd_era_data(head, hattr, prof, pattr, 
 %    pattr     : profile attributes, note: rtime must be specified
 %    fields    : list of fields to consider when populating the rtp profiles:
 %                 {'SP','SKT','10U','10V','TCC','CI','T','Q','O3','CC','CIWC','CLWC'}
-%               default:  {'SP','SKT','10U','10V','TCC','CI','T','Q','O3'}
+%               default:  {'SP','SKT','10U','10V','TCC','CI','T','Q','O3'} - from rtpadd_grib_data.m
 %
 % Output:
 %    head : (RTP "head" structure of header info)
@@ -36,34 +36,36 @@ function [head, hattr, prof, pattr] = rtpadd_era_data(head, hattr, prof, pattr, 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  rn='rtpadd_era_data';
+  greetings(rn);
 
-min_H2O_gg = 3.1E-7;  % 0.5 pppm
-min_O3_gg = 1.6E-8;   % 0.01 ppm
-new_file = [];
+  if ~exist('fields','var')
+    fields = [];
 
-if ~exist('fields','var')
-  fields = [];
-%else
-%  disp(fields)
-end
-[rtime rtime_st] = rtpget_date(head,hattr,prof,pattr);
+  [rtime rtime_st] = rtpget_date(head,hattr,prof,pattr);
 
-disp('using rtpadd_era_data')
-rec_per_day = 4;
-for d = unique(sort(round([rtime-0.1 rtime rtime+0.1] * rec_per_day) / rec_per_day));
-  disp(['reading era file for: ' datestr(d)])
-  %ename = ['/asl/data/ecmwf/era/' datestr(d,'yyyymm') '_cld'];
-  ename = ['/asl/data/era/' datestr(d,'yyyy/mm') '/' datestr(d,'yyyymmdd') '_lev.grib'];
-  disp(['  ' ename])
-  if ~exist(ename,'file')
-    error(['Missing era file: ' ename])
+  rec_per_day = 4;
+
+  for d = unique(sort(round([rtime-0.1 rtime rtime+0.1] * rec_per_day) / rec_per_day));
+    say(['reading era file for: ' datestr(d)])
+    ename_lev = ['/asl/data/era/' datestr(d,'yyyy/mm') '/' datestr(d,'yyyymmdd') '_lev.grib'];
+    ename_sfc = ['/asl/data/era/' datestr(d,'yyyy/mm') '/' datestr(d,'yyyymmdd') '_sfc.grib'];
+    say(['  ' ename_lev])
+    say(['  ' ename_sfc])
+    if ~exist(ename_lev,'file')
+      error(['Missing era file: ' ename_lev])
+    end
+    if ~exist(ename_sfc,'file')
+      error(['Missing era file: ' ename_sfc])
+    end
+
+    [head, hattr, prof, pattr] = rtpadd_grib_data(ename_lev,head,hattr,prof,pattr,fields,rec_per_day,180);
+
+    [head, hattr, prof, pattr] = rtpadd_grib_data(ename_sfc,head,hattr,prof,pattr,fields,rec_per_day,180);
+
+    pattr = set_attr(pattr,'profiles','ERA','profiles');
   end
-  [head, hattr, prof, pattr] = rtpadd_grib_data(ename,head,hattr,prof,pattr,fields,rec_per_day,180);
-  ename = ['/asl/data/era/' datestr(d,'yyyy/mm') '/' datestr(d,'yyyymmdd') '_sfc.grib'];
-  disp(['  ' ename])
-  if ~exist(ename,'file')
-    error(['Missing era file: ' ename])
-  end
-  [head, hattr, prof, pattr] = rtpadd_grib_data(ename,head,hattr,prof,pattr,fields,rec_per_day,180);
-  pattr = set_attr(pattr,'profiles','ERA','profiles');
+
+  farewell(rn);
+
 end
