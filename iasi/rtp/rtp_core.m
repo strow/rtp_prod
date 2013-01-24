@@ -92,6 +92,8 @@ if strcmp(rtpset,'full')
   span = 0:24*6-1;
 elseif strcmp(rtpset,'full4ch')
   allfov = 1;
+elseif strcmp(rtpset,'full2345ctr')
+  allfov = 1;
 elseif strcmp(rtpset,'subset')
   % nothing to be done
 else
@@ -121,10 +123,10 @@ for hour = span
 
   prefix = 'IASI_L1_CLR';
 
-  if strcmp(rtpset,'full')
+  if strcmp(rtpset(1:min(4,end)),'full')
 
-    outfile = [outdir '/iasi_l1c_full.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%03d') '.v1.summary.mat'];
-    rtp_outfile = [outdir '/iasi_l1c_full' data_str '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%03d') '.v1.rtp'];
+    outfile = [outdir '/iasi_l1c_' rtpset data_str '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%03d') '.v1.summary.mat'];
+    rtp_outfile = [outdir '/iasi_l1c_' rtpset data_str '.' datestr(JOB(1),'yyyy.mm.dd') '.' num2str(hour,'%03d') '.v1.rtp'];
     mask=[indir '/IASI_xxx_1C_M02_' datestr(JOB(1),'yyyymmdd') num2str(floor(hour/6),'%02d') num2str(mod(hour,6),'%01d') '*'];
 
   else
@@ -282,6 +284,12 @@ for hour = span
     if strcmp(rtpset,'full4ch')
       iasi_chkeep = [1021 2345 3476 4401];
       [head, prof] = subset_rtp(head,prof,[],iasi_chkeep,[]);
+    end
+
+    if strcmp(rtpset,'full2345ctr')
+      iasi_chkeep = [2345];
+      ikeep = find(prof.xtrack == 15 | prof.xtrack == 16);
+      [head, prof] = subset_rtp(head,prof,[],iasi_chkeep,ikeep);
     end
 
     say(['Saving ' num2str(numel(prof.rtime)) ' FoVs in this file']);
