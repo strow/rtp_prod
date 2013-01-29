@@ -16,7 +16,7 @@ function attr = get_attr( xattr , field , comp );
 %    get_attr(hattr,'pltfid')  % returns the platform ID
 %    get_attr(pattr)  % displays a table of profile attributes
 %
-% See Also: set_attr
+% See Also: set_attr, getudef
 
 % Created 21 August 2009, Paul Schou  (paulschou.com)
 % Bug fix 17 December 2009: nargin<2 -> nargin<3 (breno)
@@ -34,7 +34,7 @@ end
 
 attr = '';
 for ia=1:nattr
-   if strcmpi(xattr{ia}{comp+1},field)
+   if strcmpi(deblank(xattr{ia}{comp+1}),deblank(field))
        attr = xattr{ia}{4-comp};
        if length(attr) > 0 & attr(end) == 0; attr = attr(1:end-1); end
        return
