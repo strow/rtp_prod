@@ -16,7 +16,7 @@ function xattr = set_attr( xattr , field , value , type );
 %    xattr = set_attr('header', field, value);
 %    xattr = set_attr('profiles', field, value);
 %
-% See also: get_attr
+% See also: get_attr, getudef
 
 % Created 21 August 2009, Paul Schou  (paulschou.com)
 % Updated 18 June 2010 - added capability to create new attribute cell array
