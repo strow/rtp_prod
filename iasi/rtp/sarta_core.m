@@ -64,6 +64,9 @@ end
 if ~exist('emis','var')
   error(['Missing "emis" variable']);
 end
+if ~exist('sarta','var')
+  sarta='clr';
+end
 
 % 
 clear f
@@ -83,7 +86,7 @@ for f = file_list
 
     bn = basename(f{1});
 
-    outfile = [dirname(f{1}) '/' model '.' basename(f{1},'_1')];
+    outfile = [dirname(f{1}) '/' model '.' sarta '.' basename(f{1},'_1')];
     say(['Outfile: ' outfile])
 
     % Check if file already exists. 
@@ -140,15 +143,16 @@ for f = file_list
     if strcmp(model,'ecm')
       say(['  adding ecm profiles to ' bn])
       try
-	[head hattr prof pattr] =rtpadd_ecmwf_data(head,hattr,prof,pattr);
+    	[head hattr prof pattr] =rtpadd_ecmwf_data(head,hattr,prof,pattr);
       catch
 	say(['ERROR: Reading in ecmwf data. Continuing to next file...'])
 	continue
       end
     elseif strcmp(model,'era')
       say(['  adding era profiles to ' bn])
-      system(['/asl/opt/bin/getera ' datestr(JOB(1),'yyyymmdd')])
-      [head hattr prof pattr] =rtpadd_era_data(head,hattr,prof,pattr);
+      %system(['/asl/opt/bin/getera ' datestr(JOB(1),'yyyymmdd')])
+      [head, hattr, prof, pattr] = rtpadd_era_data(head,hattr,prof,pattr,{'SP','SKT','10U','10V','TCC','CI','T','Q','O3','CC','CIWC','CLWC'});
+      %[head hattr prof pattr] =rtpadd_era_data(head,hattr,prof,pattr);
     elseif strcmp(model,'gfs')
       say(['  adding gfs profiles to ' bn])
       [head hattr prof pattr] =rtpadd_gfs(head,hattr,prof,pattr);
@@ -222,8 +226,15 @@ for f = file_list
     hattr = rm_attr(hattr,'sarta');
     hattr = rm_attr(hattr,'klayers');
 
-    %sarta_exec='/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte';
-    sarta_exec='/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte_swch4';
+    if strcmp(sarta,'clr')
+      %sarta_exec='/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte';
+      sarta_exec='/asl/packages/sartaV108/BinV201/sarta_iasi_may09_wcon_nte_swch4';
+    elseif strcmp(sarta,'cld')
+      sarta_exec='/asl/packages/sartaV108/BinV201/sarta_iasi_may09_iceaggr_waterdrop_desertdust_slabcloud_hg3_wcon_nte_swch4';
+      iasi_cloudy
+    else
+      error('unknown sarta specification');
+    end
     klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
     hattr = set_attr(hattr,'sarta_exec',sarta_exec);
     hattr = set_attr(hattr,'klayers_exec',klayers_exec);
@@ -249,6 +260,7 @@ for f = file_list
 
       say(['  running sarta on ' bn ' (' tmp2 ')'])
       %out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ' > /dev/null']);
+      disp([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ' ']);
       out = system([get_attr(hattr,'sarta_exec') ' fin=' tmp2 ' fout=' tmp1 ' ']);
       unlink(tmp2)
       if(out ~= 0)

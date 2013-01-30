@@ -88,7 +88,7 @@ function [head, hattr, prof, pattr] = rtpadd_grib_data(sourcename, head, hattr, 
 
   if exist([sourcename '.inv']) & exist([sourcename])
     [offset,param,level,gribdate] = readgrib_inv_data(sourcename);
-    if ~( max(gribdate+0.5/rec_per_day) > min(rtime) & min(gribdate-0.5/rec_per_day) < max(rtime) )
+    if ~( max(gribdate)+0.5/rec_per_day > min(rtime) & min(gribdate)-0.5/rec_per_day < max(rtime) )
       error(['ERROR: GRIB file times out of range. Something is bad.']);
     end
   end
@@ -103,7 +103,12 @@ function [head, hattr, prof, pattr] = rtpadd_grib_data(sourcename, head, hattr, 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   if ~exist(sourcename,'file') & exist([sourcename '.gz'],'file')
-    new_file = keepNfiles([sourcename '.gz'],3);
+    new_file = keepNfiles([sourcename '.gz'],2);
+    sourcename = new_file;
+  elseif ~exist(sourcename,'file')
+    disp('attempting download of ECMWF file');
+    system(['cd ' getenv('SHMDIR') '/; curl -O http://cress.umbc.edu/' sourcename '.gz']);
+    new_file = [getenv('SHMDIR') '/' basename(sourcename)];
     sourcename = new_file;
   end
 
@@ -417,9 +422,9 @@ function [head, hattr, prof, pattr] = rtpadd_grib_data(sourcename, head, hattr, 
 
   % If we are using keepNfiles, then it will keep the last 3 temporary
   %   files read in and automatically delete the rest
-  %if ~isempty(new_file)
-  %  delete(new_file);
-  %end
+  if ~isempty(new_file)
+    delete(new_file);
+  end
 
   if date_match == 0
     say(['***WARNING***: No dates / fields matched, make sure the file is the correct date / set for requested fields'])

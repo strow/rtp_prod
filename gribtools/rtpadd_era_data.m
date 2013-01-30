@@ -41,12 +41,14 @@ function [head, hattr, prof, pattr] = rtpadd_era_data(head, hattr, prof, pattr, 
 
   if ~exist('fields','var')
     fields = [];
+  end
 
   [rtime rtime_st] = rtpget_date(head,hattr,prof,pattr);
 
   rec_per_day = 4;
 
-  for d = unique(sort(round([rtime-0.1 rtime rtime+0.1] * rec_per_day) / rec_per_day));
+  days_to_test = unique(sort(floor(rtime * rec_per_day + .5) / rec_per_day));
+  for d = days_to_test
     say(['reading era file for: ' datestr(d)])
     ename_lev = ['/asl/data/era/' datestr(d,'yyyy/mm') '/' datestr(d,'yyyymmdd') '_lev.grib'];
     ename_sfc = ['/asl/data/era/' datestr(d,'yyyy/mm') '/' datestr(d,'yyyymmdd') '_sfc.grib'];

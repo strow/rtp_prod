@@ -306,7 +306,8 @@ function [head,hattr,prof_out,pattr,s,isubset] = iasi_uniform_and_allfov_func(ia
     % Get model surface termperature
     %say('Adding SKT, TCC, & CI from ECMWF');
     pattr = set_attr({},'rtime','Seconds since 2000','profiles');
-    model = 'ECMWF';
+    model = 'ERA';
+    disp(['Adding SKT, TCC, & CI from ' model]);
     p = struct;
     p.rlat = data.Latitude(:)'; %'
     p.rlon = data.Longitude(:)'; %'
@@ -317,11 +318,13 @@ function [head,hattr,prof_out,pattr,s,isubset] = iasi_uniform_and_allfov_func(ia
     %
     h.pfields = 0;
     try
-      [h hattr p pattr] = rtpadd_ecmwf_data(h,{},p,pattr,{'SKT' 'TCC', 'CI'});
+      [h hattr p pattr] = rtpadd_era_data(h,{},p,pattr);
+      %[h hattr p pattr] = rtpadd_era_data(h,{},p,pattr,{'SKT' 'TCC', 'CI'});
+      %[h hattr p pattr] = rtpadd_ecmwf_data(h,{},p,pattr,{'SKT' 'TCC', 'CI'});
     catch err
       Etc_show_error(err);
-      error(['Missing ECMWF data file']);
-      % [h hattr p pattr] = rtpadd_gfs(h,{},p,pattr);
+      error(['Missing ERA data file']);
+      [h hattr p pattr] = rtpadd_gfs(h,{},p,pattr);
     end
     %
 

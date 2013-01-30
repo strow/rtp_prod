@@ -60,6 +60,7 @@
   % Perform data subsetting
 % Save Data File
 
+cris_paths
 
 
 
@@ -77,7 +78,6 @@ if ~exist('JOB','var')
   error('No JOB variable declared');
 end
 
-cris_paths
 
 % From g4 variant of CrIS SARTA, in order.
 fm1 = 650:0.625:1095;

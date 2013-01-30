@@ -18,6 +18,7 @@ addpath([base_dir1 '/utils'])
 addpath([base_dir2 '/gribtools/'])
 addpath([base_dir2 '/aslutil/'])
 addpath([base_dir2 '/science/'])
+addpath([base_dir2 '/clouds/'])
 addpath([base_dir2 '/h4tools/'])
 addpath([base_dir2 '/rtptools/'])
 

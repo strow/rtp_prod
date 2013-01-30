@@ -37,6 +37,10 @@
 % 4.0 Save data file
 
 
+% Set up IASI specific pathes
+
+iasi_paths
+
 
 rn='rtp_core (iasi)';
 greetings(rn);
@@ -48,10 +52,6 @@ greetings(rn);
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-% Set up IASI specific pathes
-
-iasi_paths
 
 
 % Test for the JOB variable
@@ -87,13 +87,9 @@ end
 
 span = 0:23;
 allfov = 0;
-if strcmp(rtpset,'full')
+if strcmp(rtpset(1:min(end,4)),'full')
   allfov = 1;
-  span = 0:24*6-1;
-elseif strcmp(rtpset,'full4ch')
-  allfov = 1;
-elseif strcmp(rtpset,'full2345ctr')
-  allfov = 1;
+  span = 1:24*6-1;
 elseif strcmp(rtpset,'subset')
   % nothing to be done
 else
@@ -162,6 +158,7 @@ for hour = span
 
   if exist(outfile,'file')
     say(['File ' outfile ' already exists. Checking...']);
+    %continue
 
     dates2 = load(outfile,'gran_dates');
     dates2 = dates2.gran_dates;
@@ -301,7 +298,7 @@ for hour = span
     summary.gran_files = files;
     summary.gran_dates = dates;
     summary.version_str = version_str;
-    [summary.rtp_files summary.rtp_dates] = findfiles([rtp_outfile '_*']);
+    [summary.rtp_files summary.rtp_dates] = findfiles([rtp_outfile '*']);
     save(outfile,'-struct','summary')
   end
 

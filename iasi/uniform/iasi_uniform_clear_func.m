@@ -286,9 +286,9 @@ for ic = 1:length(iasifiles)
 
 
   % Get model surface termperature
-  disp('Adding SKT, TCC, & CI from ECMWF');
   pattr = set_attr({},'rtime','Seconds since 2000','profiles');
-  model = 'ECMWF';
+  model = 'ERA';
+  disp(['Adding SKT, TCC, & CI from ' model]);
   p = struct;
   p.rlat = data.Latitude(:)'; %'
   p.rlon = data.Longitude(:)'; %'
@@ -298,9 +298,10 @@ for ic = 1:length(iasifiles)
   p.rlon(abs(p.rlon) > 1000) = nan;
   %
   try
-    [h hattr p pattr] = rtpadd_ecmwf_data(struct,{},p,pattr,{'SKT' 'TCC', 'CI'});
+    [h hattr p pattr] = rtpadd_era_data(struct,{},p,pattr);
+    %[h hattr p pattr] = rtpadd_era_data(struct,{},p,pattr,{'SKT' 'TCC', 'CI'});
   catch
-    disp(['Missing ECMWF data, using gfs'])
+    disp(['Missing ERA data, using gfs'])
     [h hattr p pattr] = rtpadd_gfs(struct,{},p,pattr);
   end
   %
