@@ -90,10 +90,14 @@ for f = file_list
     say(['Outfile: ' outfile])
 
     % Check if file already exists. 
-    if exist([outfile '_1Z'],'file');
+    if exist([outfile '_1Z'],'file') || exist([outfile],'file');
       say('Output file exists')
       tdir0=dir(f{1});
-      tdir1=dir([outfile '_1Z']);
+      if exist([outfile '_1Z'],'file')
+        tdir1=dir([outfile '_1Z']);
+      else
+        tdir1=dir([outfile]);
+      end
       if(tdir1.datenum<tdir0.datenum)
 	say('   and it is OLDER than base file... Regenerating!');
       else
@@ -151,7 +155,11 @@ for f = file_list
     elseif strcmp(model,'era')
       say(['  adding era profiles to ' bn])
       %system(['/asl/opt/bin/getera ' datestr(JOB(1),'yyyymmdd')])
-      [head, hattr, prof, pattr] = rtpadd_era_data(head,hattr,prof,pattr,{'SP','SKT','10U','10V','TCC','CI','T','Q','O3','CC','CIWC','CLWC'});
+      if strcmp(sarta,'cld')
+        [head, hattr, prof, pattr] = rtpadd_era_data(head,hattr,prof,pattr,{'SP','SKT','10U','10V','TCC','CI','T','Q','O3','CC','CIWC','CLWC'});
+      else
+        [head, hattr, prof, pattr] = rtpadd_era_data(head,hattr,prof,pattr,{'SP','SKT','10U','10V','TCC','CI','T','Q','O3'});
+      end
       %[head hattr prof pattr] =rtpadd_era_data(head,hattr,prof,pattr);
     elseif strcmp(model,'gfs')
       say(['  adding gfs profiles to ' bn])
