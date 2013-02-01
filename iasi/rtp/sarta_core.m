@@ -7,7 +7,9 @@
 %  JOB - [sdate edata] - matlab time operation time
 %  model - atmospheric model - era, ecm, gsf, HAS TO CODE MORE
 %  emis  - emissivity model - wisc, dan
-%  input_glob - "glob" of files to look for _ This is fucking insane - the code should "know" what to do _
+%  input_glob - "glob" of files to look for to process for rtp calc creation
+%  usgs   - optiona variable - if it exists, add the USGS landfrac and salti.
+%  sarta  - version of sarta to use (clr - clear / cld - slab cloudy)
 %
 %%%%%%%%
 

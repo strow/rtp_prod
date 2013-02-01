@@ -4,10 +4,11 @@
 % 
 %  This script expects four variables 
 % 'JOB'  - containing the matlab date to process
-% input_glob - the wildcard file name: 
+% input_glob - "glob" of files to look for to process for rtp calc creation
 % model  - the model code name
 % emis   - the emissivity code name
 % usgs   - optiona variable - if it exists, add the USGS landfrac and salti.
+% sarta  - version of sarta to use (clr - clear / cld - slab cloudy)
 %
 % Example:
 % JOB=datenum(2010,04,10);
@@ -71,7 +72,9 @@ end
 if ~exist('emis','var')
   error(['Missing "emis" variable']);
 end
-
+if ~exist('sarta','var')
+  sarta='clr';
+end
 
 
 clear f
@@ -97,11 +100,7 @@ for f = workfiles
 
   bn = basename(f{1});
 
-  if ~exist('string','var')
-    string = '';
-  end
-
-  outfile = [dirname(f{1}) '/' model string '.' basename(f{1},'Z') 'Z'];
+  outfile = [dirname(f{1}) '/' model '.' sarta '.' basename(f{1},'Z') 'Z'];
   say(['Outfile: ' outfile]);
 
   % Check if file already exists. 
@@ -165,7 +164,12 @@ for f = workfiles
     end
   elseif strcmp(model,'era')
     say(['  adding era profiles to ' bn])
-    [head hattr prof pattr] =rtpadd_era_data(head,hattr,prof,pattr);
+    if strcmp(sarta,'cld')
+      [head, hattr, prof, pattr] = rtpadd_era_data(head,hattr,prof,pattr,{'SP','SKT','10U','10V','TCC','CI','T','Q','O3','CC','CIWC','CLWC'});
+    else
+      [head, hattr, prof, pattr] = rtpadd_era_data(head,hattr,prof,pattr,{'SP','SKT','10U','10V','TCC','CI','T','Q','O3'});
+    end
+
   elseif strcmp(model,'gfs')
     say(['  adding gfs profiles to ' bn])
     [head hattr prof pattr] =rtpadd_gfs(head,hattr,prof,pattr);
@@ -287,7 +291,7 @@ for f = workfiles
     klayers_exec = '/asl/packages/klayersV205/BinV201/klayers_airs_wetwater';
   end
 
-  if ~exist('sarta_exec','var');
+  if strcmp(sarta,'clr')
     if JOB(1) < datenum(2003,10,01)
       %sarta='/asl/packages/sartaV108/BinV201/sarta_apr08_m140x_385_wcon_nte';
       %sarta_exec='/asl/packages/sartaV108/BinV201/sarta_apr08_m140x_370_wcon_nte';
@@ -295,6 +299,11 @@ for f = workfiles
     else
       sarta_exec='/asl/packages/sartaV108/BinV201/sarta_airs_PGEv6_postNov2003_wcon_nte';
     end
+  elseif strcmp(sarta,'cld')
+    sarta_exec = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_iceaggr_waterdrop_desertdust_slabcloud_hg3_wcon_nte';
+    airs_cloudy
+  else
+    error('unknown sarta specification');
   end
 
   hattr = set_attr(hattr,'sarta_exec',sarta_exec);
