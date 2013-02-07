@@ -1,6 +1,6 @@
-function [rtime rtime_st] = rtpget_date(head,hattr,prof,pattr)
-%function [rtime rtime_st] = rtpget_date(head,hattr,prof,pattr)
-% - or -  [rtime rtime_st] = rtpget_date(prof,pattr)
+function [rtime rtime_st] = rtpdate(head,hattr,prof,pattr)
+%function [rtime rtime_st] = rtpdate(head,hattr,prof,pattr)
+% - or -  [rtime rtime_st] = rtpdate(prof,pattr)
 %
 %  Get the matlab time for a given rtp structure
 
