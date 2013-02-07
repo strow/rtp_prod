@@ -49,7 +49,6 @@ hattr = set_attr(hattr,'sarta_exec',sarta_exec);
 hattr = set_attr(hattr,'klayers_exec',klayers_exec);
 
 % write out clear
-keyboard
 [head1 hattr1 prof1 pattr1] = rtpsarta(head,hattr,prof,pattr);
 rtpwrite(outfile_clr,head1,hattr1,prof1,pattr1);
 
