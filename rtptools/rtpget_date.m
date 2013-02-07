@@ -1,15 +1,39 @@
-function [rtime rtime_st] = rtpget_date(head,hattr,prof,pattr)
-%function [rtime rtime_st] = rtpget_date(head,hattr,prof,pattr)
-% - or -  [rtime rtime_st] = rtpget_date(prof,pattr)
+function [rtime rtime_st] = rtpget_date(varargin)
+%function [mtime mtime_st] = rtpget_date(head,hattr,prof,pattr)
+%         [mtime mtime_st] = rtpget_date(prof,pattr)
+%         [mtime mtime_st] = rtpget_date(rtime,year0)
 %
-%  Get the matlab time for a given rtp structure
+%  Converts instrument "rtime" into matlab time, from a RTP sub-structure
+%   
+%  Althoug the routine can be called in three ways, there are only two 
+%  arguments that are read:
+%  
+%  rtime - (prof.rtime, rtime): vector or instrument rtimes 
+%                               (seconds since start year)
+%
+%  year0 - Starting year (AIRS: 1993, IASI/CrIS: 2000)
+%          This number comes usually as an attribute:
+%          pattr{}={'profiles','rtime','Seconds since YYYY'}; 
+%          (YYYY = year0).
+%          You can create this attribute with set_attr:
+%          pattr = set_attr('profiles','rtime','Seconds since YYYY');
+%
+%  Written by 
+%  Paul Schou 2011
+%  Breno Imbiriba 2013.02.07
 
-%  Written by Paul Schou 2011
-
-% if we only have 2 inputs instead of 4 inputs
-if nargin == 2
-  prof = head;
-  pattr = hattr;
+% Check input arguments - two of four inputs
+if(nargin == 2)
+  if(isstruct(varargin{1}))
+    prof = varargin{1};
+    pattr = varargin{2};
+  else
+    prof.rtime = varargin{1};
+    pattr = set_attr('profiles','rtime',['Seconds since ' num2str(varargin{2})]);
+  end
+else
+  prof = varargin{3};
+  pattr = varargin{4};
 end
 
 % Check the rtime field to see if it is valid
