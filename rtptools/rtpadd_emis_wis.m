@@ -1,6 +1,6 @@
 function [head hattr prof pattr] = rtpadd_emis_wis(head,hattr,prof,pattr)
 
-mtime = rtpget_date(prof, pattr);
+mtime = rtpdate(prof, pattr);
 dv = datevec(nanmean(mtime));
 
   try

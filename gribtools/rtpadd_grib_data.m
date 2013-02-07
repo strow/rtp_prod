@@ -83,7 +83,7 @@ function [head, hattr, prof, pattr] = rtpadd_grib_data(sourcename, head, hattr, 
   end
 
 
-  [rtime rtime_st] = rtpget_date(head,hattr,prof,pattr);
+  [rtime rtime_st] = rtpdate(head,hattr,prof,pattr);
 
 
   if exist([sourcename '.inv']) & exist([sourcename])

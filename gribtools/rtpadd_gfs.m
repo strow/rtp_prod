@@ -47,7 +47,7 @@ end
 
 
 % Determine TAI start year and convert prof.rtime to MATLAB date number
-[rtime rtime_st] = rtpget_date(head,hattr,prof,pattr);
+[rtime rtime_st] = rtpdate(head,hattr,prof,pattr);
 
 
 % Determine the number of GFS model date/times required

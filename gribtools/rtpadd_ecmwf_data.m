@@ -49,7 +49,7 @@ function [head, hattr, prof, pattr] = rtpadd_ecmwf_data(head, hattr, prof, pattr
   if ~exist('fields','var')
     fields = [];
   end
-  [rtime rtime_st] = rtpget_date(head,hattr,prof,pattr);
+  [rtime rtime_st] = rtpdate(head,hattr,prof,pattr);
 
   rtime = rtime(~isnan(rtime));
 

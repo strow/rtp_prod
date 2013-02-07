@@ -43,7 +43,7 @@ function [head, hattr, prof, pattr] = rtpadd_era_data(head, hattr, prof, pattr, 
     fields = [];
   end
 
-  [rtime rtime_st] = rtpget_date(head,hattr,prof,pattr);
+  [rtime rtime_st] = rtpdate(head,hattr,prof,pattr);
 
   rec_per_day = 4;
 

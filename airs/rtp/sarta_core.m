@@ -320,7 +320,6 @@ for f = workfiles
   if isfield(p,'robs1'); p = rmfield(p,'robs1'); end
   if isfield(p,'calflag'); p = rmfield(p,'calflag'); end
   rtpwrite(tmp1,head,hattr,p,pattr);
-
   say(['  running klayers on ' bn])
   tmp2 = mktemp();
   %out = system([get_attr(hattr,'klayers_exec') ' fin=' tmp1 ' fout=' tmp2]);
