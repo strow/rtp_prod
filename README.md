@@ -4,5 +4,5 @@ rtp_prod
 ASL Matlab RTP Generation System
 
 
-Users:
+Maintainer:
 Breno Imbiriba
