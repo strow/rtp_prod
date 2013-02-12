@@ -192,8 +192,9 @@ for decihour = span
 
     try
       [p pattr]=readsdr_rtp(f{i});
-    catch
+    catch err
       disp(['ERROR:  Problem reading in file ' f{i}])
+      Etc_show_error(err);
       continue
     end
 
@@ -291,7 +292,7 @@ for decihour = span
     prof = rmfield(prof,'solazi');
   end
 
-  rtime = rtpget_date(prof,pattr);
+  rtime = rtpdate(prof,pattr);
 
  
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
