@@ -14,11 +14,30 @@ addpath([base_dir1 '/rtp'])
 %addpath([base_dir1 '/uniform'])
 addpath([base_dir1 '/utils'])
 
+% ASL MATLIB distribution location
+% Is there an environment variable MATLIB?
+
+matlib_root = getenv('MATLIB');
+
+if(numel(matlib_root)==0 | ~exist(matlib_root,'dir'))
+  % Not defined or invalid. Now look for it in two places
+  base_dir3 = fileparts(base_dir2); % dir: ../../../
+  if(exist([base_dir3 '/matlib/'],'dir'))
+    matlib_root = [base_dir3 '/matlib/'];
+  elseif(exist('/asl/matlib/','dir'))
+    matlib_root = ['/asl/matlib/'];
+  else
+    error('Cannont find MATLIB');
+  end
+end
+
 % ASL matlab utility box
-addpath([base_dir2 '/gribtools/'])
-addpath([base_dir2 '/aslutil/'])
-addpath([base_dir2 '/science/'])
-addpath([base_dir2 '/h4tools/'])
-addpath([base_dir2 '/rtptools/'])
-addpath([base_dir2 '/opendap/'])
-addpath([base_dir2 '/clouds/'])
+addpath([matlib_root '/gribtools/'])
+addpath([matlib_root '/aslutil/'])
+addpath([matlib_root '/science/'])
+addpath([matlib_root '/h4tools/'])
+addpath([matlib_root '/rtptools/'])
+addpath([matlib_root '/opendap/'])
+addpath([matlib_root '/clouds/'])
+
+
