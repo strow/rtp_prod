@@ -256,18 +256,62 @@ for decihour = span
 
   if ( (all(prof.rlat == 0) & all(prof.rlon == 0)) | ... 
        (all(prof.rlat<-900) & all(prof.rlon<-999)) )
-    disp('WARNING: Demaged file: Bad Lat / Lon data, replacing--')
-    prof.rlat(:) = nan; 
-    prof.rlon(:) = nan;
-    isel = find(abs(double(prof.xtrack) - 15.5) < 2);
-    for i = 1:length(isel)
-      geo = geonav_single(iasi2mattime(prof.rtime(isel(i)))-.0003,prof.satzen(isel(i)));
-      prof.rlat(isel(i)) = geo.fovLat(prof.ifov(isel(i)));
-      prof.rlon(isel(i)) = geo.fovLon(prof.ifov(isel(i))); 
-    end
+    disp('WARNING: Demaged file: All Lats and Lons are invalid.')
+    disp('         At one point Paul used geonav_single.m to fix this');
+    disp('         but here I won''t do anything special about it...');
+%    disp('WARNING: Demaged file: Bad Lat / Lon data, replacing--')
+%    prof.rlat(:) = nan; 
+%    prof.rlon(:) = nan;
+%    isel = find(abs(double(prof.xtrack) - 15.5) < 2);
+%    for i = 1:length(isel)
+%      geo = geonav_single(iasi2mattime(prof.rtime(isel(i)))-.0003,prof.satzen(isel(i)));
+%      prof.rlat(isel(i)) = geo.fovLat(prof.ifov(isel(i)));
+%      prof.rlon(isel(i)) = geo.fovLon(prof.ifov(isel(i))); 
+%    end
+  end
+
+  if(all(prof.rlon < -900)); 
+    disp('Warning: Longitudes are bogus')
+%    prof.landfrac = zeros(size(prof.rtime));
+%    prof.rlon = zeros(size(prof.rtime))+360;
+%    prof.rlat = zeros(size(prof.rtime));
+  end  % all the latitudes are bogus
+
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % Look for bad lat/lons
+  %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  % Warn if there are bad lat/lons  
+  lbad_loc = (prof.rlat<-1000 | prof.rlon<-1000 | abs(prof.rlat)>90);
+  ibad_loc = find(lbad_loc);
+  if(numel(ibad_loc)>0)
+    disp(['WARNING: there are ' num2str(numel(ibad_loc)) ' bad rlat/rlon points']);
+    disp(['         Will remove these profiles...']);
+    % This is to catch the data point which have latitude values of -9999 and to keep the
+    %   values / fovs we will map them to a equator point that has an invalid rlon point
+    % Set these bad locations to 0,360 so that the USGS routine doesn't fail
+%    prof.rlat(ibad_loc) = 0;
+%    prof.rlon(ibad_loc) = 360;
+     igood_loc = find(~lbad_loc);
+    prof = structfun(@(x) x(:,igood_loc),prof,'UniformOutput',0);
+    disp(['        ... left with ' num2str(numel(igood_loc))]);
   end
 
 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % Test if we still have any profiles left
+  % 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  if(numel(prof.rtime)==0)
+    disp(['WARNING: We are left with no profiles. Going to next file...']);
+    continue
+  end
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
@@ -314,31 +358,6 @@ for decihour = span
  
 
 
-  if(all(prof.rlon < -900)); 
-    disp('Warning: Longitudes are bogus')
-    prof.landfrac = zeros(size(prof.rtime));
-    prof.rlon = zeros(size(prof.rtime))+360;
-    prof.rlat = zeros(size(prof.rtime));
-  end  % all the latitudes are bogus
-
-
-
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %
-  % Look for bad lat/lons
-  %
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-  % Warn if there are bad lat/lons  
-  ibad_loc = find(prof.rlat<-1000 | prof.rlon<-1000 | abs(prof.rlat)>90);
-  if(numel(ibad_loc)>0)
-    disp(['WARNING: there are ' num2str(numel(ibad_loc)) ' bad rlat/rlon points']);
-    % This is to catch the data point which have latitude values of -9999 and to keep the
-    %   values / fovs we will map them to a equator point that has an invalid rlon point
-    % Set these bad locations to 0,360 so that the USGS routine doesn't fail
-    prof.rlat(ibad_loc) = 0;
-    prof.rlon(ibad_loc) = 360;
-  end
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
@@ -353,19 +372,9 @@ for decihour = span
     disp('Data seems to already contain landfrac or salti.');
   end
 
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %
-  % Refill bad values
-  % 
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  prof.rlat(ibad_loc)=-9999;
-  prof.rlon(ibad_loc)=-9999;
-  prof.salti(ibad_loc)=-9999;
-  prof.landfrac(ibad_loc)=-9999;
+ 
 
 
-
-  
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
