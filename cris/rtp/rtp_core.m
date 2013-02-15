@@ -242,7 +242,7 @@ for decihour = span
   % Get rid of negative times
   % 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  ikeep = prof.rtime > 0 & prof.rtime < 0.5E9;
+  ikeep = find(prof.rtime > 0 & prof.rtime < 0.5E9);
   if(numel(ikeep)~=numel(prof.rtime))
     disp(['WARNING: There are ' num2str(numel(prof.rtime)-numel(ikeep)) ' bad profiles. Removing them.']);
     prof = structfun(@(x) x(:,ikeep),prof,'UniformOutput',0);
@@ -400,7 +400,7 @@ for decihour = span
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % 
   % Test for bad band banks - Just a warning
-  %
+  % (junk = number of good banks (0,1,2, or 3) for each profile)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   % search for data in all three bands that are not bad
