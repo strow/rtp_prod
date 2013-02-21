@@ -52,7 +52,16 @@ end
 %if isfield(pd_file_a,'N_GEO_Ref')
 %  geofile = fullfile(sdrdir,pd_file_a.N_GEO_Ref)
 %else
+
   f = dir(regexprep(pdfile,{'SCRIS' '_c[0-9]+'},{'GCRSO' '*'}));
+
+  if(numel(f)>1)
+    fdates=[f.datenum];
+    ifnewest=find(fdates==max(fdates));
+    disp('Warning (readersdr_rtp.m): Found duplicated geo file names! Using the newest one');
+    f=f(ifnewest);
+  end
+
   geofile = fullfile(sdrdir,f.name);
 %end
 
