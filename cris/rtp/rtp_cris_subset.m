@@ -13,6 +13,9 @@ function [head hattr prof pattr summary] = rtp_cris_subset(head_in,hattr_in,prof
 %    RTPOUT  : [string] name of output RTP file to create
 %    SUMOUT  : [string] name of output matlab summary file to create
 %
+%    subset = 0 - all fovs /all channels
+%             2 - all fovs / [401 731 957 1142];
+%             3 - site_only/all channels
 
 % Created: 05 May 2011, Scott Hannon - based on xuniform_clear_example.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -46,6 +49,11 @@ SARTA='/asl/packages/sartaV108/BinV201/sarta_crisg4_nov09_wcon_nte';
 %disp(['loading data: ' RTPIN])
 %[head, hattr, prof, pattr] = rtpread(RTPIN);
 % Use the data stored in memory
+if(nargin()~=5)
+  disp(['nargin=' num2str(nargin())]);
+  error('Bad input arguments');
+end
+
 disp(['loading data: '])
 head = head_in; hattr = hattr_in; prof = prof_in; pattr = pattr_in;
 
@@ -90,38 +98,60 @@ iother = setdiff(find(iflagso >= 2 & iflagso <= 30),find(iflagso == 16));
 disp(['nother=' int2str(length(iother))])
 
 
-% Get names of tmp rtp files
-disp('generating tmp RTP filenames')
-tmp_rtp1 = mktemp('/tmp/rtp1_');
-tmp_rtp2 = mktemp('/tmp/rtp2_');
-tmp_jout = mktemp('/tmp/jout_');
+%-------------------------------------------------
+% Clear detection --------------------------------
+%-------------------------------------------------
 
-% Subset RTP for the clear test channels (to speed up calcs)
-disp('subsetting RTP to clear test channels')
-[head, prof] = subset_rtp(head, prof, [], idtestc, []);
+% Should I do this?
+if(subset==3)
+  do_clear=false;
+  iclear=[];
+else
+  do_clear==true;
+end
 
-% Write RTP to tmp_rtp1
-disp('writing pre-klayers tmp RTP file')
-rtpwrite(tmp_rtp1,head,hattr,prof,pattr);
+if(do_clear)
 
-%keyboard
-% Run klayers and SARTA
-disp('running klayers')
-eval(['! ' KLAYERS ' fin=' tmp_rtp1 ' fout=' tmp_rtp2 ' > ' tmp_jout]);
-disp('running sarta')
-eval(['! ' SARTA ' fin=' tmp_rtp2 ' fout=' tmp_rtp1 ' > ' tmp_jout]);
-disp('loading sarta output RTP')
-[head, hattr, prof, pattr] = rtpread(tmp_rtp1);
+  % Get names of tmp rtp files
+  disp('generating tmp RTP filenames')
+  tmp_rtp1 = mktemp('/tmp/rtp1_');
+  tmp_rtp2 = mktemp('/tmp/rtp2_');
+  tmp_jout = mktemp('/tmp/jout_');
 
-% Remove tmp RTP files
-eval(['! rm -f ' tmp_rtp1 ' ' tmp_rtp2 ' ' tmp_jout]);
+  % Subset RTP for the clear test channels (to speed up calcs)
+  disp('subsetting RTP to clear test channels')
+  [head, prof] = subset_rtp(head, prof, [], idtestc, []);
 
-% Run xfind_clear
-disp('running xfind_clear')
-[iflagsc, bto1232, btc1232] = xfind_clear(head, prof, 1:nobs);
-iclear_sea    = find(iflagsc == 0 & abs(dbtun) < 0.5 & prof.landfrac <= 0.01);
-iclear_notsea = find(iflagsc == 0 & abs(dbtun) < 1.0 & prof.landfrac >  0.01);
-iclear = union(iclear_sea, iclear_notsea);
+  % Write RTP to tmp_rtp1
+  disp('writing pre-klayers tmp RTP file')
+  rtpwrite(tmp_rtp1,head,hattr,prof,pattr);
+
+  %keyboard
+  % Run klayers and SARTA
+  disp('running klayers')
+  eval(['! ' KLAYERS ' fin=' tmp_rtp1 ' fout=' tmp_rtp2 ' > ' tmp_jout]);
+  disp('running sarta')
+  eval(['! ' SARTA ' fin=' tmp_rtp2 ' fout=' tmp_rtp1 ' > ' tmp_jout]);
+  disp('loading sarta output RTP')
+  [head, hattr, prof, pattr] = rtpread(tmp_rtp1);
+
+  % Remove tmp RTP files
+  eval(['! rm -f ' tmp_rtp1 ' ' tmp_rtp2 ' ' tmp_jout]);
+
+  % Run xfind_clear
+  disp('running xfind_clear')
+  [iflagsc, bto1232, btc1232] = xfind_clear(head, prof, 1:nobs);
+  iclear_sea    = find(iflagsc == 0 & abs(dbtun) < 0.5 & prof.landfrac <= 0.01);
+  iclear_notsea = find(iflagsc == 0 & abs(dbtun) < 1.0 & prof.landfrac >  0.01);
+  iclear = union(iclear_sea, iclear_notsea);
+else
+
+  % Not doing clear selection, but fill in bto1232
+  ich1232 = interp1(head.vchan, single(head.ichan), 1232.5, 'nearest');
+  bto1232 = rad2bt(head.vchan(ich1232), prof.robs1(ich1232,:));
+  btc1232 = -9999*ones(size(bto1232));
+  iflagsc = 255*ones(size(bto1232));
+end
 
 % Re-load the CrIS proxy data file
 disp('re-loading original RTP data')
@@ -186,6 +216,8 @@ if (nkeep > 0)
      %iasi_chkeep = [1021 2345 3476 4401];
      chkeep = [401 731 957 1142];
      ikeep = 1:nobs;
+   elseif(subset == 3)
+     disp('   Subsetting for Site only');
    else
      disp('   Subsetting for clear');
    end
@@ -204,9 +236,11 @@ if (nkeep > 0)
    if (~isfield(prof,'udef'))
       prof.udef = zeros(20,nkeep);
    end
+  
    prof.udef(13,:) = dbtun(ikeep);
    prof.udef(14,:) = bto1232(ikeep);
    prof.udef(15,:) = btc1232(ikeep);
+
    if (~isfield(prof,'iudef'))
       prof.iudef = zeros(10,nkeep);
    end

@@ -4,9 +4,9 @@
 %  Input: 
 %     JOB - matlab datenum indicating the time to be processed
 %    
-%     rtpset='subset';
+%     rtpset='subset'/'full'/'full4ch'/'site_only_obs'
 %     data_path='/asl/data/cris/sdr60';
-%     data_str='_subset';
+%     data_str='_subset'/.../.../'site_only_obs'
 %     src='_noaa_ops';
 %
 %  Name is constructe like: ['cris_' data_type data_str src '.yyyy.mm.dd.hh.v1.rtp']
@@ -464,27 +464,34 @@ for decihour = span
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  disp('running rtpadd_ecmwf');
-  try
-    [head hattr prof pattr] = rtpadd_ecmwf_data(head,hattr,prof,pattr);
-  catch err
-    Etc_show_error(err);
-    say('Error reading ECMWF data... Continuing to the next iteration...');
-    continue
+  if(strcmp(rtpset,'site_only_obs'))
+    do_clear=false;
+  else
+    do_clear=true;
   end
 
-  if(~isfield(prof,'wspeed')); 
-    prof.wspeed = ones(size(prof.rtime)) * 0; 
-  end
+  if(do_clear)
+    disp('running rtpadd_ecmwf');
+    try
+      [head hattr prof pattr] = rtpadd_ecmwf_data(head,hattr,prof,pattr);
+    catch err
+      Etc_show_error(err);
+      say('Error reading ECMWF data... Continuing to the next iteration...');
+      continue
+    end
 
-  disp('adding solar');
-  [prof.solzen prof.solazi] = SolarZenAzi(rtime,prof.rlat,prof.rlon,prof.salti/1000);
-  
+    if(~isfield(prof,'wspeed')); 
+      prof.wspeed = ones(size(prof.rtime)) * 0; 
+    end
 
-  disp('adding emissivity');
-  dv = datevec(JOB(1));
-  [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
- 
+    disp('adding solar');
+    [prof.solzen prof.solazi] = SolarZenAzi(rtime,prof.rlat,prof.rlon,prof.salti/1000);
+    
+
+    disp('adding emissivity');
+    dv = datevec(JOB(1));
+    [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
+  end 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
@@ -496,6 +503,8 @@ for decihour = span
     subtest = 1;
   elseif strcmp(rtpset,'full4ch')
     subtest = 2;
+  elseif strcmp(rtpset,'site_only_obs')
+    subtest = 3;
   else
     subtest = 0; % full
   end
