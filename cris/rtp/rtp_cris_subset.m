@@ -21,6 +21,10 @@ function [head hattr prof pattr summary] = rtp_cris_subset(head_in,hattr_in,prof
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Edit this section as needed
 
+rn='rtp_cris_subset';
+greetings(rn);
+
+
 % Uniformity test channel ID numbers
 idtestu = [272; 499; 732];
 % The corresponding approximate channel freqs [wn] are:
@@ -65,7 +69,7 @@ if any(prof_in.xtrack == 90) & any(prof.atrack == 12)
   prof.atrack = int32(floor((single(prof.atrack)+2)/3));
   prof.xtrack = int32(floor((single(prof.xtrack)+2)/3));
 end
-prof
+
 
 
 % Convert boxcar (ie unapodized) to Hamming apodization
@@ -262,5 +266,5 @@ else
    prof = [];
 end
 
-
+farewell(rn);
 %%% end of program %%%
