@@ -106,20 +106,46 @@ if ~exist('data_str','var')
   data_str = '';
 end
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Loop over time - Rearranging the data
+% Loop over hours or 10mins (for an allfovs)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% "span" carried the hour, or the 10mins interval, array.
 span = 0:23;
+day2span = 24;
+
 if strcmp(rtpset,'full')
   span = 0:24*6-1;
+  day2span = 144;
 elseif strcmp(rtpset,'full4ch')
   span = 0:23;
+  day2span = 24;
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Loop over hours or 0.1*hours (for an allfovs)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-disp(['Processing ' datestr(JOB(1),'yyyy/mm/dd') ' with version: ' version])
+% If 'JOB' specifies a start/ending time, run for this subset of the day only
+if(numel(JOB)==1)
+  disp(['Processing ' datestr(JOB(1),'yyyy/mm/dd') ' with version: ' version])
+elseif(numel(JOB)==2)
+
+  startday = floor(JOB(1));
+  starttime = JOB(1)-startday;
+  endtime = JOB(2)-startday;
+
+  disp(['Processing t0=' datestr(JOB(1),'yyyy/mm/dd - HH:MM:SS') ' tf=' datestr(JOB(2),'yyyy/mm/dd - HH:MM:SS') ]);
+
+  % Find which entried of 'span' match these times:
+  iokspan = find(span>=starttime*day2span & span<endtime*day2span);
+  span = span(iokspan);
+else
+  error('JOB variable should have 1 or 2 entries - start/end mtimes');
+end
+
+
 for decihour = span
 
   if strcmp(rtpset,'full')
@@ -414,9 +440,9 @@ for decihour = span
 
   % search for data in all three bands that are not bad
   idtest2=[499, 731, 1147];
-  rmin = bt2rad(head.vchan(idtest2),170);
+  rmin = bt2rad(head.vchan(idtest2),170*ones(size(idtest2)));
   nobs = length(prof.rtime);
-  junk = sum(prof.robs1(idtest2,:) > rmin * ones(1,nobs));
+  junk = sum(prof.robs1(idtest2,:) > rmin' * ones(1,nobs));
   iok = find(junk == 3);
   if(numel(iok)~=numel(junk))
     disp(['WARNING: there are ' num2str(numel(junk)-numel(iok)) ' profiles with at least one bad BANK. Will not do anything!']);

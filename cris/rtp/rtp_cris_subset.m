@@ -111,7 +111,7 @@ if(subset==3)
   do_clear=false;
   iclear=[];
 else
-  do_clear==true;
+  do_clear=true;
 end
 
 if(do_clear)
