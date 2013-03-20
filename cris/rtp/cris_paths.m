@@ -33,10 +33,13 @@ if(numel(matlib_root)==0 | ~exist(matlib_root,'dir'))
 end
 
 % ASL matlab utility box
-addpath([matlib_root '/gribtools/'])
-addpath([matlib_root '/aslutil/'])
-addpath([matlib_root '/science/'])
-addpath([matlib_root '/h4tools/'])
-addpath([matlib_root '/rtptools/'])
-
+addpath([matlib_root '/aslutil']);
+addpath([matlib_root '/clouds']);
+addpath([matlib_root '/fconv']);
+addpath([matlib_root '/gribtools']);
+addpath([matlib_root '/h4tools']);
+addpath([matlib_root '/opendap']);
+addpath([matlib_root '/rtptools']);
+addpath([matlib_root '/science']);
+addpath([matlib_root '/sconv']);
 
