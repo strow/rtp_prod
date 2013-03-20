@@ -111,6 +111,8 @@ if strcmp(rtpset,'full')
   span = 0:24*6-1;
 elseif strcmp(rtpset,'full4ch')
   span = 0:23;
+elseif strcmp(rtpset,'full49ch')
+  span = 0:23;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -496,6 +498,8 @@ for decihour = span
     subtest = 1;
   elseif strcmp(rtpset,'full4ch')
     subtest = 2;
+  elseif strcmp(rtpset,'full49ch')
+    subtest = 3;
   else
     subtest = 0; % full
   end
