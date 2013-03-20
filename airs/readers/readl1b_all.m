@@ -37,7 +37,7 @@ natrack=135;
 nobs=nxtrack*natrack;
 
 % Default f
-load /asl/matlab/airs/readers/f_default_l1b.mat
+load f_default_l1b.mat
 f_default = f;
 
 % Open granule file
