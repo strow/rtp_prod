@@ -416,9 +416,9 @@ for decihour = span
 
   % search for data in all three bands that are not bad
   idtest2=[499, 731, 1147];
-  rmin = bt2rad(head.vchan(idtest2),170);
+  rmin = bt2rad(head.vchan(idtest2),repmat(170,size(idtest2)));
   nobs = length(prof.rtime);
-  junk = sum(prof.robs1(idtest2,:) > rmin * ones(1,nobs));
+  junk = sum(prof.robs1(idtest2,:) > (rmin' * ones(1,nobs)));
   iok = find(junk == 3);
   if(numel(iok)~=numel(junk))
     disp(['WARNING: there are ' num2str(numel(junk)-numel(iok)) ' profiles with at least one bad BANK. Will not do anything!']);
