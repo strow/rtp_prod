@@ -178,7 +178,7 @@ function [head hattr prof pattr] = sdr2rtp(cfile,test_hack)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
   % If we have bad geo data - use ungly_hack
   if(badgeo)
-    warning(['Using geonav_ugly_hack to estimage fundamental GEO fields']);
+    warning(['Using geonav_ugly_hack to estimate fundamental GEO fields']);
 
     nfovs=9;
     nxtrack=30;
@@ -250,6 +250,7 @@ function [head hattr prof pattr] = sdr2rtp(cfile,test_hack)
 
 
 
+
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % If have good geo data - use it
   else
@@ -288,7 +289,12 @@ function [head hattr prof pattr] = sdr2rtp(cfile,test_hack)
     xyz = geo.SCPosition; % [3 x 4*n]
     mtime = double(geo.MidTime)*1E-6 - tdif; % [1 x 4*n]
     isub = prof.rtime > 0;
-    msel = [logical(1); diff(mtime) > 0];
+
+    % Remove NaNs, Infs, and points with no positive diff.
+    innan = find(~isnan(mtime) & ~isinf(mtime));
+    msel = [logical(1); diff(mtime(innan)) > 0];
+    msel = innan(msel);
+
     prof.udef(10,isub) = interp1(mtime(msel),xyz(1,msel),prof.rtime(isub),'linear','extrap');
     prof.udef(11,isub) = interp1(mtime(msel),xyz(2,msel),prof.rtime(isub),'linear','extrap');
     prof.udef(12,isub) = interp1(mtime(msel),xyz(3,msel),prof.rtime(isub),'linear','extrap');
@@ -322,6 +328,22 @@ function [head hattr prof pattr] = sdr2rtp(cfile,test_hack)
   prof.atrack = int32( 1 + floor((iobs-1)/270) );
   prof.xtrack = int32( 1 + mod(floor((iobs-1)/9),30) );
   prof.ifov = int32( 1 + mod(iobs-1,9) );
+
+
+  % Findex Approximation:
+  % As we have now, findex is just the ordinal file number for a particular day.
+  % Howard's files have 61 scan lines, which entails on approximately 480 seconds.
+  % So here we define a "granule" as the ith 480s block in a particular day.
+  start_time = datenum(2000,1,1,0,0,min(prof.rtime));
+  %end_time   = datenum(2000,1,1,0,0,max(prof.rtime));
+  start_time = (start_time - floor(start_time))*86400;
+  %end_time = (end_time - floor(end_time))*86400;
+  findex = floor(start_time/480)+1;
+  prof.findex = int32(findex*ones(size(prof.rtime)));
+   
+
+
+
 
   % copy bcast radiance values to the prof struct
   prof.robs1 = zeros(nchan, nobs, 'single');
