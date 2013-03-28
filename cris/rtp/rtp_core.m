@@ -192,8 +192,41 @@ for decihour = span
     continue; 
   end  % no files found = continue to next hour
 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Test for repeated files ----
+  % Some time they come with the same date stamp but with different creation times
+  dmtime=[];
+  cmtime=[];
+  for ifile=1:numel(f)
+    [fdir fname fext] = fileparts(f{ifile});
+    istart = strfind(fname,'_d');
+    darr = sscanf(fname(istart:end),'_d%8d_t%7d_e%7d_b%5d_c%8d%6d%6d');
+    [ddate dtime etime bfield cdate ctime cmsec] = deal(darr(1),darr(2),darr(3),darr(4),darr(5), darr(6), darr(7));
 
-  disp(['  found ' num2str(length(f)) ' sdr60 files'])
+    dmtime(ifile) = datenum([num2str(ddate) num2str(dtime)],'yyyymmddHHMMSSFFF');
+    cmtime(ifile) = datenum([num2str(cdate) num2str(ctime) num2str(cmsec)],'yyyymmddHHMMSSFFF');
+  end
+   
+  [umtime,id,ix] = unique(dmtime);
+  iokf=[];
+  for itt=1:numel(umtime)
+    imt = find(dmtime == umtime(itt));
+    [~,imaxc] = max(cmtime(imt));
+    iokf(itt) = imt(imaxc);
+  end
+  if(numel(iokf)~=numel(f))
+    disp(['There are ' num2str(numel(f)-numel(iokf)) ' repeated files with different creation dates on the name. Selecting the newest one']);
+    f=f(iokf); 
+  end
+  if(length(f) == 0)
+    error(['After trimming repeated files I am left with no files!'])
+  end
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+  disp(['  found ' num2str(length(f)) ' ' data_type ' files'])
   disp(['  creating ' rtpfile])
 
   mkdirs(dirname(rtpfile))
