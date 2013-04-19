@@ -124,6 +124,9 @@ if strcmp(rtpset,'full')
 elseif strcmp(rtpset,'full4ch')
   span = 0:23;
   day2span = 24;
+elseif strcmp(rtpset,'full49ch')
+  span = 0:23;
+  day2span = 24;
 end
 
 
@@ -530,6 +533,8 @@ for decihour = span
   elseif strcmp(rtpset,'full4ch')
     subtest = 2;
   elseif strcmp(rtpset,'site_only_obs')
+    subtest = 'site_only_obs';
+  elseif strcmp(rtpset,'full49ch')
     subtest = 3;
   else
     subtest = 0; % full

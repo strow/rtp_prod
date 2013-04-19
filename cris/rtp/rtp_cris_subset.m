@@ -15,7 +15,8 @@ function [head hattr prof pattr summary] = rtp_cris_subset(head_in,hattr_in,prof
 %
 %    subset = 0 - all fovs /all channels
 %             2 - all fovs / [401 731 957 1142];
-%             3 - site_only/all channels
+%             3 - Subsetting for 49 channels (hno3,nh4,so2)
+%             'obs_site_only' - site_only/all channels
 
 % Created: 05 May 2011, Scott Hannon - based on xuniform_clear_example.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -107,7 +108,7 @@ disp(['nother=' int2str(length(iother))])
 %-------------------------------------------------
 
 % Should I do this?
-if(subset==3)
+if(strcmp(subset,'site_only_obs');
   do_clear=false;
   iclear=[];
 else
@@ -216,12 +217,17 @@ if (nkeep > 0)
      disp('   Subsetting for all');
      ikeep = 1:nobs;
    elseif(subset == 2)
-     disp('   Subsetting for channels');
+     disp('   Subsetting for 4 channels');
      %iasi_chkeep = [1021 2345 3476 4401];
      chkeep = [401 731 957 1142];
      ikeep = 1:nobs;
-   elseif(subset == 3)
+   elseif(strcmp(subset,'site_only_obs'))
      disp('   Subsetting for Site only');
+   elseif(subset == 3)
+     disp('   Subsetting for 49 channels (hno3,nh4,so2)');
+     %iasi_chkeep = [1021 2345 3476 4401];
+     chkeep = [277, 401, 450, 451, 452, 457, 459, 499, 506, 507, 508, 511, 512, 513, 514, 727, 731, 738, 747, 757, 759, 774, 798, 800, 806, 809, 810, 832, 833, 838, 839, 842, 843, 844, 847, 848, 851, 853, 854, 855, 857, 858, 859, 867, 868, 873, 876, 877,1313];
+     ikeep = 1:nobs;
    else
      disp('   Subsetting for clear');
    end
