@@ -63,9 +63,17 @@ function rtp_core_hr(dates, rtpset, data_path, data_type, data_str, src, prod_di
   disp(['Processing t0=' datestr(dates(1),'yyyy/mm/dd - HH:MM:SS') ' tf=' datestr(dates(2),'yyyy/mm/dd - HH:MM:SS') ]);
 
   % Find which entried of 'span' match these times:
-  iokspan = find(span>=starttime*day2span & span<endtime*day2span);
-  span = span(iokspan);
+  iokspan = find(span>=floor(starttime*day2span) & span<ceil(endtime*day2span));
 
+  if(numel(iokspan)==0)
+    disp(['No span selected: ' datestr(starttime,'HH:MM:SS') ' - ' datestr(endtime,'HH:MM:SS') ]);
+    disp(rtpset)
+    disp(span);
+    disp(starttime*day2span)
+    disp(endtime*day2span);
+  end
+
+  span = span(iokspan);
 
   for decihour = span
 
@@ -244,7 +252,7 @@ function rtp_core_hr(dates, rtpset, data_path, data_type, data_str, src, prod_di
       subtest = 0; % full
     end
 
-    [head,hattr,prof,pattr,summary] = rtp_cris_subset_hr(head,hattr,prof,pattr,subtest);
+    [head,hattr,prof,pattr,summary] = rtp_cris_subset_hr(head,hattr,prof,pattr,subtest,1);
 
     if isempty(prof); 
       disp('ERROR: no data returned from rtp_cris_subset. Skipping....'); 

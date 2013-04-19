@@ -139,7 +139,7 @@ elseif(numel(JOB)==2)
   disp(['Processing t0=' datestr(JOB(1),'yyyy/mm/dd - HH:MM:SS') ' tf=' datestr(JOB(2),'yyyy/mm/dd - HH:MM:SS') ]);
 
   % Find which entried of 'span' match these times:
-  iokspan = find(span>=starttime*day2span & span<endtime*day2span);
+  iokspan = find(span>=floor(starttime*day2span) & span<ceil(endtime*day2span));
   span = span(iokspan);
 else
   error('JOB variable should have 1 or 2 entries - start/end mtimes');
@@ -166,6 +166,7 @@ for decihour = span
 
 
 
+  lgeoin=true;
   disp([' time: ' timestr '  search: '  hourstr '*'])
   disp(['searching: ' data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(floor(mat2jd(JOB(1))),'%03d') '/GCRSO-SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
   f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(floor(mat2jd(JOB(1))),'%03d') '/GCRSO-SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
@@ -175,6 +176,7 @@ for decihour = span
 
 
   if length(f) == 0
+    lgeoin=false;
     disp('NO GCRSO-SCRIS files found, trying alternate hash')
     f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(floor(mat2jd(JOB(1))),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
     disp([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(floor(mat2jd(JOB(1))),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
@@ -203,8 +205,8 @@ for decihour = span
     darr = sscanf(fname(istart:end),'_d%8d_t%7d_e%7d_b%5d_c%8d%6d%6d');
     [ddate dtime etime bfield cdate ctime cmsec] = deal(darr(1),darr(2),darr(3),darr(4),darr(5), darr(6), darr(7));
 
-    dmtime(ifile) = datenum([num2str(ddate) num2str(dtime)],'yyyymmddHHMMSSFFF');
-    cmtime(ifile) = datenum([num2str(cdate) num2str(ctime) num2str(cmsec)],'yyyymmddHHMMSSFFF');
+    dmtime(ifile) = datenum([num2str(ddate,'%08d') num2str(dtime,'%07d')],'yyyymmddHHMMSSFFF');
+    cmtime(ifile) = datenum([num2str(cdate,'%08d') num2str(ctime,'%06d') num2str(cmsec,'%06d')],'yyyymmddHHMMSSFFF');
   end
    
   [umtime,id,ix] = unique(dmtime);
@@ -250,7 +252,11 @@ for decihour = span
     disp(['Reading ' f{i}])
 
     try
-      [p pattr]=readsdr_rtp(f{i});
+      if(lgeoin)
+	[p pattr] = readsdr_rtp_geoin(f{i});
+      else
+	[p pattr]= readsdr_rtp(f{i});
+      end
     catch err
       disp(['ERROR:  Problem reading in file ' f{i}])
       Etc_show_error(err);

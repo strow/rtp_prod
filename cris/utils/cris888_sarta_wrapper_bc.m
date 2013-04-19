@@ -121,9 +121,9 @@ end
 
 
 % Run klayers if needed
+jout = mktemp();
+rtpop = mktemp();
 if (head.ptype == 0)
-   jout = mktemp();
-   rtpop = mktemp();
    disp('running klayers')
    eval(['! ' KLAYERS ' fin=' rtpin ' fout=' rtpop ' > ' jout]);
 else

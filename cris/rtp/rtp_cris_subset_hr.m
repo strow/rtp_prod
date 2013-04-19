@@ -1,6 +1,6 @@
-function [head hattr prof pattr summary] = rtp_cris_subset(head_in,hattr_in,prof_in,pattr_in,subset)
+function [head hattr prof pattr summary] = rtp_cris_subset_hr(head_in,hattr_in,prof_in,pattr_in,subset,keepcalcs)
 
-% function [head hattr prof pattr summary] = rtp_cris_subset(head_in,hattr_in,prof_in,pattr_in,subset)
+% function [head hattr prof pattr summary] = rtp_cris_subset_hr(head_in,hattr_in,prof_in,pattr_in,subset,keepcalcs)
 % 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Program xuniform_clear_template
@@ -24,6 +24,9 @@ function [head hattr prof pattr summary] = rtp_cris_subset(head_in,hattr_in,prof
 rn='rtp_cris_subset';
 greetings(rn);
 
+if(~exist('keepcalcs','var'))
+  keepcalcs=0;
+end
 
 % This version of the code used actual wavenumbers instead of channels.
 % The corresponding approximate channel freqs [wn] are:
@@ -51,7 +54,7 @@ SARTA='/asl/packages/sartaV108/BinV201/sarta_crisg4_nov09_wcon_nte';
 %addpath /asl/matlab/cris/unapod    % xfind_clear, proxy_box_to_ham
 
 
-if(nargin()~=5)
+if( nargin()<5 | nargin()>6)
   disp(['nargin=' num2str(nargin())]);
   error('Bad input arguments');
 end
@@ -122,9 +125,17 @@ if(do_clear)
   tmp_rtp2 = mktemp('/tmp/rtp2_');
   tmp_jout = mktemp('/tmp/jout_');
 
-  % Subset RTP for the clear test channels (to speed up calcs)
-  disp('subsetting RTP to clear test channels')
-  [head, prof] = subset_rtp(head, prof, [], idtestc, []);
+  % Subset RTP for the clear test channels (to speed up calcs) - 
+  %    *** this is not so for the IASI->CrIS calculations!
+  if(~isHighRes & ~keepcalcs)
+    disp('subsetting RTP to clear test channels')
+    [head, prof] = subset_rtp(head, prof, [], idtestc, []);
+  end
+
+  % If 'keepcalcs' is true, will keep the calcs.
+  if(keepcalcs)
+    disp('Keeping calculations saved');
+  end
 
   % Write RTP to tmp_rtp1
   disp('writing pre-klayers tmp RTP file')
@@ -169,6 +180,17 @@ disp('re-loading original RTP data')
 % Use the data stored in memory
 head = head_in; hattr = hattr_in; prof = prof_in; pattr = pattr_in;
 
+if(keepcalcs)
+  % final test - should never happen 
+  if(size(r888)~=size(prof.robs1))
+    warning(['Will not keep calcs!! size(r888)=' num2str(size(r888)) ' and size(prof.robs1)=' num2str(size(prof.robs1)) '.']);
+  else
+    prof.rcalc = r888;
+    [b1 b2 b3]=pfields2bits(head.pfields);
+    b2=1;
+    head.pfields = bits2pfields(b1, b2, b3);
+  end
+end
 
 % Determine all indices to keep
 iclrflag = zeros(1,nobs);

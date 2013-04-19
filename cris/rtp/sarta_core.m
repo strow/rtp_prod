@@ -53,7 +53,11 @@ for f = findfiles(input_glob);
   if strcmp(model,'ecm')
     disp(['  adding ecm profiles to ' bn])
     try
-      [head hattr prof pattr] =rtpadd_ecmwf_data(head,hattr,prof,pattr);
+      if(~strcmp(get_attr(pattr,'profiles'),'ECMWF'))
+	[head hattr prof pattr] =rtpadd_ecmwf_data(head,hattr,prof,pattr);
+      else
+	disp('  No need. File already contains it');
+      end
     catch err
       disp(['  ERROR adding data for ' outfile])
       Etc_show_error(err); 
