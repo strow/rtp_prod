@@ -1,3 +1,13 @@
+function sarta_core(input_glob, yyyymmdd, model, emis)
+% function sarta_core(input_glob, yyyymmdd, model, emis)
+% 
+%   input_glob = "glob" for intput files
+%   yyyymmdd   = date associated with the "glob" selection
+%                String or Matlab datenum.
+%                MAKE SURE THEY MATCH WITH THE GLOB
+%   model      = "ecm"/"era"/"gfs"
+%   emis       = "wis"/"dan"
+%   
 %%%%%%%%
 %
 %  Main processing script to change observation files into calc files with profiles.
@@ -18,7 +28,17 @@ if ~exist('emis','var')
   emis='wis';
 end
 
-%JOB = datenum(2011,5,29);
+% Check associated date
+if(isstr(yyyymmdd))
+  procdate = datenum(yyyymmdd,'yyyymmdd');
+else
+  procdate = yyyymmdd;
+  yyyymmdd = datestr(procdate,'yyyymmdd');
+end
+if(procdate < datenum(2009,1,1) | procdate> now)
+  error(['Provided date (yyyymmdd) is invalid => ' datestr(procdate,'yyyymmdd')]);
+end
+
 
 clear f
 for f = findfiles(input_glob);
@@ -65,7 +85,7 @@ for f = findfiles(input_glob);
     end
   elseif strcmp(model,'era')
     disp(['  adding era profiles to ' bn])
-    system(['/asl/opt/bin/getera ' datestr(JOB(1),'yyyymmdd')])
+    system(['/asl/opt/bin/getera ' datestr(procdate,'yyyymmdd')])
     [head hattr prof pattr] =rtpadd_era_data(head,hattr,prof,pattr);
   elseif strcmp(model,'gfs')
     disp(['  adding gfs profiles to ' bn])
@@ -89,15 +109,15 @@ for f = findfiles(input_glob);
   %%%%
   if strcmp(emis,'wis')
     disp(['  adding wis emissivity to ' bn])
-    dv = datevec(JOB(1));
+    dv = datevec(procdate);
     try
       [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
     catch
       if dv(3) > 15
-	 dv = datevec(JOB(1) + 30);
+	 dv = datevec(procdate + 30);
 	[prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
       else
-	 dv = datevec(JOB(1) - 30);
+	 dv = datevec(procdate - 30);
 	[prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
       end
     end
