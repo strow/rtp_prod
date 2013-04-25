@@ -154,6 +154,10 @@ if(do_clear)
     eval(['! ' SARTA ' fin=' tmp_rtp2 ' fout=' tmp_rtp1 ' > ' tmp_jout]);
     disp('loading sarta output RTP')
     [head, hattr, prof, pattr] = rtpread(tmp_rtp1);
+    if(keepcalcs)
+      % Save calcs for later
+      r842 = prof.rcalc;
+    end
   end
 
   % Remove tmp RTP files
@@ -181,11 +185,18 @@ disp('re-loading original RTP data')
 head = head_in; hattr = hattr_in; prof = prof_in; pattr = pattr_in;
 
 if(keepcalcs)
-  % final test - should never happen 
-  if(size(r888)~=size(prof.robs1))
-    warning(['Will not keep calcs!! size(r888)=' num2str(size(r888)) ' and size(prof.robs1)=' num2str(size(prof.robs1)) '.']);
+  if(isHighRes)
+    % final test - should never happen 
+    if(size(r888)~=size(prof.robs1))
+      warning(['Will not keep calcs!! size(r888)=' num2str(size(r888)) ' and size(prof.robs1)=' num2str(size(prof.robs1)) '.']);
+    else
+      prof.rcalc = r888;
+      [b1 b2 b3]=pfields2bits(head.pfields);
+      b2=1;
+      head.pfields = bits2pfields(b1, b2, b3);
+    end
   else
-    prof.rcalc = r888;
+    prof.rcalc = r842;
     [b1 b2 b3]=pfields2bits(head.pfields);
     b2=1;
     head.pfields = bits2pfields(b1, b2, b3);

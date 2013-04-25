@@ -252,7 +252,16 @@ function rtp_core_hr(dates, rtpset, data_path, data_type, data_str, src, prod_di
       subtest = 0; % full
     end
 
-    [head,hattr,prof,pattr,summary] = rtp_cris_subset_hr(head,hattr,prof,pattr,subtest,1);
+    keepcalcs = false; %faster
+    % test for HighRes data
+    [type, ngc] = test_cris_grid(head.vchan);
+    isHighRes = (type==888);
+    if(isHighRes)
+      disp('This is HighRes Data - Keeping expensivelly calculated radiances.')
+      keepcalcs = true; % keep all the calculated channels. Useful for HighRes
+    end
+
+    [head,hattr,prof,pattr,summary] = rtp_cris_subset_hr(head,hattr,prof,pattr,subtest, keepcalcs);
 
     if isempty(prof); 
       disp('ERROR: no data returned from rtp_cris_subset. Skipping....'); 
