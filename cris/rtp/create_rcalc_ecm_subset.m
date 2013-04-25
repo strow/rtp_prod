@@ -4,4 +4,5 @@ model = 'ecm';
 emis = 'wis';
 input_glob = [prod_dir '/' datestr(JOB(1),'yyyy/mm/dd') '/cris_sdr*sub*.' datestr(JOB(1),'yyyy.mm.dd') '*.rtp'];
 
-sarta_core
+yyyymmdd = JOB(1);
+sarta_core(input_glob, yyyymmdd, model, emis);
