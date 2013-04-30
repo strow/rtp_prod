@@ -1,0 +1,7 @@
+     5   !sensor_id 
+     2,    2,    2,    2,    2,    2,    0,    0,    0,    0,    0,    0,    0,    0,    0 	!molindx
+     1.0,  1.0135, 1.0, 1.027, 1.0, 1.145, 1.0,  1.0,    1.0, 1.0,   1.0, 1.0, 0.74, 1.9, 2.3    !scalfac
+     .false.       1    0    0    0    0    0    1    0    0   ! jacob   h2o co2 o3 n2o co ch4  T Ts emis
+     .false.   !   chdomain
+     1
+'/home/xiuchen/PCRTM_V2.1/Jacob_test/ECMWF20030701_t001_90plus1k.par'
