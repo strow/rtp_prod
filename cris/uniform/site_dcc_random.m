@@ -35,7 +35,7 @@ range_km = 55.5; % fixed site matchup max range
 maxlandfrac_sea = 0.01; % max landfrac for a sea FOV
 minlandfrac_land = 0.99; % min landfrac for a land FOV
 
-btmaxhicloud = 220; % max BT for a high cloud FOV
+btmaxhicloud = 210; % max BT for a high cloud FOV
 latmaxhicloud = 60; % max |rlat| for a high cloud FOV
 
 ixtrackrandom = 15; % xtrack for random FOV
