@@ -95,7 +95,7 @@ fm = [fm1';fm2';fm3';fm4';fm5';fm6';fm7';fm8';fm9'];
 inan = [ 1306 1307 1312:1315 1320:1323 1328:1329];
 
 site_range = 55.5;  % we 55.5 km for AIRS
-version = 'v1';
+version = 'v2';
 
 % These indices not used yet, done explicitely below for now
 % Sarta index
@@ -383,23 +383,24 @@ for decihour = span
   % A proxy for satzen
   % 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  if(isfield(prof,'scanang'))
-    if(~isfield(prof,'satzen') | all(prof.satzen < -900)) 
-      disp('WARNING:  patching satzen - missing or has bad values')
-      zang = vaconv(prof.scanang,prof.zobs,prof.salti);
-      prof.satzen = 1./cos(deg2rad(zang));
-    end
-  else
-    disp('WARNING:  missing scanang!  approximating satzen');
-    prof.satzen = abs(double(prof.xtrack) - 15.5) * 4;
-  end
 
-  if isfield(prof,'satazi') & all(prof.satazi < -900)
-    prof = rmfield(prof,'satazi');
-  end
-  if isfield(prof,'solazi') & all(prof.solazi < -900)
-    prof = rmfield(prof,'solazi');
-  end
+  %if(isfield(prof,'scanang'))
+  %  if(~isfield(prof,'satzen') | all(prof.satzen < -900)) 
+  %    disp('WARNING:  patching satzen - missing or has bad values')
+  %    zang = vaconv(prof.scanang,prof.zobs,prof.salti);
+  %    prof.satzen = 1./cos(deg2rad(zang));
+  %  end
+  %else
+  %  disp('WARNING:  missing scanang!  approximating satzen');
+  %  prof.satzen = abs(double(prof.xtrack) - 15.5) * 4;
+  %end
+%
+%  if isfield(prof,'satazi') & all(prof.satazi < -900)
+%    prof = rmfield(prof,'satazi');
+%  end
+%  if isfield(prof,'solazi') & all(prof.solazi < -900)
+%    prof = rmfield(prof,'solazi');
+%  end
 
   rtime = rtpdate(prof,pattr);
 
@@ -553,9 +554,73 @@ for decihour = span
     [prof.solzen prof.solazi] = SolarZenAzi(rtime,prof.rlat,prof.rlon,prof.salti/1000);
     
 
-    disp('adding emissivity');
+    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %  ADD Emissivity manually
+    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    disp('Adding DanZhou emissivity');
     dv = datevec(JOB(1));
-    [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
+    %[prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
+
+    % Get land emissivity
+    [efreq emis] = emis_DanZhou(prof.rlat, prof.rlon, prof.rtime, 2000);
+    % Get water emissivity
+    [sea_nemis, sea_efreq, sea_emis]=cal_seaemis2(prof.satzen,prof.wspeed);
+    % Mix them accordingly
+    lgood_land = (all(emis>=0)); % good land emissivities
+    lland = (prof.landfrac==1 & lgood_land); % land AND good land emis
+    lsea = (prof.landfrac==0 | ~lgood_land); % ocean OR bad land emis
+    lmix = ~lland & ~lsea; % the left over
+  
+    % Clean up arrays 
+    prof.nemis = zeros([1, size(prof.rtime,2)]);
+    prof.efreq = zeros([100,size(prof.rtime,2)]);
+    prof.emis = zeros([100,size(prof.rtime,2)]);
+
+    % Add land 
+    for ifov = find(lland)
+      nemis = numel(efreq);
+      prof.nemis(1,ifov) = nemis;
+      prof.efreq(1:nemis,ifov) = efreq(1:nemis,1);
+      prof.emis(1:nemis,ifov) = emis(1:nemis,ifov);
+    end 
+
+    % Add water
+    for ifov = find(lsea)
+      nemis = sea_nemis(1,ifov);
+      prof.nemis(1,ifov) = nemis;
+      prof.efreq(1:nemis,ifov) = sea_efreq(1:nemis,ifov);
+      prof.emis(1:nemis,ifov) = sea_emis(1:nemis,ifov);
+    end
+
+    % The mixing requires attention:
+    for ifov = find(lmix) 
+
+      % Interpolate into land emis grid.
+      nemis_sea = sea_nemis(1,ifov);
+      nemis_land = numel(efreq);
+      sea_emis_on_landgrid = interp1(sea_efreq(1:nemis_sea,ifov),sea_emis(1:nemis_sea,ifov), efreq(1:nemis_land,1),'linear');
+
+      % Find the valid (non-NAN) points - use only them
+      iok = find(~isnan(sea_emis_on_landgrid));
+      nemis_mix = numel(iok);
+
+      prof.nemis(1,ifov) = nemis_mix;
+      prof.efreq(1:nemis_mix, ifov) = efreq(iok,1);
+
+      % Mix both using landfrac
+      lf = prof.landfrac(1,ifov);
+      of = 1-lf;
+      prof.emis(1:nemis_mix, ifov) = of*sea_emis_on_landgrid(iok, 1) + ...
+                                     lf*emis(iok,1);
+    end
+
+    % Compute Lambertian Reflectivity
+    prof.nrho = prof.nemis;
+    prof.rho = (1.0 - prof.emis)./3.14159265358979323846;
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
   end 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
