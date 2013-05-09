@@ -27,6 +27,8 @@ function [iflags, isite] = site_dcc_random(head, prof, idtest);
 % Update: 04 May 2011, S.Hannon - bug fixes; change iflags for compatiblity
 %    with "reason"
 % Update: 05 May 2011, S.Hannon - add random seed
+%          2013.05.08, B.Imbiriba - Partial repeateability of random fovs: 
+%                                   seed is the time of 1st fov in granule.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Edit this section as needed
 
@@ -103,19 +105,22 @@ bv4(ib) = 4;
 
 
 % Random FOVs (bit value 8)
-%rng('shuffle'); % seed random number generator with current time
+% We want repeatability of randomness here - if I rerun this code again 
+% I want the *same* random fovs - they are random so it doesn't matter
+%
+% For that we use int32(prof.rtime(1)) as the seed.
+% 
+% B.I.
+random_seed = int32(prof.rtime(1));
+rng(random_seed,'twister');
+
 bv8 = zeros(1,nobs);
 ind = find(prof.xtrack == ixtrackrandom);
 nind = length(ind);
 if (nind > 0)
-   % generate a set of random numbers
-     rf = fopen('/dev/urandom','r');
-     random01 = (single(fread(rf,nind,'*uint16')) / 2^16)';
-     fclose(rf);
-   % end random number generator
-   %random01 = rand([1,nind]);
-   randlimit = randadjust*cos(prof.rlat(ind)*pi/180);
-   ib = ind(find(random01 <= randlimit));
+  random01 = rand([1,nind]);
+  randlimit = randadjust*cos(prof.rlat(ind)*pi/180);
+  ib = ind(find(random01 <= randlimit));
 end
 bv8(ib) = 8;
 
