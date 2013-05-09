@@ -95,7 +95,8 @@ fm = [fm1';fm2';fm3';fm4';fm5';fm6';fm7';fm8';fm9'];
 inan = [ 1306 1307 1312:1315 1320:1323 1328:1329];
 
 site_range = 55.5;  % we 55.5 km for AIRS
-version = 'v2';
+
+version = version_number();
 
 % These indices not used yet, done explicitely below for now
 % Sarta index
