@@ -62,16 +62,6 @@ disp(['loading data: '])
 head = head_in; hattr = hattr_in; prof = prof_in; pattr = pattr_in;
 
 
-% detect bad prof structures and correct:
-if any(prof_in.xtrack == 90) & any(prof.atrack == 12)
-  disp('WARNING: modifying rtp structure to fit cris params')
-  prof.findex = ones(size(prof.rtime),'int32');
-  prof.atrack = int32(floor((single(prof.atrack)+2)/3));
-  prof.xtrack = int32(floor((single(prof.xtrack)+2)/3));
-end
-
-
-
 % Convert boxcar (ie unapodized) to Hamming apodization
 disp('running boxg4_to_ham')
 
@@ -187,7 +177,7 @@ summary.rlon    = single(prof.rlon);
 summary.rtime   = prof.rtime;
 summary.solzen  = single(prof.solzen);
 summary.landfrac= single(prof.landfrac);
-summary.findex  = uint8(prof.findex);
+summary.findex  = uint32(prof.findex);
 summary.atrack  = uint8(prof.atrack);
 summary.xtrack  = uint8(prof.xtrack);
 summary.ifov    = uint8(prof.ifov);

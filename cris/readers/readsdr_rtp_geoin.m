@@ -225,4 +225,10 @@ pattr = {{'profiles' 'rtime' 'seconds since 0z 1 Jan 2000'}, ...
          {'profiles' 'udef(12,:)' 'spacecraft Z coordinate {Z}'}, ...
         };
 
+% Set findex to be the Granule number
+% The Goal of findex is to uniquely identify a FoV:
+% [ifov, xtrack, atrack, findex] - hence the "granule 
+
+prof.findex = prof.iudef(3,:);
+
 %%% end of function %%%

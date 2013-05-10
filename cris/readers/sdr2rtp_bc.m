@@ -330,19 +330,11 @@ function [head hattr prof pattr] = sdr2rtp(cfile,test_hack)
   prof.ifov = int32( 1 + mod(iobs-1,9) );
 
 
-  % Findex Approximation:
-  % As we have now, findex is just the ordinal file number for a particular day.
-  % Howard's files have 61 scan lines, which entails on approximately 480 seconds.
-  % So here we define a "granule" as the ith 480s block in a particular day.
-  start_time = datenum(2000,1,1,0,0,min(prof.rtime));
-  %end_time   = datenum(2000,1,1,0,0,max(prof.rtime));
-  start_time = (start_time - floor(start_time))*86400;
-  %end_time = (end_time - floor(end_time))*86400;
-  findex = floor(start_time/480)+1;
-  prof.findex = int32(findex*ones(size(prof.rtime)));
-   
+  % Set findex to be the Granule number
+  % The Goal of findex is to uniquely identify a FoV:
+  % [ifov, xtrack, atrack, findex] - hence the "granule 
 
-
+  prof.findex = prof.iudef(3,:);
 
 
   % copy bcast radiance values to the prof struct

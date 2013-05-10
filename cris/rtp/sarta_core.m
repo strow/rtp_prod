@@ -6,7 +6,7 @@ function sarta_core(input_glob, yyyymmdd, model, emis)
 %                String or Matlab datenum.
 %                MAKE SURE THEY MATCH WITH THE GLOB
 %   model      = "ecm"/"era"/"gfs"
-%   emis       = "wis"/"dan"
+%   emis       = "dan"/"wis"
 %   
 %%%%%%%%
 %
@@ -21,11 +21,14 @@ rn='sarta_core (CrIS)'
 greetings(rn);
 
 
+% get version number - and add it to header
+version = version_number()
+
 if ~exist('model','var')
   model='ecm';
 end
 if ~exist('emis','var')
-  emis='wis';
+  emis='dan';
 end
 
 % Check associated date
@@ -64,6 +67,11 @@ for f = findfiles(input_glob);
   if isfield(prof,'calflag'); prof = rmfield(prof,'calflag'); end
   hattr = set_attr(hattr,'rtpfile',f{1});
   %hattr = set_attr(hattr,'prod_code','process_l1bcm.m');
+
+
+  % add version number on header attributes
+  hattr = set_attr(hattr,'rev_sarta_core',version);
+
 
   %%%%
   %

@@ -60,9 +60,14 @@ if (length(idtestx) ~= ntest)
 end
 
 
-% Determine unique scanlines (as findex*100 + atrack)
-% and their mean rtime
-f100a = round(100*prof.findex + prof.atrack); % exact integer
+% Determine unique scanlines and their mean rtime.
+% For CrIS findex is the Cris Granule number, which is 
+% approximatedly the number of seconds since 2011/10/23
+% and differ by 480 eche one from the other.
+% Hence unique Fovs have unique findex.
+% 
+% f100a = round(100*prof.findex + prof.atrack); % exact integer
+i100a = round(double(prof.findex) + double(prof.atrack));
 uf100a = unique(f100a);
 nscan = length(uf100a);
 tscan = zeros(1,nscan);
