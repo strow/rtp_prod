@@ -8,6 +8,7 @@ prod_dir = '/asl/data/rtprod_cris';
 %prod_dir = '/asl/data/rtprod_cris_test';
 
 % CRiS Matlab utility box
+addpath([base_dir2 ])
 addpath([base_dir1 '/clear'])
 addpath([base_dir1 '/readers'])
 addpath([base_dir1 '/rtp'])
@@ -33,6 +34,7 @@ if(numel(matlib_root)==0 | ~exist(matlib_root,'dir'))
 end
 
 % ASL matlab utility box
+addpath([matlib_root]);
 addpath([matlib_root '/aslutil']);
 addpath([matlib_root '/clouds']);
 addpath([matlib_root '/fconv']);

@@ -67,7 +67,7 @@ end
 % Hence unique Fovs have unique findex.
 % 
 % f100a = round(100*prof.findex + prof.atrack); % exact integer
-i100a = round(double(prof.findex) + double(prof.atrack));
+f100a = round(double(prof.findex) + double(prof.atrack));
 uf100a = unique(f100a);
 nscan = length(uf100a);
 tscan = zeros(1,nscan);
