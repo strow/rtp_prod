@@ -36,25 +36,32 @@ function [rham] = boxwn_to_ham(vchan, rbox)
 
   % Find channel Banks. 
   % Banks are blocks separated by more the 20wn
-  [uf ib] = unique(diff(vchan),'last');
-  nbancks = find(uf > 20)';
+
+  % Channel frequencies do not monotonically grow with position on vector.
+  % Compute sorting vectors 
+  [~, i_un_so] = sort(vchan);   % unsorted_idx = i_un_so(sorted_idx);
+
+  % Find bank boundaries
+  [uf ib] = unique(diff(vchan(i_un_so)),'last');
+  ibank = find(uf > 20)';
+  ib = ib(ibank);
 
   % ib carries the index of the last channel of each bank.
   % Add the last channel to add the last bank.
   ib(end+1) = numel(vchan);
-  nbancks(end+1) = numel(ib);
+  nbanks = numel(ib);
 
   ic0=1;
   ic1=-1;
-  for ii=nbancks
+  for ii=1:nbanks
     ic1=ib(ii);
-    rbox_blk = rbox(ic0:ic1,:);
-    vchan_blk = vchan(ic0:ic1,:);
+    rbox_blk = rbox(i_un_so(ic0:ic1),:);
+    vchan_blk = vchan(i_un_so(ic0:ic1),:);
 
     rham_blk = box_to_ham(rbox_blk);
     
-    rham(ic0:ic1,:) = rham_blk;
-    rham([ic0 ic1],:) = NaN;  
+    rham(i_un_so(ic0:ic1),:) = rham_blk;
+    rham(i_un_so([ic0 ic1]),:) = NaN;  
     ic0=ic1+1;
     ic1=-1;
   end

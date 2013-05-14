@@ -127,7 +127,7 @@ function rtp_core_hr(dates, rtpset, data_path, data_type, data_str, src, prod_di
       disp(['Found ' num2str(numel(files)) ' Standard SDR60 Files.']);
 
     else
-      error('Wrong file_type - it must be either "_noaa_ops" or ".ccast"');
+      error(['Argument src=' src ' - it must be either "_noaa_ops" or ".ccast"']);
     end
 
     if length(files) == 0; 
@@ -277,6 +277,8 @@ function rtp_core_hr(dates, rtpset, data_path, data_type, data_str, src, prod_di
 
     mkdirs(dirname(rtpfile))
     disp(['Writing out rtp file: ' rtpfile]);
+
+    hattr = set_attr(hattr,'rtpfile',rtpfile);
     rtpwrite(rtpfile,head,hattr,prof,pattr)
     if exist('summary','var')
       save([rtpfile(1:end-3) 'summary.mat'],'-struct','summary')
@@ -304,27 +306,45 @@ function [head hattr prof pattr] = sdr2rtp_h5_l(f)
   % Read hdf5 file
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  error('This routine is not coded for High Res files!')
+  [prof pattr] = readsdr_rtp(f);
 
-  [p pattr]=readsdr_rtp(f{i});
+  % test if the file is high or low res
+  [vchan, ichan] = make_cris_grid(888,0);
+  if(size(prof.robs1,1)>=numel(vchan))
+    error('This routine is not coded for High Res files!');
+  end
 
-  p.findex = int32(ones(size(p.rtime)) * i);
+  % Check if Granule number is present in attributes:
+  str = get_attr(pattr,'Granule ID {granid}',2);
+  if(numel(str)>0)
+    prof.findex = eval(['prof.' str ]);
+  else
+    if(~isfield(prof,'findex'))
+      disp('sdr2rtp_h5_l: have no findex on udef variable. Filling it with -1.');
+      prof.findex = int32(-ones(size(prof.rtime)));
+    else
+      disp('sdr2rtp_h5_l: findex already present! This is probably WRONG. Keeping it');
+    end
+  end
+
+  % Sarta g4 channels that are not in Proxy data 
+  inan = [ 1306 1307 1312:1315 1320:1323 1328:1329];
 
   % Now change indices to g4 of SARTA
-  robs = p.robs1;
-  nn = length(p.rlat);
-  p.robs1 = zeros(1329,nn);
-  p.robs1(inan,:) = NaN;
-  % p.robs1(si,:) = robs(pi,:);    % test and implement later
-  p.robs1(1:713,:)     = robs(3:715,:);
-  p.robs1(714:1146,:)  = robs(720:1152,:);
-  p.robs1(1147:1305,:) = robs(1157:1315,:);
-  p.robs1(1308:1309,:) = robs(1:2,:);
-  p.robs1(1310:1311,:) = robs(716:717,:);
-  p.robs1(1316:1317,:) = robs(718:719,:);
-  p.robs1(1318:1319,:) = robs(1153:1154,:);
-  p.robs1(1324:1325,:) = robs(1155:1156,:);
-  p.robs1(1326:1327,:) = robs(1316:1317,:);
+  robs = prof.robs1;
+  nn = length(prof.rlat);
+  prof.robs1 = zeros(1329,nn);
+  prof.robs1(inan,:) = NaN;
+  % prof.robs1(si,:) = robs(pi,:);    % test and implement later
+  prof.robs1(1:713,:)     = robs(3:715,:);
+  prof.robs1(714:1146,:)  = robs(720:1152,:);
+  prof.robs1(1147:1305,:) = robs(1157:1315,:);
+  prof.robs1(1308:1309,:) = robs(1:2,:);
+  prof.robs1(1310:1311,:) = robs(716:717,:);
+  prof.robs1(1316:1317,:) = robs(718:719,:);
+  prof.robs1(1318:1319,:) = robs(1153:1154,:);
+  prof.robs1(1324:1325,:) = robs(1155:1156,:);
+  prof.robs1(1326:1327,:) = robs(1316:1317,:);
 
 
   % Declare iudef
@@ -370,7 +390,7 @@ function [head hattr prof pattr] = sdr2rtp_h5_l(f)
 
   hattr = set_attr('header','pltfid','NPP');
   hattr = set_attr(hattr,'instid','CrIS');
-  hattr = set_attr(hattr,'rtpfile',rtpfile);
+%  hattr = set_attr(hattr,'rtpfile',rtpfile);
   pattr = set_attr(pattr,'iudef(1,:)','Reason [1=clear,2=site,4=high cloud,8=random] {reason_bit}');
 
 end
