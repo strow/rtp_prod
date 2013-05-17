@@ -33,7 +33,7 @@ function rtp_core_hr(dates, rtpset, data_path, data_type, data_str, src, prod_di
   end  
 
 
-  version = 'v1';
+  version = version_number();
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
@@ -193,6 +193,9 @@ function rtp_core_hr(dates, rtpset, data_path, data_type, data_str, src, prod_di
     end
     
     prof = structmerge(prof,2);
+
+    % add version number on header attributes
+    hattr = set_attr(hattr,'rev_rtp_core_hr',version);
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -479,23 +482,23 @@ function [head hattr prof pattr] = sdr_fixup(head,hattr, prof, pattr);
   % A proxy for satzen
   % 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  if(isfield(prof,'scanang'))
-    if(~isfield(prof,'satzen') | all(prof.satzen < -900)) 
-      disp('WARNING:  patching satzen - missing or has bad values')
-      zang = vaconv(prof.scanang,prof.zobs,prof.salti);
-      prof.satzen = 1./cos(deg2rad(zang));
-    end
-  else
-    disp('WARNING:  missing scanang!  approximating satzen');
-    prof.satzen = abs(double(prof.xtrack) - 15.5) * 4;
-  end
-
-  if isfield(prof,'satazi') & all(prof.satazi < -900)
-    prof = rmfield(prof,'satazi');
-  end
-  if isfield(prof,'solazi') & all(prof.solazi < -900)
-    prof = rmfield(prof,'solazi');
-  end
+  %if(isfield(prof,'scanang'))
+  %  if(~isfield(prof,'satzen') | all(prof.satzen < -900)) 
+  %    disp('WARNING:  patching satzen - missing or has bad values')
+  %    zang = vaconv(prof.scanang,prof.zobs,prof.salti);
+  %    prof.satzen = 1./cos(deg2rad(zang));
+  %  end
+  %else
+  %  disp('WARNING:  missing scanang!  approximating satzen');
+  %  prof.satzen = abs(double(prof.xtrack) - 15.5) * 4;
+  %end
+%
+%  if isfield(prof,'satazi') & all(prof.satazi < -900)
+%    prof = rmfield(prof,'satazi');
+%  end
+%  if isfield(prof,'solazi') & all(prof.solazi < -900)
+%    prof = rmfield(prof,'solazi');
+%  end
 
   rtime = rtpdate(prof,pattr);
 
