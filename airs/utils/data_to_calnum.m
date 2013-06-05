@@ -38,7 +38,7 @@ function [calnum, cstr] = data_to_calnum(tai, freq, nen, ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Spectral calibration filename and TAI time when A/B weight changes
-caldir = '/asl/matlab/airs/utils';
+caldir = dirname(mfilename('fullpath'));
 calfiles = {'airs_cal_prop_2002_08_30.txt', ...
             'airs_cal_prop_2003_01_10.txt', ...
             'airs_cal_prop_2003_11_19.txt'};
@@ -138,7 +138,7 @@ clear ab calprop
 % Values: OK={b7=0,b8=0}, DCR={b7=1,b8=0}, moon={b7=0,b8=1}, other={b7=1,b8=1}
 bit7 =  64*ones(2378,adim); % 2^6
 bit8 = 128*ones(2378,adim); % 2^7
-ix = find(calchansummary*ones(1,adim) == 0); % no calchansummary problems
+ix = find(double(calchansummary)*ones(1,adim) == 0); % no calchansummary problems
 i0 = ix( find(calflag(ix) == 0) );  % no problems
 if (length(i0) > 0)
    bit7(i0) = 0;

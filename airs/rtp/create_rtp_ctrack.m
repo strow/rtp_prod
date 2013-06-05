@@ -115,7 +115,7 @@ prof.zobs = reshape(satheight(r),1,270)*1000;
 prof.udef = zeros(10,270);
 prof.udef(1,:) = sat_lat(r);
 prof.udef(2,:) = sat_lon(r);
-prof.udef(3,:) = nadirTAI(r)'-reshape(Time,1,270);
+prof.udef(3,:) = nadirTAI(r)-reshape(Time,1,270);
 prof.udef(4,:) = eq_x_tai-reshape(Time,1,270);
 prof.satzen = reshape(satzen,1,270);
 prof.satazi = reshape(satazi,1,270);
@@ -133,8 +133,8 @@ prof.rlon = reshape(Longitude,1,270);
 prof.rtime = reshape(Time,1,270);
 
 % Replacing calnum for the calflag field
-[prof.calflag, cstr] = data_to_calnum(mean(Time(:)), head.vchan, NeN, ...
-   CalChanSummary, reshape(CalFlag(:,r),2378,270));
+[prof.calflag, cstr] = data_to_calnum(mean(Time(:)), head.vchan, NeN', ...
+   CalChanSummary', reshape(CalFlag(r,:)',2378,270));
 %prof.calflag = reshape(CalFlag(:,r),2378,270);
 pattr = set_attr(pattr,'calflag',cstr);
 
