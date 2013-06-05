@@ -1,5 +1,7 @@
 airs_paths
 
+addpath /home/sergio/MATLABCODE/matlib/clouds/sarta
+addpath /home/sergio/MATLABCODE/matlib/clouds/pcrtm
 
 
 if isnumeric(JOB)
