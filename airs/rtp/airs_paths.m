@@ -39,5 +39,7 @@ addpath([matlib_root '/h4tools/'])
 addpath([matlib_root '/rtptools/'])
 addpath([matlib_root '/opendap/'])
 addpath([matlib_root '/clouds/'])
+addpath([matlib_root '/clouds/sarta/'])
+addpath([matlib_root '/clouds/pcrtm/'])
 
 

@@ -1,15 +1,12 @@
 % testing 
-%   clustcmd -L create_rcalc_era_41ch_sergio.m 20020901
+%   clustcmd -L create_rcalc_era_41ch_sartacloudy.m 20020901
 %
 % when happ
-%  clustcmd -q long_contrib -n 8 create_rcalc_era_41ch_sergio.m 20020901:now
+%  clustcmd -q long_contrib -n 8 create_rcalc_era_41ch_sartacloudy.m 20020901:now
 % or broken up into eg
-%  clustcmd -q long_contrib -n 8 create_rcalc_era_41ch_sergio.m 20020901:20021231
+%  clustcmd -q long_contrib -n 8 create_rcalc_era_41ch_sartacloudy.m 20020901:20021231
 
 airs_paths
-
-addpath /home/sergio/MATLABCODE/matlib/clouds/sarta
-addpath /home/sergio/MATLABCODE/matlib/clouds/pcrtm
 
 if isnumeric(JOB)
   list = findfiles(['/asl/data/rtprod_airs/' datestr(JOB(1),'yyyy/mm/dd') '/cld_era_41ch.airs_ctr*.rtp'])
