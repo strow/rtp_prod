@@ -32,9 +32,9 @@ if (nargin ~= 2)
    error('Unexpected number of input arguments')
 end
 d = size(calnum);
-if (length(d) ~= 2 | d(1) ~= 2378)
-   error('Unexpected dimensions for argument "calnum"');
-end
+%if (length(d) ~= 2 | d(1) ~= 2378)
+%   error('Unexpected dimensions for argument "calnum"');
+%end
 nobs = d(2);
 
 
@@ -54,7 +54,7 @@ xcalnum = calnum;
 
 % Remove bit8
 ii = find(xcalnum >= 128);
-ical = zeros(2378,nobs);
+ical = zeros(d(1),nobs);
 ical(ii) = 2;
 xcalnum(ii) = round(xcalnum(ii) - 128); % exact integer
 %
@@ -65,7 +65,7 @@ xcalnum(ii) = round(xcalnum(ii) - 64); % exact integer
 %
 % Remove bit6
 ii = find(xcalnum >= 32);
-ab = 3*ones(2378,nobs);
+ab = 3*ones(d(1),nobs);
 ab(ii) = ab(ii) - 1;
 xcalnum(ii) = round(xcalnum(ii) - 32); % exact integer
 %
@@ -77,25 +77,25 @@ xcalnum(ii) = round(xcalnum(ii) - 16); % exact integer
 
 %%% old
 %% Remove bit8
-%lcalchansummary = zeros(2378,nobs);
+%lcalchansummary = zeros(d(1),nobs);
 %ii = find(xcalnum >= 128);
 %lcalchansummary(ii) = 1;
 %xcalnum(ii) = round(xcalnum(ii) - 128); % exact integer
 %%
 %% Remove bit7
-%lcalflag = zeros(2378,nobs);
+%lcalflag = zeros(d(1),nobs);
 %ii = find(xcalnum >= 64);
 %lcalflag(ii) = 1;
 %xcalnum(ii) = round(xcalnum(ii) - 64); % exact integer
 %%
 %% Remove bit6
-%lb = zeros(2378,nobs);
+%lb = zeros(d(1),nobs);
 %ii = find(xcalnum >= 32);
 %lb(ii) = 1;
 %xcalnum(ii) = round(xcalnum(ii) - 32); % exact integer
 %%
 %% Remove bit5
-%la = zeros(2378,nobs);
+%la = zeros(d(1),nobs);
 %ii = find(xcalnum >= 16);
 %la(ii) = 1;
 %xcalnum(ii) = round(xcalnum(ii) - 16); % exact integer
