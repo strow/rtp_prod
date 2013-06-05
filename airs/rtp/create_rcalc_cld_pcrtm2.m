@@ -1,8 +1,5 @@
 airs_paths
 
-addpath /home/sergio/MATLABCODE/matlib/clouds/sarta
-addpath /home/sergio/MATLABCODE/matlib/clouds/pcrtm
-
 
 if isnumeric(JOB)
   list = findfiles(['/asl/data/rtprod_airs/' datestr(JOB(1),'yyyy/mm/dd') '/cld_era_41ch.airs_ctr*.rtp'])
