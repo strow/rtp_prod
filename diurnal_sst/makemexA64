@@ -1,0 +1,1 @@
+/asl/opt/matlab/R2009a/bin/mex get_diurnal_sst_sergioD.F get_diurnal_sst_sergioDg.F FFLAGS='$FFLAGS -u -64 '  LDFLAGS='$LDFLAGS -mips4'
