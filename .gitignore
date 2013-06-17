@@ -1,0 +1,38 @@
+# git ignore fle
+
+#ignore everything in Docs
+Docs/*
+Docs/Figs/*
+
+*junk*
+
+# no fig files
+*.fig
+*.eps
+*.jpg
+*.png
+# no tex junk
+*.bib
+*.bbl
+*.aux
+# no log files
+*.log
+*.tmp
+*.out
+*.core
+
+# archives and packages
+*.gz
+*.tgz
+*.tar
+*.zip
+
+# libs and object files
+*.a
+*.o
+*.so
+
+# backup files
+*.bak
+*~
+
