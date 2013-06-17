@@ -65,7 +65,7 @@ for ic=1:nchan
          end
       end
    else
-      error(['Unexpected g4 channel ID = ' int2sztr(id)])
+      error(['Unexpected g4 channel ID = ' int2str(id)])
    end
 end
 
