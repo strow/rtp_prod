@@ -1,7 +1,6 @@
 airs_paths
 
 
-
 if isnumeric(JOB)
   list = findfiles(['/asl/data/rtprod_airs/' datestr(JOB(1),'yyyy/mm/dd') '/cld_era_41ch.airs_ctr*.rtp'])
 else
