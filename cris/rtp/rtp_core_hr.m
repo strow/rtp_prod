@@ -109,7 +109,7 @@ function rtp_core_hr(dates, rtpset, data_path, data_type, data_str, src, prod_di
 
       disp(['Found ' num2str(numel(files)) ' Howard SDR Files.']);
 
-    elseif(strcmp(src,'_noaa_ops'))
+    elseif(strcmp(src,'_noaa_ops') | strcmp(src,'cspp_dev'))
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % 1.2 - Standard sdr60 files:
