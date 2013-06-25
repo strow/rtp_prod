@@ -3,11 +3,13 @@ base_dir = fileparts(mfilename('fullpath')); % current directory
 base_dir1 = fileparts(base_dir);  % dir:  ../
 base_dir2 = fileparts(base_dir1); % dir:  ../../
 
-%if mfile(1:10)
-prod_dir = '/asl/data/rtprod_cris';
-%prod_dir = '/asl/data/rtprod_cris_test';
+% If not defined, set default dump path
+if(~exist('prod_dir','var'))
+  prod_dir = '/asl/data/rtprod_cris';
+end
 
 % CRiS Matlab utility box
+addpath([base_dir2 ])
 addpath([base_dir1 '/clear'])
 addpath([base_dir1 '/readers'])
 addpath([base_dir1 '/rtp'])
@@ -33,10 +35,14 @@ if(numel(matlib_root)==0 | ~exist(matlib_root,'dir'))
 end
 
 % ASL matlab utility box
-addpath([matlib_root '/gribtools/'])
-addpath([matlib_root '/aslutil/'])
-addpath([matlib_root '/science/'])
-addpath([matlib_root '/h4tools/'])
-addpath([matlib_root '/rtptools/'])
-
+addpath([matlib_root]);
+addpath([matlib_root '/aslutil']);
+addpath([matlib_root '/clouds']);
+addpath([matlib_root '/fconv']);
+addpath([matlib_root '/gribtools']);
+addpath([matlib_root '/h4tools']);
+addpath([matlib_root '/opendap']);
+addpath([matlib_root '/rtptools']);
+addpath([matlib_root '/science']);
+addpath([matlib_root '/sconv']);
 

@@ -26,7 +26,7 @@ end
 %Get hdf5 file info
 info=hdf5info(file);
 
-%Read in GroupHierarchy.Attributes
+%Read in GroupHierarchy.Attributes 	'/'
 % File attributes
 nfields = length(info.GroupHierarchy.Attributes);
 pd=[];
@@ -35,7 +35,7 @@ for ii=1:nfields
     eval(['pd_file_a.' fname '=info.GroupHierarchy.Attributes(ii).Value.Data;'])
 end
 
-% Read Groups(1).Groups.Datasets
+% Read Groups(1).Groups.Datasets	'/All_Data/CrIS-SDR_All/*'
 % All data, main pd structure
 nfields = length(info.GroupHierarchy.Groups(1).Groups(1).Datasets);
 for ii=1:nfields
@@ -43,7 +43,7 @@ for ii=1:nfields
    eval(['pd.' fname '=hdf5read(info.GroupHierarchy.Groups(1).Groups(1).Datasets(ii));'])
 end
 
-% Read in Groups(2).Groups.Attributes
+% Read in Groups(2).Groups.Attributes	'/Data_Products/CrIS-SDR/(attributes) '
 % Data product attributes cris-sdr
 nfields = length(info.GroupHierarchy.Groups(2).Groups.Attributes);
 for ii=1:nfields
@@ -58,7 +58,7 @@ for ii=1:nfields
    end
 end
 
-% Read in Groups(2).Groups.Datasets(1).Attributes
+% Read in Groups(2).Groups.Datasets(1).Attributes	'/Data_Products/CrIS-SDR/CrIS-SDR_Aggr->(attributes) '
 % CrIS-SDR_Aggr attributes
 nfields = length(info.GroupHierarchy.Groups(2).Groups.Datasets(1).Attributes);
 for ii=1:nfields
@@ -73,7 +73,7 @@ for ii=1:nfields
    end
 end
 
-% Read in Groups(2).Groups.Datasets(2).Attributes
+% Read in Groups(2).Groups.Datasets(2).Attributes	'/Data_Products/CrIS-SDR/CrIS-SDR_Gran_0->(attributes)'
 % CrIS-SDR_Gran_0 info (assuming 1 granule??)
 nfields = length(info.GroupHierarchy.Groups(2).Groups.Datasets(2).Attributes);
 for ii=1:nfields

@@ -4,9 +4,9 @@
 %  Input: 
 %     JOB - matlab datenum indicating the time to be processed
 %    
-%     rtpset='subset';
+%     rtpset='subset'/'full'/'full4ch'/'site_only_obs'
 %     data_path='/asl/data/cris/sdr60';
-%     data_str='_subset';
+%     data_str='_subset'/.../.../'site_only_obs'
 %     src='_noaa_ops';
 %
 %  Name is constructe like: ['cris_' data_type data_str src '.yyyy.mm.dd.hh.v1.rtp']
@@ -95,7 +95,8 @@ fm = [fm1';fm2';fm3';fm4';fm5';fm6';fm7';fm8';fm9'];
 inan = [ 1306 1307 1312:1315 1320:1323 1328:1329];
 
 site_range = 55.5;  % we 55.5 km for AIRS
-version = 'v1';
+
+version = version_number();
 
 % These indices not used yet, done explicitely below for now
 % Sarta index
@@ -106,22 +107,49 @@ if ~exist('data_str','var')
   data_str = '';
 end
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Loop over time - Rearranging the data
+% Loop over hours or 10mins (for an allfovs)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% "span" carried the hour, or the 10mins interval, array.
 span = 0:23;
+day2span = 24;
+
 if strcmp(rtpset,'full')
   span = 0:24*6-1;
+  day2span = 144;
 elseif strcmp(rtpset,'full4ch')
   span = 0:23;
+  day2span = 24;
 elseif strcmp(rtpset,'full49ch')
   span = 0:23;
+  day2span = 24;
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Loop over hours or 0.1*hours (for an allfovs)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-disp(['Processing ' datestr(JOB(1),'yyyy/mm/dd') ' with version: ' version])
+% If 'JOB' specifies a start/ending time, run for this subset of the day only
+if(numel(JOB)==1)
+  disp(['Processing ' datestr(JOB(1),'yyyy/mm/dd') ' with version: ' version])
+elseif(numel(JOB)==2)
+
+  startday = floor(JOB(1));
+  starttime = JOB(1)-startday;
+  endtime = JOB(2)-startday;
+
+  disp(['Processing t0=' datestr(JOB(1),'yyyy/mm/dd - HH:MM:SS') ' tf=' datestr(JOB(2),'yyyy/mm/dd - HH:MM:SS') ]);
+
+  % Find which entried of 'span' match these times:
+  iokspan = find(span>=floor(starttime*day2span) & span<ceil(endtime*day2span));
+  span = span(iokspan);
+else
+  error('JOB variable should have 1 or 2 entries - start/end mtimes');
+end
+
+
 for decihour = span
 
   if strcmp(rtpset,'full')
@@ -142,6 +170,7 @@ for decihour = span
 
 
 
+  lgeoin=true;
   disp([' time: ' timestr '  search: '  hourstr '*'])
   disp(['searching: ' data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(floor(mat2jd(JOB(1))),'%03d') '/GCRSO-SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
   f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(floor(mat2jd(JOB(1))),'%03d') '/GCRSO-SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
@@ -151,6 +180,7 @@ for decihour = span
 
 
   if length(f) == 0
+    lgeoin=false;
     disp('NO GCRSO-SCRIS files found, trying alternate hash')
     f = findfiles([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(floor(mat2jd(JOB(1))),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
     disp([data_path '/hdf/' datestr(JOB(1),'yyyy') '/' num2str(floor(mat2jd(JOB(1))),'%03d') '/SCRIS_npp_d' datestr(JOB(1),'yyyymmdd') '_t' hourstr '*' src '.h5']);
@@ -168,8 +198,41 @@ for decihour = span
     continue; 
   end  % no files found = continue to next hour
 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Test for repeated files ----
+  % Some time they come with the same date stamp but with different creation times
+  dmtime=[];
+  cmtime=[];
+  for ifile=1:numel(f)
+    [fdir fname fext] = fileparts(f{ifile});
+    istart = strfind(fname,'_d');
+    darr = sscanf(fname(istart:end),'_d%8d_t%7d_e%7d_b%5d_c%8d%6d%6d');
+    [ddate dtime etime bfield cdate ctime cmsec] = deal(darr(1),darr(2),darr(3),darr(4),darr(5), darr(6), darr(7));
 
-  disp(['  found ' num2str(length(f)) ' sdr60 files'])
+    dmtime(ifile) = datenum([num2str(ddate,'%08d') num2str(dtime,'%07d')],'yyyymmddHHMMSSFFF');
+    cmtime(ifile) = datenum([num2str(cdate,'%08d') num2str(ctime,'%06d') num2str(cmsec,'%06d')],'yyyymmddHHMMSSFFF');
+  end
+   
+  [umtime,id,ix] = unique(dmtime);
+  iokf=[];
+  for itt=1:numel(umtime)
+    imt = find(dmtime == umtime(itt));
+    [~,imaxc] = max(cmtime(imt));
+    iokf(itt) = imt(imaxc);
+  end
+  if(numel(iokf)~=numel(f))
+    disp(['There are ' num2str(numel(f)-numel(iokf)) ' repeated files with different creation dates on the name. Selecting the newest one']);
+    f=f(iokf); 
+  end
+  if(length(f) == 0)
+    error(['After trimming repeated files I am left with no files!'])
+  end
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+  disp(['  found ' num2str(length(f)) ' ' data_type ' files'])
   disp(['  creating ' rtpfile])
 
   mkdirs(dirname(rtpfile))
@@ -193,14 +256,16 @@ for decihour = span
     disp(['Reading ' f{i}])
 
     try
-      [p pattr]=readsdr_rtp(f{i});
+      if(lgeoin)
+	[p pattr] = readsdr_rtp_geoin(f{i});
+      else
+	[p pattr]= readsdr_rtp(f{i});
+      end
     catch err
       disp(['ERROR:  Problem reading in file ' f{i}])
       Etc_show_error(err);
       continue
     end
-
-    p.findex = int32(ones(size(p.rtime)) * i);
 
     % Now change indices to g4 of SARTA
     robs = p.robs1;
@@ -320,23 +385,24 @@ for decihour = span
   % A proxy for satzen
   % 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  if(isfield(prof,'scanang'))
-    if(~isfield(prof,'satzen') | all(prof.satzen < -900)) 
-      disp('WARNING:  patching satzen - missing or has bad values')
-      zang = vaconv(prof.scanang,prof.zobs,prof.salti);
-      prof.satzen = 1./cos(deg2rad(zang));
-    end
-  else
-    disp('WARNING:  missing scanang!  approximating satzen');
-    prof.satzen = abs(double(prof.xtrack) - 15.5) * 4;
-  end
 
-  if isfield(prof,'satazi') & all(prof.satazi < -900)
-    prof = rmfield(prof,'satazi');
-  end
-  if isfield(prof,'solazi') & all(prof.solazi < -900)
-    prof = rmfield(prof,'solazi');
-  end
+  %if(isfield(prof,'scanang'))
+  %  if(~isfield(prof,'satzen') | all(prof.satzen < -900)) 
+  %    disp('WARNING:  patching satzen - missing or has bad values')
+  %    zang = vaconv(prof.scanang,prof.zobs,prof.salti);
+  %    prof.satzen = 1./cos(deg2rad(zang));
+  %  end
+  %else
+  %  disp('WARNING:  missing scanang!  approximating satzen');
+  %  prof.satzen = abs(double(prof.xtrack) - 15.5) * 4;
+  %end
+%
+%  if isfield(prof,'satazi') & all(prof.satazi < -900)
+%    prof = rmfield(prof,'satazi');
+%  end
+%  if isfield(prof,'solazi') & all(prof.solazi < -900)
+%    prof = rmfield(prof,'solazi');
+%  end
 
   rtime = rtpdate(prof,pattr);
 
@@ -401,6 +467,10 @@ for decihour = span
   hattr = set_attr(hattr,'instid','CrIS');
   hattr = set_attr(hattr,'rtpfile',rtpfile);
   pattr = set_attr(pattr,'iudef(1,:)','Reason [1=clear,2=site,4=high cloud,8=random] {reason_bit}');
+ 
+  % add version number on header attributes
+  hattr = set_attr(hattr,'rev_rtp_core',version);
+
 
   %% Uniform test with different channels
   %pattr = set_attr(pattr,'udef(13,:)','dbt test: ch 401 499 731 {dbtun}');
@@ -416,7 +486,7 @@ for decihour = span
 
   % search for data in all three bands that are not bad
   idtest2=[499, 731, 1147];
-  rmin = bt2rad(head.vchan(idtest2),repmat(170,size(idtest2)));
+  rmin = bt2rad(head.vchan(idtest2),170*ones(size(idtest2)));
   nobs = length(prof.rtime);
   junk = sum(prof.robs1(idtest2,:) > (rmin' * ones(1,nobs)));
   iok = find(junk == 3);
@@ -466,27 +536,100 @@ for decihour = span
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  disp('running rtpadd_ecmwf');
-  try
-    [head hattr prof pattr] = rtpadd_ecmwf_data(head,hattr,prof,pattr);
-  catch err
-    Etc_show_error(err);
-    say('Error reading ECMWF data... Continuing to the next iteration...');
-    continue
+  if(strcmp(rtpset,'site_only_obs'))
+    do_clear=false;
+  else
+    do_clear=true;
   end
 
-  if(~isfield(prof,'wspeed')); 
-    prof.wspeed = ones(size(prof.rtime)) * 0; 
-  end
+  if(do_clear)
+    disp('running rtpadd_ecmwf');
+    try
+      [head hattr prof pattr] = rtpadd_ecmwf_data(head,hattr,prof,pattr);
+    catch err
+      Etc_show_error(err);
+      say('Error reading ECMWF data... Continuing to the next iteration...');
+      continue
+    end
 
-  disp('adding solar');
-  [prof.solzen prof.solazi] = SolarZenAzi(rtime,prof.rlat,prof.rlon,prof.salti/1000);
-  
+    if(~isfield(prof,'wspeed')); 
+      prof.wspeed = ones(size(prof.rtime)) * 0; 
+    end
 
-  disp('adding emissivity');
-  dv = datevec(JOB(1));
-  [prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
- 
+    disp('adding solar');
+    [prof.solzen prof.solazi] = SolarZenAzi(rtime,prof.rlat,prof.rlon,prof.salti/1000);
+    
+
+    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %  ADD Emissivity manually
+    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    disp('Adding DanZhou emissivity');
+    [head hattr prof pattr] = rtpadd_emis_DanZhou(head,hattr,prof,pattr);
+
+%    %dv = datevec(JOB(1));
+%    %[prof emis_qual emis_str] = Prof_add_emis(prof, dv(1), dv(2), dv(3), 0, 'nearest', 2, 'all');
+%
+%    % Get land emissivity
+%    [efreq emis] = emis_DanZhou(prof.rlat, prof.rlon, prof.rtime, 2000);
+%    % Get water emissivity
+%    [sea_nemis, sea_efreq, sea_emis]=cal_seaemis2(prof.satzen,prof.wspeed);
+%    % Mix them accordingly
+%    lgood_land = (all(emis>=0)); % good land emissivities
+%    lland = (prof.landfrac==1 & lgood_land); % land AND good land emis
+%    lsea = (prof.landfrac==0 | ~lgood_land); % ocean OR bad land emis
+%    lmix = ~lland & ~lsea; % the left over
+%  
+%    % Clean up arrays 
+%    prof.nemis = zeros([1, size(prof.rtime,2)]);
+%    prof.efreq = zeros([100,size(prof.rtime,2)]);
+%    prof.emis = zeros([100,size(prof.rtime,2)]);
+%
+%    % Add land 
+%    for ifov = find(lland)
+%      nemis = numel(efreq);
+%      prof.nemis(1,ifov) = nemis;
+%      prof.efreq(1:nemis,ifov) = efreq(1:nemis,1);
+%      prof.emis(1:nemis,ifov) = emis(1:nemis,ifov);
+%    end 
+%
+%    % Add water
+%    for ifov = find(lsea)
+%      nemis = sea_nemis(1,ifov);
+%      prof.nemis(1,ifov) = nemis;
+%      prof.efreq(1:nemis,ifov) = sea_efreq(1:nemis,ifov);
+%      prof.emis(1:nemis,ifov) = sea_emis(1:nemis,ifov);
+%    end
+%
+%    % The mixing requires attention:
+%    for ifov = find(lmix) 
+%
+%      % Interpolate into land emis grid.
+%      nemis_sea = sea_nemis(1,ifov);
+%      nemis_land = numel(efreq);
+%      sea_emis_on_landgrid = interp1(sea_efreq(1:nemis_sea,ifov),sea_emis(1:nemis_sea,ifov), efreq(1:nemis_land,1),'linear');
+%
+%      % Find the valid (non-NAN) points - use only them
+%      iok = find(~isnan(sea_emis_on_landgrid));
+%      nemis_mix = numel(iok);
+%
+%      prof.nemis(1,ifov) = nemis_mix;
+%      prof.efreq(1:nemis_mix, ifov) = efreq(iok,1);
+%
+%      % Mix both using landfrac
+%      lf = prof.landfrac(1,ifov);
+%      of = 1-lf;
+%      prof.emis(1:nemis_mix, ifov) = of*sea_emis_on_landgrid(iok, 1) + ...
+%                                     lf*emis(iok,1);
+%    end
+%
+%    % Compute Lambertian Reflectivity
+%    prof.nrho = prof.nemis;
+%    prof.rho = (1.0 - prof.emis)./3.14159265358979323846;
+%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  end 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
@@ -498,6 +641,8 @@ for decihour = span
     subtest = 1;
   elseif strcmp(rtpset,'full4ch')
     subtest = 2;
+  elseif strcmp(rtpset,'site_only_obs')
+    subtest = 'site_only_obs';
   elseif strcmp(rtpset,'full49ch')
     subtest = 3;
   else
