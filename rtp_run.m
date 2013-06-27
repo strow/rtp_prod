@@ -174,7 +174,7 @@ function rtp_run(dates,  dataset, model, emis, sst, output, cleartype, fovsset, 
       case 'iasi_l1c'
 	[head hattr profi pattr] = iasi_uniform_and_allfov_func_list(file_list{ifile},true);
       case 'airs_l1b'
-	[head hattr profi pattr] = rtpmake_airs_l1b_datafiles(file_list{ifile});
+	[head hattr profi pattr] = rtpmake_airs_l1b_datafiles(file_list(ifile));
       case 'airs_l1bcm'
       otherwise
 	error(['Wrong dataset']);
@@ -184,7 +184,7 @@ function rtp_run(dates,  dataset, model, emis, sst, output, cleartype, fovsset, 
 
     end
 
-    prof = Prof_merge_arr(prof);
+    prof = structmerge(prof);
 
     % add version number on header attributes
     hattr = set_attr(hattr,'rev_rtp_core_hr',version);
@@ -218,9 +218,10 @@ function rtp_run(dates,  dataset, model, emis, sst, output, cleartype, fovsset, 
     % 2.2.3 - Add SST model 
     switch sst
     case ''
+      hattr = set_attr(hattr,'SST','model');
       % do nothing
     case 'dsst'
-      [head hattr prof pattr] = add_sst_sergio(head,hattr,prof,pattr);
+      [head hattr prof pattr] = driver_gentemann_dsst(head,hattr,prof,pattr);
     otherwise
       error(['Wrong sst command']);
     end
@@ -229,7 +230,9 @@ function rtp_run(dates,  dataset, model, emis, sst, output, cleartype, fovsset, 
     % 2.2.4 - Add surface emissivity
     switch emis
     case 'dan'
+      [head hattr prof pattr] = rtpadd_emis_DanZhou(head,hattr,prof,pattr);
     case 'wisc'
+      [head hattr prof pattr] = rtpadd_emis_Wisc(head, hattr, prof, pattr);
     otherwise
       error(['Wrong emis command']);
     end
@@ -259,6 +262,7 @@ function rtp_run(dates,  dataset, model, emis, sst, output, cleartype, fovsset, 
       error(['Wrong dataset']);
     end
 
+% Adding solar?????
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -15,8 +15,11 @@ function flist = get_airs_l1b_fname(stime, etime, path)
 %  
 % Breno Imbiriba - 2013.06.12
 
+% Following some aspects of airs/rtp/rtp_core.m 
 
-  flist = {}
+  
+
+  flist = {};
 
   % AIRS file name  ----------------- * --- this number is the version number. 
   % AIRS.yyyy.mm.dd.ggg.L1B.AIRS_Rad.v5.0.21.0.G13015082558.hdf
@@ -32,10 +35,36 @@ function flist = get_airs_l1b_fname(stime, etime, path)
 
 
     % Grab all files for that day 
-    loc = [path '/' yyyy '/' ddd '/AIRS.*.*.*.*.L1B.AIRS_Rad.v*.hdf'];
+    locdir = [path '/' yyyy '/' ddd ];
+    loc = [locdir '/AIRS.*.*.*.*.L1B.AIRS_Rad.v*.hdf'];
 
     files = dir(loc);
 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Do we need to fetch data?
+    % If number of files is less then expected, and if the modification
+    % date of locdir is less than 3 days of NOW, attempt to fetch data.
+    if(numel(files)<240)
+    
+      disp(['For date ' yyyy ddd ' there are only ' num2str(numel(files)) ' AIRS L1B files. Will attempt to download the rest...']);
+      tdd = dir(locdir);
+      if(now - tdd(1).datenum > 3)
+
+	fetch_cmd = ['/asl/opt/bin/getairs ' yyyy ddd ' 1 AIRIBRAD.005 > /dev/null'];
+	system(fetch_cmd);
+
+	% Check listing again:
+	files = dir(loc);
+	if(numel(files)<240)
+	  disp(['... Issued getairs command but still have only ' num2str(numel(files)) '. Will continue anyway.']);
+	end 
+      else
+	disp(['... no, will wait at least 3 days before a new attempt.']);
+      end
+    end
+
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Compute data time based on file name string
     fmtime0 = [];
 
@@ -65,10 +94,9 @@ function flist = get_airs_l1b_fname(stime, etime, path)
     % Grab the file names for this day
     n0=numel(flist);
     for iff=1:numel(ifile)
-      flist{n0+iff} = files(indx(ifile(iff))).name;
+      flist{n0+iff} = [locdir '/' files(indx(ifile(iff))).name];
     end
   end
 
 end
 
-end
