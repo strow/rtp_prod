@@ -1,6 +1,6 @@
-function [head hattr prof pattr summary] = rtp_cris_subset(head_in,hattr_in,prof_in,pattr_in,subset)
+function [head hattr prof pattr summary] = rtp_cris_subset_hr(head_in,hattr_in,prof_in,pattr_in,subset,keepcalcs)
 
-% function [head hattr prof pattr summary] = rtp_cris_subset(head_in,hattr_in,prof_in,pattr_in,subset)
+% function [head hattr prof pattr summary] = rtp_cris_subset_hr(head_in,hattr_in,prof_in,pattr_in,subset,keepcalcs)
 % 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Program xuniform_clear_template
@@ -15,8 +15,7 @@ function [head hattr prof pattr summary] = rtp_cris_subset(head_in,hattr_in,prof
 %
 %    subset = 0 - all fovs /all channels
 %             2 - all fovs / [401 731 957 1142];
-%             3 - Subsetting for 49 channels (hno3,nh4,so2)
-%             'obs_site_only' - site_only/all channels
+%             3 - site_only/all channels
 
 % Created: 05 May 2011, Scott Hannon - based on xuniform_clear_example.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -25,17 +24,22 @@ function [head hattr prof pattr summary] = rtp_cris_subset(head_in,hattr_in,prof
 rn='rtp_cris_subset';
 greetings(rn);
 
+if(~exist('keepcalcs','var'))
+  keepcalcs=0;
+end
 
-% Uniformity test channel ID numbers
-idtestu = [272; 499; 732];
+% This version of the code used actual wavenumbers instead of channels.
 % The corresponding approximate channel freqs [wn] are:
-%          [820 960 1231]
+
+% Uniformity test channel [wn] - and find the corresponding ichans
+ftestu = [819.375; 961.25; 1232.5];
+idtestu = wn2ch(head_in,ftestu); 
 
 % Clear test channel IDs must include all those internally hardcoded
 % in "find_clear.m".
-idtestc=[  272;   332;    421;   499;   631;    675;     694;   710;     732];
-% The corresponding approximate channel freqs [wn] are:
-%      [819.375;856.875;912.5;961.25;1043.75;1071.25;1083.125;1093.125;1232.5];
+% idtestc=[  272;   332;    421;   499;   631;    675;     694;   710;     732];
+ftestc =[819.375;856.875;912.5;961.25;1043.75;1071.25;1083.125;1093.125;1232.5];
+idtestc= wn2ch(head_in, ftestc);
 
 % Name of KLAYERS and SARTA executables for clear detection calcs
 KLAYERS='/asl/packages/klayersV205/BinV201/klayers_airs';
@@ -50,11 +54,7 @@ SARTA='/asl/packages/sartaV108/BinV201/sarta_crisg4_nov09_wcon_nte';
 %addpath /asl/matlab/cris/unapod    % xfind_clear, proxy_box_to_ham
 
 
-% Load the CrIS proxy data file
-%disp(['loading data: ' RTPIN])
-%[head, hattr, prof, pattr] = rtpread(RTPIN);
-% Use the data stored in memory
-if(nargin()~=5)
+if( nargin()<5 | nargin()>6)
   disp(['nargin=' num2str(nargin())]);
   error('Bad input arguments');
 end
@@ -62,12 +62,24 @@ end
 disp(['loading data: '])
 head = head_in; hattr = hattr_in; prof = prof_in; pattr = pattr_in;
 
+% Test to see if we have a HighRes file - used below to for Sarta Calculation
+[type, ngc] = test_cris_grid(head_in.vchan);
+isHighRes = (type==888);
+
+
+% detect bad prof structures and correct:
+if any(prof_in.xtrack == 90) & any(prof.atrack == 12)
+  disp('WARNING: modifying rtp structure to fit cris params')
+  prof.findex = ones(size(prof.rtime),'int32');
+  prof.atrack = int32(floor((single(prof.atrack)+2)/3));
+  prof.xtrack = int32(floor((single(prof.xtrack)+2)/3));
+end
+
+
 
 % Convert boxcar (ie unapodized) to Hamming apodization
-disp('running boxg4_to_ham')
-
-%replaces proxy_box_to_ham
-prof.robs1 = boxg4_to_ham(head.ichan, prof.robs1);
+disp('running boxwn_to_ham')
+prof.robs1 = boxwn_to_ham(head.vchan, prof.robs1);
 
 % Note: the RTP structures are now temporary variables with boxcar
 % apodized radiances. Before outputing the subsetted RTP it will be
@@ -98,7 +110,7 @@ disp(['nother=' int2str(length(iother))])
 %-------------------------------------------------
 
 % Should I do this?
-if(strcmp(subset,'site_only_obs');
+if(subset==3)
   do_clear=false;
   iclear=[];
 else
@@ -113,29 +125,47 @@ if(do_clear)
   tmp_rtp2 = mktemp('/tmp/rtp2_');
   tmp_jout = mktemp('/tmp/jout_');
 
-  % Subset RTP for the clear test channels (to speed up calcs)
-  disp('subsetting RTP to clear test channels')
-  [head, prof] = subset_rtp(head, prof, [], idtestc, []);
+  % Subset RTP for the clear test channels (to speed up calcs) - 
+  %    *** this is not so for the IASI->CrIS calculations!
+  if(~isHighRes & ~keepcalcs)
+    disp('subsetting RTP to clear test channels')
+    [head, prof] = subset_rtp(head, prof, [], idtestc, []);
+  end
+
+  % If 'keepcalcs' is true, will keep the calcs.
+  if(keepcalcs)
+    disp('Keeping calculations saved');
+  end
 
   % Write RTP to tmp_rtp1
   disp('writing pre-klayers tmp RTP file')
   rtpwrite(tmp_rtp1,head,hattr,prof,pattr);
-
-  %keyboard
-  % Run klayers and SARTA
-  disp('running klayers')
-  eval(['! ' KLAYERS ' fin=' tmp_rtp1 ' fout=' tmp_rtp2 ' > ' tmp_jout]);
-  disp('running sarta')
-  eval(['! ' SARTA ' fin=' tmp_rtp2 ' fout=' tmp_rtp1 ' > ' tmp_jout]);
-  disp('loading sarta output RTP')
-  [head, hattr, prof, pattr] = rtpread(tmp_rtp1);
+  
+  if(isHighRes)
+    disp('Running HighRes sarta')
+    [r888, KLAYERS, SARTA] = cris888_sarta_wrapper_bc(tmp_rtp1,ngc);
+    prof.rcalc = r888;
+  else
+    % Run klayers and SARTA
+    disp('running klayers')
+    eval(['! ' KLAYERS ' fin=' tmp_rtp1 ' fout=' tmp_rtp2 ' > ' tmp_jout]);
+    disp('running sarta')
+    [thh thha tpp tppa] = rtpread(tmp_rtp2);
+    eval(['! ' SARTA ' fin=' tmp_rtp2 ' fout=' tmp_rtp1 ' > ' tmp_jout]);
+    disp('loading sarta output RTP')
+    [head, hattr, prof, pattr] = rtpread(tmp_rtp1);
+    if(keepcalcs)
+      % Save calcs for later
+      r842 = prof.rcalc;
+    end
+  end
 
   % Remove tmp RTP files
   eval(['! rm -f ' tmp_rtp1 ' ' tmp_rtp2 ' ' tmp_jout]);
 
   % Run xfind_clear
-  disp('running xfind_clear')
-  [iflagsc, bto1232, btc1232] = xfind_clear(head, prof, 1:nobs);
+  disp('running xfind_clear_wn')
+  [iflagsc, bto1232, btc1232] = xfind_clear_wn(head, prof, 1:nobs);
   iclear_sea    = find(iflagsc == 0 & abs(dbtun) < 0.5 & prof.landfrac <= 0.01);
   iclear_notsea = find(iflagsc == 0 & abs(dbtun) < 1.0 & prof.landfrac >  0.01);
   iclear = union(iclear_sea, iclear_notsea);
@@ -154,6 +184,24 @@ disp('re-loading original RTP data')
 % Use the data stored in memory
 head = head_in; hattr = hattr_in; prof = prof_in; pattr = pattr_in;
 
+if(keepcalcs)
+  if(isHighRes)
+    % final test - should never happen 
+    if(size(r888)~=size(prof.robs1))
+      warning(['Will not keep calcs!! size(r888)=' num2str(size(r888)) ' and size(prof.robs1)=' num2str(size(prof.robs1)) '.']);
+    else
+      prof.rcalc = r888;
+      [b1 b2 b3]=pfields2bits(head.pfields);
+      b2=1;
+      head.pfields = bits2pfields(b1, b2, b3);
+    end
+  else
+    prof.rcalc = r842;
+    [b1 b2 b3]=pfields2bits(head.pfields);
+    b2=1;
+    head.pfields = bits2pfields(b1, b2, b3);
+  end
+end
 
 % Determine all indices to keep
 iclrflag = zeros(1,nobs);
@@ -178,7 +226,7 @@ summary.rlon    = single(prof.rlon);
 summary.rtime   = prof.rtime;
 summary.solzen  = single(prof.solzen);
 summary.landfrac= single(prof.landfrac);
-summary.findex  = uint32(prof.findex);
+summary.findex  = uint8(prof.findex);
 summary.atrack  = uint8(prof.atrack);
 summary.xtrack  = uint8(prof.xtrack);
 summary.ifov    = uint8(prof.ifov);
@@ -207,17 +255,12 @@ if (nkeep > 0)
      disp('   Subsetting for all');
      ikeep = 1:nobs;
    elseif(subset == 2)
-     disp('   Subsetting for 4 channels');
+     disp('   Subsetting for channels');
      %iasi_chkeep = [1021 2345 3476 4401];
      chkeep = [401 731 957 1142];
      ikeep = 1:nobs;
-   elseif(strcmp(subset,'site_only_obs'))
-     disp('   Subsetting for Site only');
    elseif(subset == 3)
-     disp('   Subsetting for 49 channels (hno3,nh4,so2)');
-     %iasi_chkeep = [1021 2345 3476 4401];
-     chkeep = [277, 401, 450, 451, 452, 457, 459, 499, 506, 507, 508, 511, 512, 513, 514, 727, 731, 738, 747, 757, 759, 774, 798, 800, 806, 809, 810, 832, 833, 838, 839, 842, 843, 844, 847, 848, 851, 853, 854, 855, 857, 858, 859, 867, 868, 873, 876, 877,1313];
-     ikeep = 1:nobs;
+     disp('   Subsetting for Site only');
    else
      disp('   Subsetting for clear');
    end

@@ -45,39 +45,13 @@ if (nargin ~= 1)
 end
 
 % Read the Product_Data file
-[pd pd_file_a pd_aggr_a pd_sdr_a pd_gran0_a] = readsdr_rawpd_all(pdfile);
-
-% Determine geofile from pdfile
-[sdrdir,~,~] = fileparts(pdfile);
-%if isfield(pd_file_a,'N_GEO_Ref')
-%  geofile = fullfile(sdrdir,pd_file_a.N_GEO_Ref)
-%else
-
-  f = dir(regexprep(pdfile,{'SCRIS' '_c[0-9]+'},{'GCRSO' '*'}));
-
-  if(numel(f)>1)
-    fdates=[f.datenum];
-    ifnewest=find(fdates==max(fdates));
-    disp('Warning (readersdr_rtp.m): Found duplicated geo file names! Using the newest one');
-    f=f(ifnewest);
-  end
-
-  geofile = fullfile(sdrdir,f.name);
-%end
-
-if exist(geofile) ~= 2
-   disp('Geo file does not exist - trying the original one.')
-   geofile = pdfile;
-end
+[pd pd_file_a pd_aggr_a pd_sdr_a pd_gran0_a geo] = readsdr_rawpd_geo_all(pdfile);
 
 % Create a structure of quality flag info
 [qa] = cris_sdr_QAFlags(pd);
 % Convert QA data to QAbits for each band and overall qual flag
 [QAbitsLW,QAbitsMW,QAbitsSW,qual] = QA_to_bits(qa);
 clear qa
-
-% Read the Geolocation file
-[geo] = readsdr_rawgeo(geofile);
 
 %[geo2, agatt, attr4] = read_GCRSO(geofile)
 
@@ -251,11 +225,10 @@ pattr = {{'profiles' 'rtime' 'seconds since 0z 1 Jan 2000'}, ...
          {'profiles' 'udef(12,:)' 'spacecraft Z coordinate {Z}'}, ...
         };
 
-	% Set findex to be the Granule number
+% Set findex to be the Granule number
 % The Goal of findex is to uniquely identify a FoV:
 % [ifov, xtrack, atrack, findex] - hence the "granule 
 
 prof.findex = prof.iudef(3,:);
 
-%
 %%% end of function %%%
