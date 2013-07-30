@@ -76,7 +76,13 @@ function [head hattr prof pattr summary] = compute_clear_wrapper(head, hattr, pr
   case 'CRIS'
 
     subset = 0; % keep all fovs and channels
-    keepcalcs = 1; % Keep calculations - it's too expensive for CrIS
+    keepcalcs = 0; % Don't keep them! Files will be too large
+    [head hattr prof pattr summary] = rtp_cris_subset_hr(head, hattr, prof, pattr, subset, keepcalcs)
+
+  case 'CRIS_888'
+
+    subset = 0; % keep all fovs and channels
+    keepcalcs = 1; % Keep calculations - it's too expensive for CrIS HR
     [head hattr prof pattr summary] = rtp_cris_subset_hr(head, hattr, prof, pattr, subset, keepcalcs)
 
   otherwise

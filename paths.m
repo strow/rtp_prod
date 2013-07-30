@@ -3,6 +3,7 @@ base_dir1 = fileparts(base_dir);
 
 addpath([base_dir]);
 addpath([base_dir '/diurnal_sst']);
+addpath([base_dir '/extra_routines']);
 
 addpath([base_dir '/airs/gstats']);
 addpath([base_dir '/airs/readers']);
@@ -18,6 +19,7 @@ addpath([base_dir '/iasi/uniform']);
 addpath([base_dir '/iasi/utils']);
 
 addpath([base_dir '/cris/gstats']);
+addpath([base_dir '/cris/clear']);
 addpath([base_dir '/cris/readers']);
 addpath([base_dir '/cris/rtp']);
 addpath([base_dir '/cris/unapod']);
