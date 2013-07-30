@@ -1,0 +1,286 @@
+#!/bin/bash
+#
+#  Written by Paul Schou (paulschou.com) on 2-Mar-2009
+#    Use this program to download AIRS data from the command line
+# 
+# Breno Imbiriba - Added 'root' variable - 2013.07.10
+
+
+### Test for needed routines
+if ! [ -d $RTPROD ]
+then
+  echo ERROR: RTP_PROD CODE directory not set
+  exit 1
+fi
+
+
+
+root=/asl/data/airs
+echo $0 $*
+
+
+ALL[1]='AIRABRAD.005,AIRHBRAD.005,AIRIBQAP.005,AIRIBRAD.005,AIRVBQAP.005,AIRVBRAD.005'
+ALL[2]='AIRG2SSD.005,AIRH2CCF.003,AIRH2CCF.005,AIRH2RET.003,AIRH2RET.005,AIRH2SUP.003,AIRH2SUP.005,AIRI2CCF.003,AIRI2CCF.005,AIRS2CCF.005,AIRS2RET.005,AIRS2SUP.005,AIRX2RET.003,AIRX2RET.005,AIRX2SPC.005,AIRX2STC.005,AIRX2SUP.003,AIRX2SUP.005,AIRXBCAL.005,AIRI2CCF.006,AIRX2SUP.006,AIRX2RET.006'
+#ALL[2]='AIRG2SSD.005,AIRH2CCF.003,AIRH2CCF.005,AIRH2RET.003,AIRH2RET.005,AIRH2SUP.003,AIRH2SUP.005,AIRI2CCF.003,AIRI2CCF.005,AIRS2CCF.005,AIRS2RET.005,AIRS2SUP.005,AIRX2RET.003,AIRX2RET.005,AIRX2SUP.003,AIRX2SUP.005,AIRXBCAL.005'
+ALL[3]='AIRH3QM5.005,AIRH3QP5.005,AIRH3QPM.005,AIRH3SP8.005,AIRH3SPD.005,AIRH3SPM.005,AIRH3ST8.003,AIRH3ST8.005,AIRH3STD.003,AIRH3STD.005,AIRH3STM.003,AIRH3STM.005,AIRS3QM5.005,AIRS3QP5.005,AIRS3QPM.005,AIRS3SP8.005,AIRS3SPD.005,AIRS3SPM.005,AIRS3ST8.005,AIRS3STD.005,AIRS3STM.005,AIRX3C2M.005,AIRX3QM5.005,AIRX3QP5.005,AIRX3QPM.005,AIRX3SP8.005,AIRX3SPD.005,AIRX3SPM.005,AIRX3ST8.003,AIRX3ST8.005,AIRX3STD.003,AIRX3STD.005,AIRX3STM.003,AIRX3STM.005,AhL3Q_1M_PS.005,AhL3Q_5D_PS.005,AhL3Sup_1D_PS.005,AhL3Sup_1M_PS.005,AhL3Sup_8D_PS.005,AhL3_1D_PS.005,AhL3_1M_PS.005,AhL3_8D_PS.005,AiL3Q_1M_PS.005,AiL3Q_5D_PS.005,AiL3Sup_1D_PS.005,AiL3Sup_1M_PS.005,AiL3Sup_8D_PS.005,AiL3_1D_PS.005,AiL3_1M_PS.005,AiL3_8D_PS.005,ArL3Q_1M_PS.005,ArL3Q_5D_PS.005,ArL3Sup_1D_PS.005,ArL3Sup_1M_PS.005,ArL3Sup_8D_PS.005,ArL3_1D_PS.005,ArL3_1M_PS.005,ArL3_8D_PS.005'
+
+MOST[1]='AIRABRAD.005,AIRIBRAD.005,AIRVBRAD.005'
+MOST[2]='AIRI2CCF.005,AIRX2RET.005,AIRX2SUP.005,AIRXBCAL.005'
+
+if [ $# -lt 3 ]; then
+  echo "
+Usage: `basename $0`  DATE LEVEL PRODUCT [\"[GRAN]\" [ROOT]]
+
+  DATE - can be either format: 2008092  or  20080401
+                               yyyyjjj      yyyymmdd
+  LEVEL - AIRS product level number to download
+  PRODUCT - AIRS data product AIRIBRAD.005 / AIRI2CCF.005
+  GRAN - Granule number list in quotes or ALL (optional) 
+  ROOT - Root directory to save data (default is /asl/data/airs) (optional)
+
+This script downloads the data to the directory: ./Aqua_AIRS_Level#/
+
+Examples:
+  Single day single product:
+     getairs 2008156 2 AIRI2CCF.005
+  Multiple days multiple products 1-8:
+     getairs 20080101:20080108 1 AIRABRAD.005,AIRHBRAD.005
+  Single day all products:
+     getairs 2008123 1 ALL
+  Single day all relevant data products for the ASL group:
+     getairs 2008123 1 MOST
+  Singel day, a first 10 granules, at another root location
+     getairs 20120920 1 AIRIBRAD.005 \"1:10\" $HOME/git/rtp_prod/testsuit/data/airs
+
+L1 Product list: ${ALL[1]}
+
+L2 Product list: ${ALL[2]}"
+  exit
+fi
+
+########################################
+# Read command arguments:
+
+# Start and end date string
+days=$1
+shift 1
+
+# Data Level 
+level=${1:0:1}
+shift 1
+
+# Product list
+prod_list=$1
+shift 1
+
+
+##############################
+# Is there more arguments?
+# Here we could have the following:
+#  g1 ... gn       - N arguments, but they mean granules
+# "g1 ... gn"      - 1 argument, with the list of granules
+#  g1 ... gn  root - N+1 arguments. Last one is a location
+# "g1 ... gn" root - 2 arguments, last one is a location
+
+if [ $# -eq 0 ]
+then 
+  gran_list=ALL;
+elif [ $# -eq 1 ]
+then 
+  # is it a expansion list?
+  if [[ "$1" =~ ^[0-9]+[:]+[0-9]+$ ]]
+  then
+    # yes it's a list - expand and append
+
+    t_iarg=`echo $1 | sed "s/:/ /"`
+    gran_list="$gran_list `seq $t_iarg`"
+  else
+    # No, single number
+    gran_list=$1
+  fi
+elif [ $# -gt 1 ]
+then
+  # Now we must test each argument to see if it's a number or valid expansion,
+  # or if it is a directory name.
+  gran_list=''
+
+  # loop over the input arguments
+  for iarg in "$@"
+  do
+    
+    # Is it a single number?
+    if [[ "$iarg" =~ ^[0-9]+$ ]]
+    then
+      gran_list="$gran_list $iarg"
+
+    # Is it a expansion string?
+    elif [[ "$iarg" =~ ^[0-9]+[:][0-9]+$ ]]
+    then
+      t_iarg=`echo $iarg | sed "s/:/ /"`
+      gran_list="$gran_list `seq $t_iarg`"
+
+    else
+      # Not a number, so it must be a directory
+      if [ -d "$iarg" ]
+      then
+        root=$iarg
+      else
+	echo ERROR: Root directory \"$iarg\" does not exist.
+	exit 1
+      fi
+    fi
+  done
+fi  
+ 
+##############################
+# Prepare to procede
+
+storedir=$root
+
+cd $storedir
+#umask 0002
+umask 0022
+
+
+#
+# LOOP OVER DAY
+#
+echo "$RTPROD/bin/datelist $days"
+for day in `$RTPROD/bin/datelist $days`; do
+echo $day
+#  IFS=','  #<<<< IS THIS A LEFTOVER BUG???
+
+#
+#  DATE UTILITIES - To check and convert between date formats
+#
+year=${day:0:4}
+d=`$RTPROD/bin/tojd $day`
+hdate=`$RTPROD/bin/fromjd $day`
+jday=${d:4}
+
+
+if [ "$jday" == "" ]; then
+  exit
+fi
+
+mm=${hdate:4:2}
+dd=${hdate:6:2}
+echo "Selected:  $year-$mm-$dd  jday $jday"
+
+#
+# DEFAULT SETS - To set the product list for `ALL' and `MOST'
+#
+
+if [ "$prod_list" == "ALL" ]; then
+  prod_list=${ALL[$level]}
+fi
+if [ "$prod_list" == "MOST" ]; then
+  prod_list=${MOST[$level]}
+fi
+echo Products: $prod_list
+
+#
+# LOOP OVER PRODUCT
+#
+for prod in $prod_list; do
+  prodsn=${prod%.[0-9]*}
+  echo "Downloading [$prod]..."
+
+# Select the server to use for product download
+cut=3
+if [ $level -eq 1 ]; then
+  if [ ${prod:8:4} == "_NRT" ]; then # near real time
+    srv='airscal1.ecs.nasa.gov/data/s4pa/Aqua_AIRS_NearRealTime'
+    cut=2
+  elif [ $(( $year % 2 )) -eq 0 ]; then # even year
+    srv='airscal2u.ecs.nasa.gov/ftp/data/s4pa/Aqua_AIRS_Level1'
+  else
+    srv='airscal1u.ecs.nasa.gov/ftp/data/s4pa/Aqua_AIRS_Level1'
+  fi
+elif [ $level -eq 2 ]; then
+  srv='airspar1u.ecs.nasa.gov/ftp/data/s4pa/Aqua_AIRS_Level2'
+elif [ $level -eq 3 ]; then
+  srv='acdisc.gsfc.nasa.gov/ftp/data/s4pa/Aqua_AIRS_Level3'
+else
+  echo Invalid AIRS level number
+  exit
+fi
+
+
+## Check if a granule number was specified
+#gran_list=$*
+#if [ ${#gran_list} -eq 0 ]; then
+#  gran_list=ALL;
+#fi
+
+for gran_in in `echo $gran_list`; do
+
+if [ ${#gran_in} -gt 0 ] && [ "$gran_in" != "ALL" ]; then
+  gran=`printf %03d $(( 10#$gran_in ))`
+  gran="AIRS.$year.$mm.$dd.$gran.*"
+else
+  gran=*
+fi
+
+# Download the data
+# Storage directory is associated to the FTP source:
+
+storage=$storedir/`basename $srv`/$prod
+
+
+
+if [ ! -e $storedir/$prodsn ]; then
+  mkdir $storedir/$prodsn
+fi
+chgrp pi_strow $storedir/$prodsn 2> /dev/null
+chmod g+w $storedir/$prodsn 2> /dev/null
+
+if [ ! -e /asl/data/airs/$prodsn ]; then
+  ln -s $storedir/$prodsn /asl/data/airs/$prodsn
+fi
+
+if [ ! -e $storedir/`basename $srv`/$prod ]; then
+  #/bin/ln -s $storedir/$prodsn $storage $storedir/$prodsn
+  ln -s ../$prodsn $storage
+fi
+#wget -q -np -nc -x -nH --cut-dirs=3  ftp://$srv/$prod/$year/$jday/$gran
+#wget -q -np -c -x -nH --cut-dirs=3  ftp://$srv/$prod/$year/$jday/$gran
+if [ $level -eq 3 ]; then
+  echo Downloading $prodsn to $storage/$year
+  wget -q -nv -np -c -x -nH --cut-dirs=$cut  "ftp://$srv/$prod/$year/AIRS.$year.$mm.$dd.L3*"
+  chmod 664 $storage/$year/* 2> /dev/null
+  chgrp -R pi_strow $storage/$year 2> /dev/null
+  find -L $storage/$year -type d -exec chmod a+rx {} \; &> /dev/null
+else
+  echo Downloading $prodsn to $storage/$year/$jday
+  echo wget -nv -np -c -x -nH --cut-dirs=$cut  ftp://$srv/$prod/$year/$jday/$gran
+  #wget -q -nv -np -c -x -nH --cut-dirs=$cut  ftp://$srv/$prod/$year/$jday/$gran
+  wget -nv -np -c -x -nH --cut-dirs=$cut  ftp://$srv/$prod/$year/$jday/$gran
+  chmod 664 $storage/$year/$jday/* 2> /dev/null
+  chgrp -R pi_strow $storage/$year/$jday 2> /dev/null
+  find -L $storage/$year/$jday -type d -exec chmod a+rx {} \; &> /dev/null
+fi
+
+done # granule loop
+
+  # make some nifty month/day links
+  jd=$hdate
+  p=${prod:0:8}
+
+  yyyy=${jd:0:4}
+  mm=${jd:4:2}
+  dd=${jd:6:2}
+
+
+  if [ ! -d $p/$yyyy/$mm ]; then mkdir -p $p/$yyyy/$mm; fi
+
+  if [ ! -e $p/$yyyy/$mm/$dd ]; 
+  then
+    echo ln -sf $storage/$yyyy/$jday $p/$yyyy/$mm/$dd
+    ln -s $storage/$yyyy/$jday $p/$yyyy/$mm/$dd;
+  fi
+
+
+done # product loop
+done # day loop
+

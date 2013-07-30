@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+#  Written by Paul Schou (paulschou.com) on 2-Mar-2009
+#    Use this program to get the Julian day from a date string
+
+
+if [ $# -lt 1 ]; then
+  echo "
+Usage: `basename $0`  Date 
+
+  DATE - can be either format: 2008092  or  20080401 (spaces are optional)
+"
+  if [ `basename $0` == "tojd" ]; then
+    echo "Returns the julian day in the format YYYYJJJ.  See also \`fromjd'."
+  elif [ `basename $0` == "fromjd" ]; then
+    echo "Returns the day in the format YYYYMMDD.  See also \`tojd'."
+  fi
+  exit
+fi
+
+if [ $# -eq 2 ]; then # assume julian date format
+  day=`printf "%d%03d" $1 $(( 10#$2 + 0 ))`
+elif [ $# -eq 3 ]; then # assume julian date format
+  day=`printf "%d%02d%02d" $1 $(( 10#$2 + 0 )) $(( 10#$3 + 0 ))`
+else
+  day="$1"
+fi
+
+#
+#  DATE UTILITIES - To check and convert between date formats
+#
+gnucheck=`date --version 2>&1 | /usr/bin/head -1`
+year=${day:0:4}
+if [ ${#day} -eq 7 ]; then
+  # compute the human readable date
+  jday=${day:4:3};
+  if [ ${gnucheck:6:3} == "GNU" ]; then
+    hdate=`date -d "${year}0101 -1 day +$jday day" +%Y%m%d`
+  else
+    hdate=`date -j -v -1d -v +${jday}d 01010000$year +%Y%m%d`
+  fi
+elif [ ${#day} -eq 8 ]; then
+  hdate=$day
+  if [ ${gnucheck:6:3} == "GNU" ]; then
+    jday=`date -d $day +%j`
+  else
+    jday=`date -j ${1:4:4}0000$year +%j`
+  fi
+fi
+
+mm=${hdate:4:2}
+dd=${hdate:6:2}
+#echo "$year-$mm-$dd  jday $jday"
+
+if [ `basename $0` == "tojd" ]; then
+  echo $year$jday
+elif [ `basename $0` == "fromjd" ]; then
+  echo $hdate
+fi
