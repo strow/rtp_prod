@@ -21,7 +21,7 @@ function [head hattr prof pattr] = rtpmake_airs_l1b_datafiles(files)
     %
     %%%%%%
 
-    [eq_x_tai, f, gdata]= readl1b_all(files{ifile});
+    [eq_x_tai, f, gdata] = readl1b_all(files{ifile});
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -30,29 +30,27 @@ function [head hattr prof pattr] = rtpmake_airs_l1b_datafiles(files)
     % 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    data.findex = int32(gdata.findex(:)');
-    data.atrack = int32(gdata.atrack(:)'); %'
-    data.xtrack = int32(gdata.xtrack(:)'); %'
-
-    data.zobs = single(gdata.zobs(:)'); %'
-    data.calflag = single(gdata.calflag);
-
-    data.robs1 = single(gdata.robs1);
-
-    data.rlat = single(gdata.rlat(:)');  %'
-    data.rlon = single(gdata.rlon(:)');  %'
     data.rtime = gdata.rtime(:)';  %'
-
-    data.scanang = single(gdata.scanang(:)');
-    data.satazi = single(gdata.satazi(:)'); %'
-    data.satzen = single(gdata.satzen(:)'); %'
-    data.solazi = single(gdata.solazi(:)'); %'
-    data.solzen = single(gdata.solzen(:)'); %'
-
-    data.salti = single(gdata.salti(:)');
-    data.landfrac = single(gdata.landfrac(:)');
-
     nok = length(data.rtime);
+
+    data.rlat = gdata.rlat(:)';  %'
+    data.rlon = gdata.rlon(:)';  %'
+    data.satazi = gdata.satazi(:)'; %'
+    data.satzen = gdata.satzen(:)'; %'
+    data.zobs = gdata.zobs(:)'; %'
+    data.solazi = gdata.solazi(:)'; %'
+    data.solzen = gdata.solzen(:)'; %'
+    data.robs1 = gdata.robs1;
+
+    data.atrack = gdata.atrack(:)'; %'
+    data.xtrack = gdata.xtrack(:)'; %'
+
+    data.calflag = gdata.calflag;
+
+    % write out the file index number for which file the data came from
+    %   note: file names & dates are only available in the summary file
+    data.findex = gdata.findex(:)'; %'
+
 
 
     %%%%
@@ -61,20 +59,18 @@ function [head hattr prof pattr] = rtpmake_airs_l1b_datafiles(files)
     %
     %%%%
     
-    data.iudef = int32(nodata*ones(10,nok));
+    data.iudef = nodata*ones(10,nok);
 
 
     %%
     % fill out the iudef values
     %% 
 
-    data.udef = single(nodata*ones(20,nok));
+    data.udef = nodata*ones(20,nok);
     data.udef(1,:) = eq_x_tai(:)' - gdata.rtime(:)';
 
 
     prof(ifile) = data;
-
-    clear data;
 
   end   % loop over files
 
