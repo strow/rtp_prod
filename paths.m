@@ -1,5 +1,9 @@
-rtprod = fileparts(mfilename('fullpath'));
-matlib = fileparts(rtprod);
+if(~exist('rtprod','var'))
+  rtprod = fileparts(mfilename('fullpath'));
+end
+if(~exist('matlib','var'))
+  matlib = [fileparts(rtprod) '/matlib'];
+end
 
 addpath([rtprod]);
 addpath([rtprod '/diurnal_sst']);

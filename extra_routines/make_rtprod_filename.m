@@ -1,5 +1,5 @@
-function filename = make_rtprod_filename(instr, sat_data, atm_model, surfflags, calc, subset, mdate, tblock, ntblock, ver, file_type, asldata);
-%function filename = make_rtprod_filename(instr,sat_data, atm_model, surfflags, calc, subset, mdate, tblock, ntblock, file_type, asldata);
+function filename = make_rtprod_filename(instr, sat_data, atm_model, surfflags, calc, subset, mdate, ver, file_type, asldata);
+%function filename = make_rtprod_filename(instr,sat_data, atm_model, surfflags, calc, subset, mdate, file_type, asldata);
 %
 % Create a systematic RTP Prod file name
 %
@@ -12,8 +12,6 @@ function filename = make_rtprod_filename(instr, sat_data, atm_model, surfflags, 
 %   calc = 'calc'
 %   subset = 'subset'
 %   mdate  =  datenum(yyyy,mm,dd) for this file
-%   tblock = 1
-%   ntblock = 24
 %   ver = 'Rv1.A-Mv1.2'
 %   file_type = 'rtp'
 %   asldata = '/asl/data/'
@@ -25,16 +23,15 @@ function filename = make_rtprod_filename(instr, sat_data, atm_model, surfflags, 
     %sdr60_noaa_ops.merra.subset.2012.09.29.21.Rv2.0-Mv2.0.rtp
     %sdr60_noaa_ops.merra.calc.subset.yyyy.mm.dd.gg.RvTag-MvTag.rtpZ
 
-    [yyyy mm dd] = datevec(mdate);
+    [yyyy mm dd HH MM SS] = datevec(mdate);
     yyyy = num2str(yyyy,'%04d');
     mm = num2str(mm,'%02d');
     dd = num2str(dd,'%02d');
+    HH = num2str(HH,'%02d');
+    MM = num2str(MM,'%02d');
+    SS = num2str(SS,'%02d');
 
-    if(ntblock<100)
-      gg = num2str(tblock,'%02d');
-    else
-      gg = num2str(tblock,'%03s');
-    end
+    gg = [HH MM SS];
 
     dirname = [asldata '/rtprod/cris/' yyyy '/' mm '/' dd '/'];
     

@@ -35,6 +35,7 @@ function test_cris_clear_core(sdate, edate)
   matlib = '/home/imbiriba/git/matlib';
 
   % Define code pathes
+  addpath(rtprod);
   paths
 
   % Export environment variable
@@ -48,8 +49,8 @@ function test_cris_clear_core(sdate, edate)
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Set data root - for input and output
-  root = '/home/imbiriba/git/rtp_prod/testsuit/asl'
-
+%  root = '/home/imbiriba/git/rtp_prod/testsuit/asl'
+  root = '/asl/';
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -76,9 +77,23 @@ function test_cris_clear_core(sdate, edate)
 
 
   % Make output file name
-  output_file = make_rtprod_filename('CRIS', 'sdr60_noaa_ops', 'merra', 'udz','calc', '', sdate, 1, 24, version,'rtp',root);
+%  output_file = make_rtprod_filename('CRIS', 'sdr60_noaa_ops', 'merra', 'udz','calc', '', sdate, 1, 24, version,'rtp',root);
+  output_file = make_rtprod_filename('CRIS', 'sdr60_noaa_ops', 'merra', 'udz','calc', '', sdate, version,'rtp',[pwd '/dump/']);
 
+  output_file_dir = fileparts(output_file);
 
+  disp('Input Files:');
+  for iff=1:numel(file_list)
+    disp(file_list{iff});
+  end
+
+  disp('Output File:');
+  disp(output_file);
+
+  if(~exist(output_file_dir,'dir'))
+    disp(['Creating output directory']);
+    mkdir(output_file_dir);
+  end
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -143,7 +158,9 @@ function test_cris_clear_core(sdate, edate)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % See KlayersRun and SartaRun
     % SartaRun is not configured for running with HR cris yet. 
+    disp('Computing calculated Radiances');
 
+    tempfile = mktemp('temp.rtp');
     KlayersRun(head,hattr,prof,pattr,tempfile,11);
 
     [ ht htt pt ptt ] = SartaRun(tempfile, 11);
@@ -160,7 +177,7 @@ function test_cris_clear_core(sdate, edate)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Save file
 
-
+  disp('Saving data');
   rtpwrite(output_file, head, hattr, prof, pattr);
 
 
