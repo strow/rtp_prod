@@ -33,10 +33,24 @@ function filename = make_rtprod_filename(instr, sat_data, atm_model, surfflags, 
 
     gg = [HH MM SS];
 
-    dirname = [asldata '/rtprod/cris/' yyyy '/' mm '/' dd '/'];
+    dirname = [asldata '/rtprod_cris/' yyyy '/' mm '/' dd '/'];
     
     filename = [dirname concatdot(sat_data, atm_model, surfflags, calc, subset, yyyy, mm, dd, gg, ver, file_type)];
   elseif(strcmpi(instr,'airs'))
+    [yyyy mm dd HH MM SS] = datevec(mdate);
+    yyyy = num2str(yyyy,'%04d');
+    mm = num2str(mm,'%02d');
+    dd = num2str(dd,'%02d');
+    HH = num2str(HH,'%02d');
+    MM = num2str(MM,'%02d');
+    SS = num2str(SS,'%02d');
+
+    gg = [HH MM SS];
+
+    dirname = [asldata '/rtprod_airs/' yyyy '/' mm '/' dd '/'];
+    
+    filename = [dirname concatdot([lower(instr) '_' sat_data], atm_model, surfflags, calc, subset, yyyy, mm, dd, gg, ver, file_type)];
+
   elseif(strcmpi(instr,'iasi'))
   else
     error(['Unknow instrument name: ' instr '.']);

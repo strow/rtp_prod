@@ -1,10 +1,11 @@
-function file_list = airs_l1b_filenames(sdate,edate,asldata)
-% function file_list = airs_l1b_filenames(sdate,edate,asldata)
+function airs_l1b_download(sdate, edate, asldata)
+% function airs_l1b_download(sdate, edate, asldata)
+% 
+%   Downloads AIRS L1b data tha fits in the requested date range.
 %
-%   Look for the AIRS L1B files that span the time interval between 
-%   sdate and edate (matlab times) in the asldata/yyyy/ddd path format.
-%
-% Breno Imbiriba - 2013.07.10
+%   See also: airs_l1b_filenames.m  - this routine uses the same internal 
+%                                     looping structure.
+% Breno Imbiriba - 2013.08.01
 
 
 
@@ -47,22 +48,22 @@ function file_list = airs_l1b_filenames(sdate,edate,asldata)
 
       nfile = nfile + 1;
 
-      file_glob{nfile} = [asldata '/AIRIBRAD/' syyy '/' sm '/' sd '/AIRS.' syyy '.' sm '.' sd '.' sgg '.L1B.AIRS_Rad.*.hdf'];
+      % Let's check if the data is there:
+      file_glob = [asldata '/AIRIBRAD/' syyy '/' sm '/' sd '/AIRS.' syyy '.' sm '.' sd '.' sgg '.L1B.AIRS_Rad.*.hdf'];
+      ddir = dir(file_glob);
+      if(numel(ddir)==0)
+	% File does not exist.
+	% Issue download command:
+	dnldcmd = ['$RTPROD/bin/getairs ' syyy sm sd ' 1 AIRIBRAD.005 ' sgg ' ' asldata ];
+	disp(dnldcmd);
+	[status result] = system(dnldcmd);
+      else
+	disp(['File ' ddir.name ' already exists.']);
+      end 
+
     end
 
   end
-
-  % Now test if the files exist - and only keep the ones that do:
-
-
-  nfile = 0;
-  for iglob = 1:numel(file_glob)
-    ddir = dir(file_glob{iglob});
-    if(numel(ddir)==1)
-      nfile = nfile + 1;
-      file_list{nfile} =  [dirname(file_glob{iglob}) '/' ddir.name];
-     end
-   end
 
 end
 
@@ -71,4 +72,5 @@ function ddd = doy(mdate)
   ddd = floor(mdate - datenum(vec(1),1,1,0,0,0))+1;
 
 end
+
 

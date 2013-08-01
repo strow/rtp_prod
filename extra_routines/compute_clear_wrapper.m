@@ -63,9 +63,10 @@ function [head hattr prof pattr summary] = compute_clear_wrapper(head, hattr, pr
     end
 
     %%% Do clear selection... 
-     
-    
 
+    summary = [];
+    % This routine is incomplete!!!!!! 
+    warning('AIRS Clear selection is not DONE. Please finish this!');
 
   case 'IASI'
 
