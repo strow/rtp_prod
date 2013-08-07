@@ -70,10 +70,14 @@ function [head hattr prof pattr summary] = compute_clear_wrapper(head, hattr, pr
 
   case 'IASI'
 
-    temp_file = mktemp();
-    rtpwrite(temp_file, head, hattr, prof, pattr);
-    [head, hattr, prof_out, pattr,  summary] = iasi_uniform_clear_func_rtp(temp_file);
-    
+
+    % Iasi Clear Procedure 
+    [head hattr prof pattr] = iasi_uniform_clear(head,hattr,prof,pattr);
+
+    summary = make_summary_iasi(prof);
+
+
+
   case 'CRIS'
 
     subset = 0; % keep all fovs and channels
