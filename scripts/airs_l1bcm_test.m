@@ -72,7 +72,7 @@ function airs_l1bcm_test(sdate, edate)
   file_list = airs_l1bcm_filenames(sdate,edate,asldata);
 
   % Make output file name
-  output_file = make_rtprod_filename('AIRS', 'l1bcm', 'merra', 'udz','calc', '', sdate, version,'rtp',[pwd '/dump/']);
+  output_file = make_rtprod_filename('AIRS', 'l1bcm', 'merra', 'udz','calc', '', [sdate edate], version,'rtp',[pwd '/dump/']);
 
   output_file_dir = fileparts(output_file);
 
@@ -101,7 +101,10 @@ function airs_l1bcm_test(sdate, edate)
   % Read AIRS Data:
   for ifile=1:numel(file_list)
     [head hattr profi pattr] = rtpmake_airs_l1bcm_datafile(file_list(ifile)); 
-    prof(ifile) = profi;
+
+    % Subset for desired time
+    itime = find(profi.rtime >= AirsDate(sdate,-1) & profi.rtime< AirsDate(edate,-1));
+    prof(ifile) = ProfSubset2(profi, itime);
 
   end
   clear profi;

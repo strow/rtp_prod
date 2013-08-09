@@ -21,8 +21,8 @@ then
   echo on node...
   start_time='[2012,09,20,0,0,0]'
   end_time='[2012,09,20,0,59,59.999]'
-  # 6-minute blocks for AIRS granules
-  delta_time='[0,0,0,0,6,0]'  
+  # 1-hour blocks for AIRS granules
+  delta_time='[0,0,0,1,0,0]'  
 
   NPE=$SLURM_NPROCS 
   PE=$((SLURM_PROCID+1))
