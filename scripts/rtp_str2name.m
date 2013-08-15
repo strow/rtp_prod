@@ -1,9 +1,12 @@
-function filename = make_rtprod_filename(instr, sat_data, atm_model, surfflags, calc, subset, infix, mdate, ver, file_type, root);
+function filename = rtp_str2name(varargin)
+%function filename = rtp_str2name(str)
 %function filename = make_rtprod_filename(instr,sat_data, atm_model, surfflags, calc, subset, infix, mdate, file_type, root);
 %
 % Create a systematic RTP Prod file name
 %
-% Example:
+% Input
+%   str - name structure with the following fields:
+%
 %   instr 	= Instrument name (case insensitive) 	- 'cris'
 %   sat_data 	= Satelite data label             	- 'sdr60_noaa_ops'
 %   atm_model 	= Atm Model name                 	- 'merra'
@@ -22,6 +25,43 @@ function filename = make_rtprod_filename(instr, sat_data, atm_model, surfflags, 
 %   root 	= Root data location 			- '/asl'
 % 
 % This routine will evolve - Breno Imbiriba - 2013.07.30 
+
+
+  if(isstruct(varargin{1}))
+    str = varargin{1};
+    if(isfield(str,'instr'));  instr  	= str.instr; else instr = ''; end
+
+    if(isfield(str,'sat_data')); sat_data = str.sat_data; else sat_data 	= ''; end
+
+    if(isfield(str,'atm_model')); atm_model = str.atm_model; else atm_model	= ''; end
+
+    if(isfield(str,'surfflags')); surfflags 	= str.surfflags;	else surfflags = ''; end
+
+    if(isfield(str,'calc')); calc 	= str.calc ; else calc = ''; end
+    if(isfield(str,'subset')); subset 	= str.subset;	else subset = ''; end
+    if(isfield(str,'infix')); infix 	= str.infix ; else infix = ''; end
+    if(isfield(str,'mdate')); mdate  	= str.mdate; else mdate = []; end
+    if(isfield(str,'ver')); ver 	= str.ver; else ver = ''; end
+    if(isfield(str,'file_type')); file_type 	= str.file_type; else file_type = ''; end
+    if(isfield(str,'root')); root 	= str.root; else root = ''; end
+
+  else
+    if(nargin()~=11)
+      error('Str is not a structure');
+    end
+    instr  	= varargin{1};
+    sat_data 	= varargin{2};
+    atm_model 	= varargin{3};
+    surfflags 	= varargin{4};
+    calc 	= varargin{5};
+    subset 	= varargin{6};
+    infix 	= varargin{7};
+    mdate  	= varargin{8};
+    ver 	= varargin{9};
+    file_type 	= varargin{10};
+    root 	= varargin{11};
+  end
+
 
 
   % Construct timestamp and data strings

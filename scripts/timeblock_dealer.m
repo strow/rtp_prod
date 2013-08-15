@@ -83,7 +83,16 @@ for iblock = Blocks(pe,:)
 
   disp(['Start date = ' datestr(sdate) ' -  End date = ' datestr(edate)]);
 
-  cmd(sdate, edate)
+  try
+    cmd(sdate, edate)
+  catch errstr
+    fprintf('\nError: %s (%s).\n',errstr.message, errstr.identifier);
+    for it=1:length(errstr.stack)
+      fprintf('   IN: %s>%s at %d.\n',errstr.stack(it).file, ...
+				      errstr.stack(it).name, errstr.stack(it).line);
+    end
+    fprintf('Continuing timeblock_dealer loop.\n');
+  end
  
 
 end

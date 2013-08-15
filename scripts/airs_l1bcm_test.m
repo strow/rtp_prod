@@ -103,7 +103,7 @@ function airs_l1bcm_test(sdate, edate)
     [head hattr profi pattr] = rtpmake_airs_l1bcm_datafile(file_list(ifile)); 
 
     % Subset for desired time
-    itime = find(profi.rtime >= AirsDate(sdate,-1) & profi.rtime< AirsDate(edate,-1));
+    itime = find(profi.rtime >= mattime2tai(sdate,1993) & profi.rtime< mattime2tai(edate,1993));
     prof(ifile) = ProfSubset2(profi, itime);
 
   end

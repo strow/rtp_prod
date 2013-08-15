@@ -1,8 +1,10 @@
 if(~exist('rtprod','var'))
-  rtprod = fileparts(mfilename('fullpath'));
+  rtprod = '~/git/rtp_prod';
+%  rtprod = fileparts(mfilename('fullpath'));
 end
 if(~exist('matlib','var'))
-  matlib = [fileparts(rtprod) '/matlib'];
+  matlib = '~/git/matlib';
+%  matlib = [fileparts(rtprod) '/matlib'];
 end
 
 addpath([rtprod]);
