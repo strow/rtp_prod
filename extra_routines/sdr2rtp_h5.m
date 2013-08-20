@@ -26,13 +26,14 @@ function [head hattr prof pattr] = sdr2rtp_h5(f)
   end
 
   % Sarta g4 channels that are not in Proxy data 
-  inan = [ 1306 1307 1312:1315 1320:1323 1328:1329];
+  ibad = [ 1306 1307 1312:1315 1320:1323 1328:1329];
+
 
   % Now change indices to g4 of SARTA
   robs = prof.robs1;
   nn = length(prof.rlat);
   prof.robs1 = zeros(1329,nn);
-  prof.robs1(inan,:) = NaN;
+  prof.robs1(ibad,:) = -9999;
   % prof.robs1(si,:) = robs(pi,:);    % test and implement later
   prof.robs1(1:713,:)     = robs(3:715,:);
   prof.robs1(714:1146,:)  = robs(720:1152,:);
@@ -69,9 +70,6 @@ function [head hattr prof pattr] = sdr2rtp_h5(f)
   fm8 = 2145.00:2.5:2153.50;
   fm9 = 2552.5:2.5:2560;
   fm = [fm1';fm2';fm3';fm4';fm5';fm6';fm7';fm8';fm9'];
-
-  % Sarta g4 channels that are not in Proxy data 
-  inan = [ 1306 1307 1312:1315 1320:1323 1328:1329];
 
 
   % Get head.vchan from fm definitions above
