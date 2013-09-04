@@ -1,37 +1,45 @@
-base_dir = fileparts(mfilename('fullpath'));
-base_dir1 = fileparts(base_dir);
+if(~exist('rtprod','var'))
+  rtprod = '~/git/rtp_prod';
+%  rtprod = fileparts(mfilename('fullpath'));
+end
+if(~exist('matlib','var'))
+  matlib = '~/git/matlib';
+%  matlib = [fileparts(rtprod) '/matlib'];
+end
 
-addpath([base_dir]);
-addpath([base_dir '/diurnal_sst']);
+addpath([rtprod]);
+addpath([rtprod '/diurnal_sst']);
+addpath([rtprod '/extra_routines']);
 
-addpath([base_dir '/airs/gstats']);
-addpath([base_dir '/airs/readers']);
-addpath([base_dir '/airs/rtp']);
-addpath([base_dir '/airs/uniform']);
-addpath([base_dir '/airs/utils']);
+addpath([rtprod '/airs/gstats']);
+addpath([rtprod '/airs/readers']);
+addpath([rtprod '/airs/rtp']);
+addpath([rtprod '/airs/uniform']);
+addpath([rtprod '/airs/utils']);
 
-addpath([base_dir '/iasi/clear']);
-addpath([base_dir '/iasi/gstats']);
-addpath([base_dir '/iasi/readers']);
-addpath([base_dir '/iasi/rtp']);
-addpath([base_dir '/iasi/uniform']);
-addpath([base_dir '/iasi/utils']);
+addpath([rtprod '/iasi/clear']);
+addpath([rtprod '/iasi/gstats']);
+addpath([rtprod '/iasi/readers']);
+addpath([rtprod '/iasi/rtp']);
+addpath([rtprod '/iasi/uniform']);
+addpath([rtprod '/iasi/utils']);
 
-addpath([base_dir '/cris/gstats']);
-addpath([base_dir '/cris/readers']);
-addpath([base_dir '/cris/rtp']);
-addpath([base_dir '/cris/unapod']);
-addpath([base_dir '/cris/uniform']);
-addpath([base_dir '/cris/utils']);
+addpath([rtprod '/cris/gstats']);
+addpath([rtprod '/cris/clear']);
+addpath([rtprod '/cris/readers']);
+addpath([rtprod '/cris/rtp']);
+addpath([rtprod '/cris/unapod']);
+addpath([rtprod '/cris/uniform']);
+addpath([rtprod '/cris/utils']);
 
-addpath([ base_dir1 '/matlib/']);
-addpath([ base_dir1 '/matlib/aslutil']);
-addpath([ base_dir1 '/matlib/clouds']);
-addpath([ base_dir1 '/matlib/fconv']);
-addpath([ base_dir1 '/matlib/gribtools']);
-addpath([ base_dir1 '/matlib/h4tools']);
-addpath([ base_dir1 '/matlib/opendap']);
-addpath([ base_dir1 '/matlib/rtptools']);
-addpath([ base_dir1 '/matlib/science']);
-addpath([ base_dir1 '/matlib/sconv']);
+addpath([ matlib]);
+addpath([ matlib '/aslutil']);
+addpath([ matlib '/clouds']);
+addpath([ matlib '/fconv']);
+addpath([ matlib '/gribtools']);
+addpath([ matlib '/h4tools']);
+addpath([ matlib '/opendap']);
+addpath([ matlib '/rtptools']);
+addpath([ matlib '/science']);
+addpath([ matlib '/sconv']);
 
