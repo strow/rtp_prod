@@ -47,32 +47,24 @@ MATLIB=$GITROOT/matlib
 if [ "$#" -eq 0 ] 
 then
 
-  srun --partition=batch --cpus-per-task=2 --ntasks=8 --job-name=CrsClrPrc --qos=long_contrib --output=slurm-%j.%t.out $0 onnode &
+  srun --partition=batch --cpus-per-task=2 --ntasks=4 --exclusive --job-name=CrCcDtMra --qos=long --output=slurm-%j.%t.out $0 onnode &
 
 elif [ "$1" == 'onnode' ]
 then
 
   echo on node...
   start_time='[2012, 09, 20,  0,  0,  0]'
-    #end_time='[2012, 09, 20, 23, 59, 59.999]'
-    end_time='[2012, 09, 20, 24, 0, 0]'
-  delta_time='[   0,  0,  0,  1,  0,  0]'
+    end_time='[2012, 09, 20, 23, 59, 59.999]'
+#    end_time='[2012, 09, 20,  0, 59,  59.999]'
+  delta_time='[   0,  0,  0,  0, 10,  0]'
 
   NPE=$SLURM_NPROCS 
   PE=$((SLURM_PROCID+1))
 
   #echo "test_cris_clear_driver($start_time, $end_time, $delta_time, $PE, $NPE); exit"
 
-  /asl/opt/bin/matlab -nosplash -nodesktop -nodisplay -r "\
-    rtprod='$RTPROD';\
-    matlib='$MATLIB';\
-    addpath ../;\
-    paths;\
-    try; \
-    timeblock_dealer($start_time, $end_time, $delta_time, $PE, $NPE, @cris_clear_proc_era ); \
-    catch err; \
-    Etc_show_error(err); \
-    end; \
+  matlab -nosplash -nodesktop -nodisplay -r "\
+    timeblock_dealer($start_time, $end_time, $delta_time, $PE, $NPE, @cris_ccast_sdr60dt_merra_udw ); \
     exit" 
 
 else

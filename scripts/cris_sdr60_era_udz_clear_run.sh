@@ -47,15 +47,16 @@ MATLIB=$GITROOT/matlib
 if [ "$#" -eq 0 ] 
 then
 
-  srun --partition=batch --cpus-per-task=2 --ntasks=12 --exclusive --job-name=CrsClrPrc --qos=long_contrib --output=slurm-%j.%t.out $0 onnode &
+  srun --partition=batch --cpus-per-task=2 --ntasks=8 --exclusive --job-name=CrsClrPrc --qos=long_contrib --output=slurm-%j.%t.out $0 onnode &
 
 elif [ "$1" == 'onnode' ]
 then
 
   echo on node...
   start_time='[2012, 09, 20,  0,  0,  0]'
-    end_time='[2012, 09, 20,  2,  0,  0]'
-  delta_time='[   0,  0,  0,  0,  10,  0]'
+    #end_time='[2012, 09, 20, 23, 59, 59.999]'
+    end_time='[2012, 09, 20, 24, 0, 0]'
+  delta_time='[   0,  0,  0,  1,  0,  0]'
 
   NPE=$SLURM_NPROCS 
   PE=$((SLURM_PROCID+1))
@@ -63,7 +64,7 @@ then
   #echo "test_cris_clear_driver($start_time, $end_time, $delta_time, $PE, $NPE); exit"
 
   /asl/opt/bin/matlab -nosplash -nodesktop -nodisplay -r "\
-    timeblock_dealer($start_time, $end_time, $delta_time, $PE, $NPE, @cris_proc_ecmwf_0 ); \
+    timeblock_dealer($start_time, $end_time, $delta_time, $PE, $NPE, @cris_sdr60_era_udz_clear ); \
     exit" 
 
 else

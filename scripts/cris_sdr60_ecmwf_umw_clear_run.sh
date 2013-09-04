@@ -64,7 +64,7 @@ then
   #echo "test_cris_clear_driver($start_time, $end_time, $delta_time, $PE, $NPE); exit"
 
   /asl/opt/bin/matlab -nosplash -nodesktop -nodisplay -r "\
-    timeblock_dealer($start_time, $end_time, $delta_time, $PE, $NPE, @cris_clear_proc_ecmwf_0 ); \
+    timeblock_dealer($start_time, $end_time, $delta_time, $PE, $NPE, @cris_sdr60_ecmwf_umw_clear ); \
     exit" 
 
 else

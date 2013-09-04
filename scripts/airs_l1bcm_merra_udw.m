@@ -1,18 +1,18 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%       CRIS CLEAR PRODUCTION M FUNCTION
+%       AIRS L1BCM PRODUCTION M FUNCTION
 %
-% This script is part of the CrIS Clear production
-% See "cris_clear_proc_run.sh" to know how to 
+% This script is part of the AIRS L1bCM production
+% See "airs_l1bcm_proc_run.sh" to know how to 
 % run this on the TARA cluster.
 % 
 % (C) ASL Group - 2013 - GPL V.3
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
-% function cris_clear_proc(sdate, edate)
+% function airs_l1bcm_proc(sdate, edate)
 %
-%   Acumulate CrIS data from sdate to edate, add model
+%   Acumulate AIRS data from sdate to edate, add model
 %   and compute radiances. 
 %
 %   Input:
@@ -21,7 +21,7 @@
 %
 % B.I. Aug.2013
 
-function cris_clear_proc(sdate, edate)
+function airs_l1bcm_merra_udw(sdate, edate, root)
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
@@ -52,21 +52,20 @@ function cris_clear_proc(sdate, edate)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Set data root - for input and output
   %root = '/home/imbiriba/git/rtp_prod/testsuit/asl'
-  root = '/asl/';
+  if(nargin()<3)
+    root = '/asl/';
+  end
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % Download CRIS data
+  % Download AIRS data
   %
-  % I Don't know how to do that. 
-  % CrIS data seems to appear magically at a 
-  % default place.
-  %
-  % Hence, copy data manually
-
+  % Set where to download (usually relative to root) and call getairs
+  % This routine uses the RTPROD environment variable:
 
   % Set where data will be (relative to root) 
-  asldata=[root '/data'];
+  asldata=[root '/data/airs'];
+  airs_l1bcm_download(sdate, edate, asldata);
 
 
 
@@ -79,24 +78,29 @@ function cris_clear_proc(sdate, edate)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Find existing input files (according 
   %                to provided date ranges)
-  file_list = cris_noaa_ops_filenames(sdate,edate,asldata,'sdr60');
+  file_list = airs_l1bcm_filenames(sdate,edate,asldata);
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % Make output file name - we will split obs and calcs
+  % Make output file name
+  % output_file = make_rtprod_filename('AIRS', 'l1bcm', 'merra', 'udz','calc', '', [sdate edate], version,'rtp',[pwd '/dump/']);
   %
   % We use the rtp_str2name.m function that takes a predefined
   % name structure and convert it on a filename string.
 
   % output obs filename
   str_obs1.root 	= [pwd '/dump'];
-  str_obs1.instr	= 'cris';
-  str_obs1.sat_data	= 'sdr60_noaa_ops';
-  str_obs1.atm_model 	= 'ecmwf';	% Will contain profile information
-  str_obs1.surfflags 	= 'umw'; 	% Will contain usgs topo (u),
-                                        % base model stemp (m), Wisc emis (w)
+  str_obs1.instr	= 'airs';
+  str_obs1.sat_data	= 'l1bcm';
+  str_obs1.atm_model 	= 'merra';	% Will contain profile information
+  str_obs1.surfflags 	= 'udw'; 	% Will contain the following:
+                         %  1. Topography: 'u' - usgs      / '_' - none
+                         %  2. Stemp     : 'd' - diurnal   / 'm' - model default
+                         %  3. Emissivity: 'z' - DanZhou's / 'w' - Wiscounsin
+
+                                        % sergio's stemp (d), Wisc's emis (w)
   str_obs1.calc 	= '';
-  str_obs1.subset 	= 'clear';	% clear subset only 
+  str_obs1.subset 	= '';	% clear subset only 
   str_obs1.infix 	= '';
   str_obs1.mdate 	= [sdate edate];
   str_obs1.ver 		= version;
@@ -136,35 +140,18 @@ function cris_clear_proc(sdate, edate)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % Read CrIS Data:
+  % Read AIRS Data:
   for ifile=1:numel(file_list)
-    [head hattr profi pattr] = sdr2rtp_h5(file_list{ifile}); 
-
-    % Sometimes you'd like to to a time subsetting here
-    % but this is not necessary for sdr60 data which will
-    % "spill over" the time bin just a little bit.
-
+    [head hattr profi pattr] = rtpmake_airs_l1bcm_datafile(file_list(ifile)); 
+    % L1bcm files are daily. 
+    % We must subset for the desired time span
     % Subset for desired time
-    %itime = find(profi.rtime >= mattime2tai(sdate,2000) & ...
-    %             profi.rtime <  mattime2tai(edate,2000));
-    %prof(ifile) = ProfSubset2(profi, itime);
-
-    prof(ifile) = profi;
+    itime = find(profi.rtime >= mattime2tai(sdate,1993) & profi.rtime< mattime2tai(edate,1993));
+    prof(ifile) = ProfSubset2(profi, itime);
 
   end
   clear profi;
   prof = structmerge(prof);
-
-  
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % Remove buggy CrIS rtime, rlat, and rlon
-  lbad_rtime = (tai2mattime(prof.rtime,2000)<datenum(2008,1,1) |...
-                tai2mattime(prof.rtime,2000)>now);
-  lbad_geo = (abs(prof.rlat)>90 | prof.rlon<-180 | prof.rlon > 360);
-  disp(['Warning: There are ' num2str(numel(find(lbad_rtime | lbad_geo))) ...
-        ' FoVs with bad GEO/TIME. Removing']);
-  [head prof] = subset_rtp(head, prof, [], [], find(~lbad_rtime & ~lbad_geo));
-
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
   % add version number on header attributes
@@ -182,24 +169,16 @@ function cris_clear_proc(sdate, edate)
   % Add Model Information
 
   [head hattr prof pattr] = rtpadd_usgs_10dem(head,hattr,prof,pattr,root);
-  [head hattr prof pattr] = rtpadd_ecmwf_data(head,hattr,prof,pattr);
+  [head hattr prof pattr] = rtpadd_merra(head,hattr,prof,pattr,root);
 
-  %[head hattr prof pattr] = driver_gentemann_dsst(head,hattr, prof,pattr);
+  [head hattr prof pattr] = driver_gentemann_dsst(head,hattr, prof,pattr);
+  %[head hattr prof pattr] = rtpadd_emis_DanZhou(head,hattr,prof,pattr, root);
   [head hattr prof pattr] = rtpadd_emis_Wisc(head,hattr,prof,pattr);
- 
-
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % Do clear selection - for now this is instrument dependent
-  instrument='CRIS'; %'IASI','CRIS'
-  [head hattr prof pattr summary] = ...
-                   compute_clear_wrapper(head, hattr, prof, pattr, instrument);
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %% Do subset, if wanted. (remove coasts (16) also).
-  iclear = find(prof.iudef(1,:)>0 & prof.iudef(1,:)<16); 
-  [head prof] = subset_rtp(head, prof, [],[],iclear);
-
+  % This data set is already a "clear" set
+  % Airs L1Bcm is alreay clear subset.
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -226,7 +205,8 @@ function cris_clear_proc(sdate, edate)
     tempfile = mktemp('temp.rtp');
     KlayersRun(head,hattr,prof,pattr,tempfile,11);
 
-    [ head hattr prof pattr] = SartaRun(tempfile, 12);
+    % See help SartaRun for the types of Sarta available
+    [ head hattr prof pattr] = SartaRun(tempfile, 5);
     
 
 
@@ -246,7 +226,7 @@ function cris_clear_proc(sdate, edate)
 
   rtpwrite(output_file_calc, head, hattr, prof, pattr);
 
-
+end
 % END
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

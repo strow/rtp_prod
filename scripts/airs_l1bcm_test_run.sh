@@ -29,7 +29,7 @@ then
 
   #echo "test_airs_l1bcm_driver($start_time, $end_time, $delta_time, $PE, $NPE); exit"
 
-  /asl/opt/bin/matlab -nosplash -nodesktop -nodisplay -r "try; timeblock_dealer($start_time, $end_time, $delta_time, $PE, $NPE, @airs_l1bcm_test ); catch err; Etc_show_error(err); end; exit" 
+  /asl/opt/bin/matlab -nosplash -nodesktop -nodisplay -r "timeblock_dealer($start_time, $end_time, $delta_time, $PE, $NPE, @airs_l1bcm_test ); exit" 
 
 else
   echo $0 run the job on tara.
