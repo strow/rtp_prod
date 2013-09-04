@@ -196,7 +196,7 @@ function rtp_run(dates,  dataset, model, emis, sst, output, cleartype, fovsset, 
 
     
     % 2.2.1 - Add surface topography
-    [head hattr prof pattr] = rtpadd_usgs_10dem(head,hattr,prof,pattr);
+    [head hattr prof pattr] = rtpadd_usgs_10dem(head,hattr,prof,pattr,root);
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % 2.2.2 - Add atmospheric model
@@ -206,7 +206,7 @@ function rtp_run(dates,  dataset, model, emis, sst, output, cleartype, fovsset, 
     case 'era'
       [head hattr prof pattr] = rtpadd_era(head,hattr,prof,pattr);
     case 'merra'
-      [head hattr prof pattr] = rtpadd_merra(head,hattr,prof,pattr);
+      [head hattr prof pattr] = rtpadd_merra(head,hattr,prof,pattr,root);
     case 'merra_cld'
       [head hattr prof pattr] = rtpadd_merra_cloudy(head,hattr,prof,pattr);
 

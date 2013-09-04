@@ -21,7 +21,7 @@ function [head hattr prof pattr] = rtpmake_airs_l1b_datafiles(files)
     %
     %%%%%%
 
-    [eq_x_tai, f, gdata]=readl1b_all(files{ifile});
+    [eq_x_tai, f, gdata] = readl1b_all(files{ifile});
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

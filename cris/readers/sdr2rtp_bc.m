@@ -152,9 +152,10 @@ function [head hattr prof pattr] = sdr2rtp(cfile,test_hack)
   i_mw = interp1(wn_mw, (1:numel(wn_mw)), vMW(iMW), 'nearest');  
   i_sw = interp1(wn_sw, (1:numel(wn_sw)), vSW(iSW), 'nearest');  
 
-  % Make vchan and ichan arrays
-  vchan = [vLW(iLW) vMW(iMW) vSW(iSW)]';
-  ichan = [ichan_lw(i_lw) ichan_mw(i_mw) ichan_sw(i_sw)]';
+  % Make vchan and ichan arrays - to avoid shape problems, flatten the arrays
+  flat = @(x) x(:);
+  vchan = [flat(vLW(iLW)); flat(vMW(iMW)); flat(vSW(iSW))];
+  ichan = [flat(ichan_lw(i_lw)); flat(ichan_mw(i_mw)); flat(ichan_sw(i_sw))];
 
   nchanLW = numel(iLW);
   nchanMW = numel(iMW);

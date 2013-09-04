@@ -35,7 +35,7 @@ function [head hattr prof pattr] = rtpadd_emis_Wisc(head, hattr, prof, pattr)
 
       [hin pin] = subset_rtp(head,prof,[],[],ifind); 
 
-      pout = Prof_add_emis(pin, yyyy, mm, 15, 0, 'nearest', 2, 'all');
+      [pout Qual ModelStr] = Prof_add_emis(pin, yyyy, mm, 15, 0, 'nearest', 2, 'all');
 
       % Add data back to prof
       ne1 = size(pout.emis,1);
@@ -49,7 +49,7 @@ function [head hattr prof pattr] = rtpadd_emis_Wisc(head, hattr, prof, pattr)
     end
   end
 
-  pattr = set_attr(pattr,'emis','Wiscounsin');
+  pattr = set_attr(pattr,'emis',ModelStr);
 
 end 
 
