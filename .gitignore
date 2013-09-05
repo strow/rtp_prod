@@ -1,0 +1,9 @@
+runs/
+log/
+tests/
+trash/
+tmp/
+dump/
+
+slurm*
+
