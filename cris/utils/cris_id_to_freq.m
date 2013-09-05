@@ -1,20 +1,20 @@
-function [id] = cris_freq_to_id(freq, nguard);
+function [freq] = cris_id_to_freq(id, nguard);
 
-% function [id] = cris_freq_to_id(freq, nguard);
+% function [freq] = cris_id_to_freq(id, nguard);
 %
-% Convert CrIS channel frequencies to channel IDs.
+% Convert CrIS channel IDs to channel frequencies.
 % Note: this version for 8/4/2 mm OPD CrIS
 %
 % Input:
-%    freq   : [n x 1] channel freq (wn)
+%    id     : [n x 1] channel freq
 %    nguard : OPTIONAL [1 x 1] number of guard channels at each edge
 %       of each band {default=4}
 %
 % Output:
-%    id : [n x 1] channel ID
+%    freq : [n x 1] channel frequencies (wn)
 %
 
-% Created: 29 Jul 2011, S.Hannon - total rewrite of bad "cris_freq_to_id_g4.m"
+% Created: 29 Jul 2011, S.Hannon - created based on "cris_freq_to_id.m"
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 opd_bands = [ 0.8  0.4  0.2]; % cm
@@ -44,9 +44,14 @@ else
    end
 end
 %
-d = size(freq);
+d = size(id);
 if (length(d) ~= 2 | min(d) ~= 1)
-  error('unexpected dimensions for input freq')
+  error('unexpected dimensions for input id')
+end
+if (d(2) > d(1))
+   lflip = 1;
+else
+   lflip = 0;
 end
 
 
@@ -79,19 +84,18 @@ for ib=1:nbands
 end
 % All channel freqs, with ID = index
 f = [fx; fg];
+idall = 1:length(f);
 
 
-% Round all freqs to the nearest 0.001 wn to ensure there
-% is no numerical noise to prevent matchups of f and freq
-fx = round(f*1000)/1000;
-freqx = round(freq*1000)/1000;
-
-
-% Match freq to fx
-[junk, loc] = ismember(freqx, fx);
-id = loc( find(loc > 0) );
-if (length(id) < length(freq))
-  error('input freq contained repeats or unexpected values')
+% Match id to idall
+[junk, loc] = ismember(id, idall);
+ind = loc( find(loc > 0) );
+freq = f(ind);
+if (length(freq) < length(id))
+  error('input id contained repeats or unexpected values')
+end
+if (lflip == 1)
+   freq = freq'; %'
 end
 
 %%% end of function %%%

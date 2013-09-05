@@ -31,13 +31,14 @@ global CODE_VERSION
 
 
 %% 1. Get the "rtp_prod" version number
-rtp_prod_version = rev_rtp_prod();
+rtp_prod_version = deblank(rev_rtp_prod());
 
 
 
 %% 2. Get the "matlib" version number
-matlib_version = rev_matlib();
+matlib_version = deblank(rev_matlib());
 
-CODE_VERSION = ['R' rtp_prod_version(1:end-1) '-M' matlib_version(1:end-1)];
+
+CODE_VERSION = ['R' rtp_prod_version '-M' matlib_version];
 
 end

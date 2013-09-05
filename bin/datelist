@@ -1,0 +1,89 @@
+#!/bin/bash
+# written by Paul Schou for the UMBC hpc w/ qsub - 2 Oct 2008
+# exec_on_list [command] [list file] [max #]
+# exec_on_list [command] [datespan] [max #]
+
+# trap user signals and send them to children
+trap : 2 3 15
+
+# we need gnu date
+#date=/asl/opt/bin/date
+
+if [ "$1" == "" ]; then
+  echo Default usage:
+  echo Usage: datelist datespan
+  exit;
+fi
+
+OMPI_MCA_ns_nds_vpid=0
+step=1
+
+in=${1//\//}
+#echo $in
+
+if [ -e "$1" ]; then
+    # loop over the list until all runs have been ran
+    count=`grep -c ^ "$1"`
+    i=$OMPI_MCA_ns_nds_vpid
+    while [ $i -lt $count ]; do
+      file=`mid 1+$i 1 "$1"`
+      echo $file
+      i=$(($i+$3));
+    done
+elif [ "${in:4:1}" == ":" ]; then
+  # run on a year span
+    i=`$date --date="${in:0:4}0101 +$OMPI_MCA_ns_nds_vpid year" +%Y`
+    while [ $i -le ${in:5:4} ]; do
+      echo $i
+      i=`$date --date="${i}0101 +$step year" +%Y`
+    done
+elif [ "${in:6:1}" == ":" ]; then
+  # run on a month span
+    i=`$date --date="${in:0:6}01 +$OMPI_MCA_ns_nds_vpid month" +%Y%m`
+    while [ $i -le ${in:7:6} ]; do
+      echo $i
+      i=`$date --date="${i}01 +$step month" +%Y%m`
+    done
+elif [ "${in:8:1}" == ":" ] && [ ${#in} -eq 17 ]; then
+  # run on a date span
+    i=`$date --date="${in:0:8} +$OMPI_MCA_ns_nds_vpid day" +%Y%m%d`
+    while [ $i -le ${in:9:8} ]; do
+      echo $i
+      i=`$date --date="$i +$step day" +%Y%m%d`
+    done
+elif [ "${in:7:1}" == ":" ] && [ ${#in} -eq 15 ]; then
+  # run on a date span
+    i=`fromjd ${in:0:7}`
+    end=`fromjd ${in:8:7}`
+    while [ $i -le $end ]; do
+      echo $i
+      i=`$date --date="$i +$step day" +%Y%m%d`
+    done
+elif [ "${in:8:1}" == ":" ] && [ ${#in} -eq 20 ]; then
+  # step
+  step=${in:9:2}
+  # run on a date span
+    i=`$date --date="${in:0:8} + $(( $OMPI_MCA_ns_nds_vpid * 10#$step )) day" +%Y%m%d`
+    while [ $i -le ${in:12:8} ]; do
+      en=`$date --date="$i + $(( 10#$step - 1 )) day" +%Y%m%d`
+      echo $i:$step:$en
+      i=`$date --date="$i + $(( 10#$step )) day" +%Y%m%d`
+    done
+ 
+else
+  # if just a number is specified
+  echo $1
+  #echo No job to do!
+  #echo No job to do! 1=$1 2=$2 3=$3
+  exit 1;
+  count=$(($2+0))
+  if [ $count -gt 1800 ]; then
+    echo I really don\'t think you wanted to run more than 1800 numbered jobs.
+    exit
+  fi
+  i=$OMPI_MCA_ns_nds_vpid
+  while [ $i -lt $count ]; do
+    $1 $(($i+1))
+    i=$(($i+$3));
+  done
+fi

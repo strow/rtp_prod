@@ -1,4 +1,5 @@
-function [px] = driver_gentemann_dsst(h0,ha,p0,pa);
+function [h0 ha px pxa] = driver_gentemann_dsst(h0,ha,p0,pa);
+% function [h0 ha px pxa] = driver_gentemann_dsst(h0,ha,p0,pa);
 
 %% copied from add_chelle_dsst.m in /home/sergio/MATLABCODE/DIURNAL_SST/POSH/subroutines/Unix_SUBR
 %% will be put on my local git version of rtp_prod, under diurnal_sst
@@ -7,7 +8,9 @@ function [px] = driver_gentemann_dsst(h0,ha,p0,pa);
 %% output
 %%   p0 --> px where only stemp field is changed px.stemp = px.stemp + dsst, only over water
 
+
 px = p0;
+
 iaOcean = find(p0.landfrac <= 0.001);
 if length(iaOcean) > 0
   [raY,raM,raD,raH] = tai2utc(p0.rtime);
@@ -31,7 +34,12 @@ if length(iaOcean) > 0
   %% find changes after adding dsst
   px.stemp(iaOcean) = px.stemp(iaOcean) + dsst(iaOcean);
 
+  pxa = set_attr(pa,'sst','gentemann_dsst');
 
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % 
+>>>>>>> 3bb8a0afda90860d184f79719d4526fbccaac4c6
   iPlot = -1;
   if iPlot > 0
     scatter(px.rlon(iaOcean),px.rlat(iaOcean),20,raH(iaOcean))
