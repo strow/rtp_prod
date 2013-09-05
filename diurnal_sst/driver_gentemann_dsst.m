@@ -1,12 +1,17 @@
 function [h0 ha px pxa] = driver_gentemann_dsst(h0,ha,p0,pa);
 % function [h0 ha px pxa] = driver_gentemann_dsst(h0,ha,p0,pa);
+%          [px]           = driver_gentemann_dsst(h0,ha,p0,pa);
+%
+%  
+% input 
+%   h0,ha,p0,pa  are the usual inputs from reading a rtp file
+% output
+%   p0 --> px where only stemp field is changed px.stemp = px.stemp + dsst, only over water
+%   (h0, ha, pxa, if present, are just passed though)
+%
 
 %% copied from add_chelle_dsst.m in /home/sergio/MATLABCODE/DIURNAL_SST/POSH/subroutines/Unix_SUBR
 %% will be put on my local git version of rtp_prod, under diurnal_sst
-%% input 
-%%   h0,ha,p0,pa  are the usual inputs from reading a rtp file
-%% output
-%%   p0 --> px where only stemp field is changed px.stemp = px.stemp + dsst, only over water
 
 
 px = p0;
@@ -36,10 +41,13 @@ if length(iaOcean) > 0
 
   pxa = set_attr(pa,'sst','gentemann_dsst');
 
+  % If calling as it used to be (with one single output argument)
+  if(nargout()==1)
+    h0=px;
+  end
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % 
->>>>>>> 3bb8a0afda90860d184f79719d4526fbccaac4c6
   iPlot = -1;
   if iPlot > 0
     scatter(px.rlon(iaOcean),px.rlat(iaOcean),20,raH(iaOcean))
