@@ -242,11 +242,7 @@ function cris_proc_ecmwf_0(sdate, edate)
   % Trim and save file
 
   disp(['Saving data ' output_file_calc]);
-  prof = rmfield(prof,{'gas_1','gas_2','gas_3','gas_4','gas_5','gas_6',...
-                       'gas_9','gas_12','plevs','palts','ptemp'});
-  [head hattr prof pattr] = rtptrim(head,hattr,prof,pattr,'parent',...
-                                    output_file_obs1);
-
+  [head hattr prof pattr] = rtptrim_ptype_0(head, hattr, prof, pattr, output_file_obs1);
   rtpwrite(output_file_calc, head, hattr, prof, pattr);
 
 

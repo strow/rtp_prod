@@ -36,3 +36,14 @@ Docs/Figs/*
 *.bak
 *~
 
+# Other dirs to ignore
+runs/
+log/
+tests/
+trash/
+tmp/
+dump/
+
+# Potential cluster run outputs.
+slurm*
+
