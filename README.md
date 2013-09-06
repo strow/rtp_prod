@@ -2,13 +2,73 @@
 
 ## Naming Convention
 
-###Surface model
+###Production Standard Name
+
+Each file created in the Standard Processing follows this convention:
+ 
+    intr_data.model.srf.calc.proc.yyyy.mm.dd.hhmmss_hhmmss.version.type
+   
+where
+	
+    intr_data 	: Instrument Data
+    model     	: Atmospheric Model
+    srf       	: Surface Model
+    calc      	: Calculated Radiances
+    proc      	: Processing
+    yyyy.mm.dd	: Data date
+    hhmmss_hhmmss: Data hours
+    version 	: Version of the code that generated the files
+    type	: file type
+
+Example:
+
+    cris_sdr60_noaa_ops.merra.udw.calc.clear.2012.09.20.200000_210000.R1.9g-M1.9e.rtpZ
+
+####Instrument Data
+
+Instrument name followed by the data discriptor, for example:
+
+    airs_l1bcm
+    cris_ccast_sdr60
+    iasi_l1c
+
+
+####Atmospheric Model
+    Name of the atmospheric profiles: ecmwf, era, merra.
+
+####Surface model
 
 The surface model is represented by three letters:
  
     x||  Topography: 			x="u" USGS (only choice for now)
     |x|  Surface Temperature: 	x="m" default model or x="d" Sergio's diurnal
     ||x  Emissivity: 			x="w" wisconsin's or x="z" DanZhou's
+
+####Calculated Radiances
+
+Indicates if the file contains calculated radiances, and optionally which forward model was used. Eg: 
+
+    calc
+    s108
+    kcarta
+
+####Processing
+
+Indicates further processing done to the data, as well as subsetting. For example, a clear subset file would have the "clear" identifier.
+
+####Data date
+Nominal date for the data in the file. In the yyyy.mm.dd format.
+
+####Data hours
+The nominal start time and end time (start\_end) for the data in this file. I say nominal because these times are usually associated with raw data file name times than with observation times.
+Format is hhmmss\_hhmmss.
+
+####Code Version 
+String denoting the code version (see Version Numbering bellow).
+
+####Type
+File type (rtp or mat).
+
 
 ##Version Numbering:
 
@@ -65,23 +125,37 @@ Dave
 1. Figure out necessary steps for the request:
 
    a. Input is a file list
+
    b. Wants EMCWF
+
    c. Calculation
+
    d. Profile data returned in layers (i.e. After Klayers).
 
    (It's still missing emissivity, surface temperature, and topography. I'll use:)
+
    e. Wisconsin Emissivity (if over ocean defaults to an internal sea surface emissivity)
+
    f. Default USGS topo
+
    g. Default surface temp from model.
 
 
 2. Use the Matlab file templates (sample scripts), for example: `rtp_prod/scripts/cris_sdr60_merra_udw_clear.m`, and construct the building blocks:
 
   a. Read input file
+
   b. Add Model data
+
   c. Run klayers and sarta
+
   d. trim/cut/save data
-  
+
+
+See the Matlab code below for the actual implementation:
+    scripts/example_cris_sdr_files.m
+ 
+ 
 ###Practical Example 2
 
 Process the following dates, using "standard-like" process code:
@@ -127,18 +201,30 @@ We want to process these three data type for these three dates using `cris_ccast
 8. Repeat the same for the other two cases.
 
 
+The actual script code is here:
+
+    cris_ccast_sdr60_ecmwf_umw.m
+    cris_ccast_sdr60_dt1_ecmwf_umw.m
+    cris_ccast_sdr60_dt2_ecmwf_umw.m
+
+
+
 ##How to run using the UMBC HPC cluster
 
 ###Standard processing using dates
 
-For each matlab code example there's a shell script that calls it. Here, look at 
+For each matlab code example there's a shell script that calls it. 
+
+These example shell scripts do the call to the slurm queueing system from withing - calling srun on itself. The code identifies that is being called from the cluster and then invoke matlab.
+
+Here, look at 
 `cris_ccast_sdr60dt_merra_udw_run.sh`
 
 There are three important things:
 
-1. Invoke the correct Matlab routine: Look at the Matlab call like, where it calls "timeblock_dealer". Its last argument is a handler to the Matlab routine to call.
+1. Invoke the correct Matlab routine: Look at the Matlab call like, where it calls `timeblock_dealer` - a utility function to distribute date chunks among processors. Its last argument is a handler to the Matlab routine to call.
 
-2. Start time, end time, and Delta time. Make sure you declare the time you want to process.
+2. Start time, end time, and Delta time. Make sure you declare the time you want to process - these times are the first three arguments in `timeblock_dealer.m`
 NOTE That for ALLFOVS you must choose SMALL Delta Times:
 
 	a.  AIRS - [0 0 0 0 6 0]  (six minutes)
