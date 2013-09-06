@@ -12,7 +12,7 @@ radiosondes, etc.  Details on RTP fields can be found at the
 ## Naming Conventions
 
 See
-[RTP naming conventions](http://asl.umbc.edu/softare/rtp_generation/naming_convention.html)
+[RTP naming conventions](http://asl.umbc.edu/software/rtp_generation/naming_convention.html)
 for details on how RTP files are named.  Much of this is automatic,
 but below we mention a few extra name conventions not discussed in the
 previous link:
