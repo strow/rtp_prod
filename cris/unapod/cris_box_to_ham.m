@@ -19,19 +19,18 @@ function [rad_ham] = cris_box_to_ham(ichan, rad_box, nguard);
 % Update: 25 July 2011, S.Hannon - change arguments from head & prof to
 %   the ichan and rad_box and check dimensions; set class of rad_ham to
 %   match rad_box; report ID of any missing required channels.
+% Update: 26 Feb 2012, S.Hannon - bug fix: band2 id_band_end = 1146 (was 1147)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % CrIS band edge (start & end) IDs
 id_out = 1:1305;
 id_band_start = [   1  714 1147];
-id_band_end   = [ 713 1147 1305];
+id_band_end   = [ 713 1146 1305];
 
 % Default number of guard channels per band edge
 nguard_default = 4;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 
 % Check input
 if (nargin < 2 | nargin > 3)
@@ -96,7 +95,7 @@ for ib = 1:3
    [junk, ipt2, junk2] = intersect(ichan, id_band);
    [junk, ipt3, junk2] = intersect(ichan, id_guard_hi(ib));
    % Assemble indices of required channels in required order
-   ind_need = [ipt1, ipt2, ipt3];
+   ind_need = [ipt1, ipt2', ipt3];
    % Convert robs1 apodization from boxcar to Hamming
    [junk] = box_to_ham(rad_box(ind_need,:));
    rad_ham(id_band,:) = junk(indx,:);
