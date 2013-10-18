@@ -1,9 +1,32 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% RTP_PROD/MATLIB PATH SETUP CODE
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Default path roots are:
+% /asl/rtp_prod/
+% /asl/matlib/
+%
+% If you want to specify another root, 
+% simply redefine the variables "rtprod" and
+% "matlib". Eg:
+%
+% rtprod = '~/git/rtp_prod/'
+% matlib = '~/git/matlib/'
+% 
+% Breno Imbiriba - 2013.10.18
+
+
 if(~exist('rtprod','var'))
-  rtprod = '~/git/rtp_prod';
+  rtprod = '/asl/rtp_prod/';
+  %rtprod = '~/git/rtp_prod';
 %  rtprod = fileparts(mfilename('fullpath'));
 end
+
 if(~exist('matlib','var'))
-  matlib = '~/git/matlib';
+  matlib = '/asl/matlib/';
+%  matlib = '~/git/matlib';
 %  matlib = [fileparts(rtprod) '/matlib'];
 end
 
