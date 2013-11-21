@@ -95,8 +95,14 @@ then
     t_iarg=`echo $1 | sed "s/:/ /"`
     gran_list="$gran_list `seq $t_iarg`"
   else
-    # No, single number
-    gran_list=$1
+    # Is it a single number?
+    if [[ "$iarg" =~ ^[0-9]+$ ]]
+    then
+      gran_list=$1
+    else
+      gran_list=ALL;
+      root=$1;
+    fi
   fi
 elif [ $# -gt 1 ]
 then
@@ -214,7 +220,7 @@ fi
 #fi
 
 for gran_in in `echo $gran_list`; do
-
+echo $gran_in
 if [ ${#gran_in} -gt 0 ] && [ "$gran_in" != "ALL" ]; then
   gran=`printf %03d $(( 10#$gran_in ))`
   gran="AIRS.$year.$mm.$dd.$gran.*"

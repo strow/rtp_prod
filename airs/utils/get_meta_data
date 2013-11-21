@@ -6,8 +6,14 @@
 # The output path is in the output_path variable and the directory structure is yyyy/jjj and then the opendap result.
 #
 #  USAGE:
+#    For a give date YYYYMMDD, 
+#    download all granules
 #
-#    ./get_meta_data 20110101
+#    ./get_meta_data YYYYMMDD 
+#
+#    download only one specific granule (GGG)
+#
+#    ./get_meta_data YYYYMMDD GGG
 #
 
 output_path=/asl/data/rtprod_airs/raw_meta_data
@@ -32,6 +38,12 @@ echo "  searching for needed downloads"
 echo $list
 for file in $list; do
   gran=${file:16:3}
+
+  # While looping over all granules check if I've a granule number request 
+  # (second input argument $2). If it's null (-z "$2"), load this granule, 
+  # or if it's a number, load the granule equal to this number. B.I.
+  if [[ -z "$2" || "10#$gran" -eq "$2" ]]
+  then  
   output_dir=$output_path/$date_path
   #echo $gran $output_path/
   if [ ! -d "$output_dir" ]; then
@@ -50,6 +62,7 @@ for file in $list; do
   if [ ! -s "$output" ]; then
     echo $gran "->" $output
     curl -s -g "$url/$file.dods?CalFlag[0:1:134][0:1:2377],dust_flag[0:1:134][0:1:89],topog[0:1:134][0:1:89],scanang[0:1:134][0:1:89],sun_glint_distance[0:1:134][0:1:89],solazi[0:1:134][0:1:89],satazi[0:1:134][0:1:89],scanang[0:1:134][0:1:89],Latitude[0:1:134][0:1:89],Longitude[0:1:134][0:1:89],Time[0:1:134][0:1:89]" > $output
+  fi
   fi
 done
 

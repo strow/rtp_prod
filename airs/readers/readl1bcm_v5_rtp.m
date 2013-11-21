@@ -15,8 +15,6 @@ function [cmdata pattr nominal_freq] = readl1bcm_v5_rtp(fn);
 %    freq   = [2378 x 1] nominal channel frequencies
 %
 %
-% As this is now, there's no CalFlag
-% Based on Scott's readl1bcm_v5_rtp
 %
 % Breno Imbiriba - 2013.06.07
 
@@ -27,8 +25,11 @@ function [cmdata pattr nominal_freq] = readl1bcm_v5_rtp(fn);
 %    to rtp spec
 % Update: 09 Jun 2010, S.Hannon - add clrflag; modify some pattr strings
 % Update: 14 March 2011, Paul Schou - switched calflag to calnum
-% Update: B.I. Ignore CalFlag. Cleaner.
-
+% Update: Ignore CalFlag. Cleaner.
+%         As this is now, there's no CalFlag
+%         Based on Scott's readl1bcm_v5_rtp
+% Update: 2013.11.21 - I need CalFlag! 
+%         Go back to older code and reinstate relevant lines.
 
 
 
@@ -147,7 +148,74 @@ function [cmdata pattr nominal_freq] = readl1bcm_v5_rtp(fn);
   cmdata.clrflag(ii) = 1;
 
 
-  % There's no CalFlag or scanang
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+  % Read missing variables
+  % CalFlag, dust_flag, topog, scanang, sun_glint_distance
+  % These variables have already been download by the 
+  % airs_l1bcm_download.m code
+  %
+  % *** Very important ***
+  % For some reason L1bCM data has the last day's granule in it. 
+  % We need granule 240 from the previous day to obtain the missing variables.
+
+
+  mtime = tai2mattime(nanmean(cmdata.rtime));
+
+  % Predeclare arrays with NaNs
+  calflag = zeros(2378,nobs,'uint8');
+  gdata.dustflag=nan(1,nobs);
+  gdata.topog=nan(1,nobs);
+  gdata.scanang=nan(1,nobs);
+  gdata.glint=nan(1,nobs);
+
+  disp(['reading /asl/data/rtprod_airs/raw_meta_data/' datestr(mtime,'yyyy') '/' num2str(jday(mtime),'%03d') '/meta_cdtssll.']);
+
+  % Loop over granules of the data (findex)
+  for gran = unique(sort(cmdata.findex)) 
+    
+    % nice display   
+    fprintf('%03d ',gran); if(mod(gran,20)==0); fprintf('\n');end
+
+
+    % If granule==0 load granule 240 from previous day
+    if(gran == 0) 
+      rmdfn = ['/asl/data/rtprod_airs/raw_meta_data/' datestr(mtime-1,'yyyy')...
+       '/' num2str(jday(mtime-1),'%03d') '/meta_cdtssll.240'];
+      if(~exist(rmdfn,'file'))
+        error(['File ' rmdfn ' does not exist']);
+      end
+
+      [scanang satazi solazi sun_glint_distance topog ...
+       CalFlag dust_flag Latitude Longutide Time] = getdata_opendap_file(rmdfn);
+
+     else 
+      % Otherwise, load all the granules of this day
+      rmdfn = ['/asl/data/rtprod_airs/raw_meta_data/' datestr(mtime,'yyyy') ...
+       '/' num2str(jday(mtime),'%03d') '/meta_cdtssll.' num2str(gran,'%03d')];
+      if(~exist(rmdfn,'file'))
+        error(['File ' rmdfn ' does not exist']);
+      end
+    
+      [scanang satazi solazi sun_glint_distance topog ...
+       CalFlag dust_flag Latitude Longutide Time] = getdata_opendap_file(rmdfn);
+
+    end 
+
+    % Match extra data in this granule to the l1bcm data (using xtrack/atrack)
+    for i = find(cmdata.findex == gran)
+      calflag(:,i)         = CalFlag(:,cmdata.atrack(i));
+      cmdata.dustflag(1,i) = dust_flag(cmdata.xtrack(i),cmdata.atrack(i));
+      cmdata.topog(1,i)    = topog(cmdata.xtrack(i),cmdata.atrack(i));
+      cmdata.scanang(1,i)  = scanang(cmdata.xtrack(i),cmdata.atrack(i));
+      cmdata.glint(1,i)    = sun_glint_distance(cmdata.xtrack(i),cmdata.atrack(i));
+    end
+  end
+
+  % Compute calflag
+  [cmdata.calflag, cstr] = data_to_calnum_l1bcm(nominal_freq', NeN', ...
+     CalChanSummary', calflag, cmdata.rtime, cmdata.findex);
+
+
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
   % Close HDF file

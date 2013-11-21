@@ -6,12 +6,12 @@ function airs_l1bcm_download(sdate, edate, asldataairs)
 %   sdate, edate - start/end dates (matlab format)
 %   asldataairs = '/asl/data/airs/'  (data location)
 %
-%   This routine also produce AIRS matadata.
+%   This routine also produce AIRS metadata.
 %
 %   See also: airs_l1bcm_filenames.m  - this routine uses the same internal 
 %                                     looping structure.
 % Breno Imbiriba - 2013.08.01
-
+% Breno Imbiriba - 2013.11.21 - Added fetch for metadata
 
 
   file_list={};
@@ -48,11 +48,17 @@ function airs_l1bcm_download(sdate, edate, asldataairs)
     end 
 
 
-%    % Make metadata - using Paul's code:
-%    cmd = ['$RTPROD/airs/utils/get_meta_data ' syyy sm sd ];
-%    [status result] = system(cmd);
+    % Produce Meta data
 
-
+    % Make metadata - using Paul's code: rtp_core_l1bcm.m
+    % Load the last granule (240) of the Previous day
+    [pyyy pm pd] = datevec(day-1);
+    cmd = sprintf('$RTPROD/airs/utils/get_meta_data %04d%02d%02d 240 \n',pyyy, pm, pd);
+    system(cmd)
+  
+    % Download all the granules of this day
+    cmd = sprintf('$RTPROD/airs/utils/get_meta_data %04d%02d%02d \n',yyyy,mm,dd);   
+    system(cmd)
   end
 
 end

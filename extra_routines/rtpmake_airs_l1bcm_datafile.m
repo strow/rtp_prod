@@ -32,10 +32,6 @@ function [head hattr prof pattr] = rtpmake_airs_l1bcm_datafiles(files)
 
     nok = length(data.rtime);
 
-    disp('No satazi for l1bcm as it is...');
-    disp('No solazi for l1bcm as it is...');
-    disp('No calflag for l1bcm as it is...');
-
     prof(ifile) = data;
 
   end   % loop over files

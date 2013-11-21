@@ -122,7 +122,13 @@ for ii=1:length(caltimes)
       ind = ii;
    end
 end
-calprop = load([caldir '/' calfiles{ii}]);
+if(exist(calfiles{ii},'file'))
+  calprop = load(calfiles{ii});
+elseif(exist([caldir '/' calfiles{ii}],'file'))
+  calprop = load([caldir '/' calfiles{ii}]);
+else
+  error(['Can find airs_cal_prop file ' calfiles{ii}]);
+end
 ab = calprop(:,4); % 0=opt, 1=A, 2=B
 bit5 = zeros(2378,nobs);
 bit6 = zeros(2378,nobs);
