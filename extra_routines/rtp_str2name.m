@@ -112,7 +112,7 @@ function [yyyy mm dd HH MM SS] = timestring(mdate)
     dd = num2str(dd,'%02d');
     HH = num2str(HH,'%02d');
     MM = num2str(MM,'%02d');
-    SS = num2str(SS,'%02d');
+    SS = num2str(floor(SS),'%02d');
 end
 
 

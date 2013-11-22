@@ -35,7 +35,7 @@ echo $url
 list=`curl -s $url/contents.html | sed '/dds/!d;s/.*"\(AIR.*hdf\).dds".*/\1/'`
 
 echo "  searching for needed downloads"
-echo $list
+#echo $list
 for file in $list; do
   gran=${file:16:3}
 
