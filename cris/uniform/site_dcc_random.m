@@ -1,6 +1,6 @@
-function [iflags, isite] = site_dcc_random(head, prof, idtest);
+function [iflags, isite] = site_dcc_random(head, prof, idtest, instrument);
 
-% function [iflags, isite] = site_dcc_random(head, prof, idtest);
+% function [iflags, isite] = site_dcc_random(head, prof, idtest, instrument);
 %
 % Select CrIS FOVs for fixed sites, high clouds (aka Deep Convective
 % Clouds) or random.
@@ -10,7 +10,7 @@ function [iflags, isite] = site_dcc_random(head, prof, idtest);
 %    prof    - [structure] RTP profiles with required fields: (robs1,
 %                 rtime, ifov, atrack, xtrack, findex)
 %    idtest  - [1 x ntest] ID of test channels for high clouds
-%
+%    instrument - 'CRIS' (default), 'AIRS'
 % Output:
 %    iflags  - [1 x nobs] bit flags for various tests:
 %     <bit value>: <reason>
@@ -41,6 +41,9 @@ btmaxhicloud = 210; % max BT for a high cloud FOV
 latmaxhicloud = 60; % max |rlat| for a high cloud FOV
 
 ixtrackrandom = 15; % xtrack for random FOV
+if(exist('instrument','var') && strcmp(instrument,'AIRS'))
+  ixtrackrandom = 45;
+end
 
 randadjust = 0.1; % thinning factor for random FOV selection
 
@@ -52,7 +55,7 @@ preq = {'robs1', 'xtrack', 'rlat', 'rlon', 'landfrac'};
 
 
 % Check input
-if (nargin ~= 3)
+if (nargin ~= 3 && nargin~=4)
    error('unexpected number of input arguments')
 end
 d = size(idtest);

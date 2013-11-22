@@ -212,12 +212,15 @@ function airs_l1b_ecmwf_umw_run(sdate, edate, root)
     KlayersRun(head,hattr,prof,pattr,tempfile,11);
 
     % See help SartaRun for the types of Sarta available
-    [ head hattr profx pattr] = SartaRun(tempfile, 5);
-    % Sarta (as a fortran code) will create a huge, mostly 
-    % unset file (like cloud properties, etc...). I don't 
-    % care about those, so save only calculated radiances.   
+    [ headx hattrx profx pattrx] = SartaRun(tempfile, 5);
+
+    % Grab rcalc and the Sarta name attribute
+    sartaname = get_attr(hattrx,'sarta');
+    hattr = set_attr(hattr, 'sarta', sartaname);
     prof.rcalc = profx.rcalc;
-    clear profx
+    head.pfields = headx.pfields;
+
+    clear headx hattrx profx pattrx
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
@@ -228,10 +231,11 @@ function airs_l1b_ecmwf_umw_run(sdate, edate, root)
   % Trim and save file
 
   disp(['Saving data ' output_file_calc]);
-  prof = rmfield(prof,{'gas_1','gas_2','gas_3','gas_4','gas_5','gas_6',...
-                       'gas_9','gas_12','plevs','palts','ptemp'});
+  %prof = rmfield(prof,{'gas_1','gas_2','gas_3','gas_4','gas_5','gas_6',...
+  %                     'gas_9','gas_12','plevs','palts','ptemp'});
+
   [head hattr prof pattr] = rtptrim(head,hattr,prof,pattr,'parent',...
-                                    output_file_obs1);
+                                    output_file_obs1,'allowempty');
 
   rtpwrite(output_file_calc, head, hattr, prof, pattr);
 

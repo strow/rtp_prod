@@ -62,7 +62,15 @@ function [head hattr prof pattr summary] = compute_clear_wrapper(head, hattr, pr
       udbtun(idxclr, ia) = dbtun(ia, 1:nun(ia));
     end
 
-    %%% Do clear selection... 
+    iuniform = reshape(iuniform,[1,numel(iuniform)]);
+
+    % Flag remaining
+ 
+    [iflags, isite] = site_dcc_random(head, prof, idtest, 'AIRS');
+
+    reason = iuniform + int8(iflags);
+    
+    [prof pattr] = setudef(prof, pattr, reason, 'reason', '0-Cloudy, 1-Clear, 2-Fixed sites, 4-DCC, 8-Random, 16-Coastal, 32-Bad quality','iudef');
 
     summary = [];
     % This routine is incomplete!!!!!! 
