@@ -211,9 +211,19 @@ function [cmdata pattr nominal_freq] = readl1bcm_v5_rtp(fn);
     end
   end
 
-  % Compute calflag
-  [cmdata.calflag, cstr] = data_to_calnum_l1bcm(nominal_freq', NeN', ...
-     CalChanSummary', calflag, cmdata.rtime, cmdata.findex);
+  % Compute calflag  
+  % This routine has large temporary arrays and takes a lot of memory!
+  % Better do it in steps:
+  for iobsidx = [1:1000:nobs]
+    iobsblock = [iobsidx:min(iobsidx+999,nobs)];
+    [cmdata.calflag(:,iobsblock) cstr] = data_to_calnum_l1bcm(...
+       nominal_freq', NeN', CalChanSummary', ...
+       calflag(:,iobsblock), cmdata.rtime(:,iobsblock), ...
+       cmdata.findex(:,iobsblock));
+  end
+%disp('all at once');
+%  [cmdata.calflag, cstr] = data_to_calnum_l1bcm(nominal_freq', NeN', ...
+%     CalChanSummary', calflag, cmdata.rtime, cmdata.findex);
 
 
 
@@ -229,7 +239,7 @@ function [cmdata pattr nominal_freq] = readl1bcm_v5_rtp(fn);
   % Declare pattr:
   pattr = set_attr('profiles','robs1',fn);
   pattr = set_attr(pattr, 'rtime','Seconds since 0z, 1 Jan 1993');
-  %%pattr = set_attr(pattr, 'calflag',cstr);
+  pattr = set_attr(pattr, 'calflag',cstr);
   pattr = set_attr(pattr, 'landfrac','AIRS Landfrac');
   pattr = set_attr(pattr, 'iudef(1,:)','Reason [1=clear,2=site,4=high cloud,8=random] {reason_bit}');
   pattr = set_attr(pattr, 'iudef(2,:)','Fixed site number {sitenum}');
