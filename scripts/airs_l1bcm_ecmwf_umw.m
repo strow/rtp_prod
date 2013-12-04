@@ -3,14 +3,14 @@
 %       AIRS L1BCM PRODUCTION M FUNCTION
 %
 % This script is part of the AIRS L1bCM production
-% See "airs_l1bcm_proc_run.sh" to know how to 
+% See "airs_l1bcm_****_run.sh" to know how to 
 % run this on the TARA cluster.
 % 
 % (C) ASL Group - 2013 - GPL V.3
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
-% function airs_l1bcm_proc(sdate, edate)
+% function airs_l1bcm_proc(sdate, edate, root)
 %
 %   Acumulate AIRS data from sdate to edate, add model
 %   and compute radiances. 
@@ -18,6 +18,17 @@
 %   Input:
 %   sdate - matlab start date (inclusive)
 %   edate - matlab end date (exclusive)
+%
+%   Optional Input: 
+%   root  - Root directory of the data tree (default = "$PWD/dump/")
+%           For most of the code we assume 
+%           that files are saved bellow a "root" 
+%           directory: 
+%           $root/data/rtprod_airs/....
+%           
+%           This is a bit rigid, but lets you have 
+%           your own repository of data with the same
+%           file structure.
 %
 % B.I. Aug.2013
 
@@ -28,18 +39,22 @@ function airs_l1bcm_ecmwf_umw(sdate, edate, root)
   % 1 - Setup
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %greetings('airs_l1bcm_ecmwf_umw');
+  % Say that I'm starting
+  greetings('airs_l1bcm_ecmwf_umw');
 
-  % To make edate exclusive, the simplest way is to 
-  % remove 1s from it. 
 
+  % We want to make sure the final time (edate) is 
+  % not used (exclusive). Remove 1 second from it.
   edate = edate - 1.1573e-5;
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Set rtp_prod installation and set 
-  % environment variable
+  % environment variable.
 
-  % Get or Set Environment Variables
+  % At this point no path has been set. 
+  % Look at the shell environment variables.
+  % If they don't exist, set to default pathes.
+
   rtprod = getenv('RTPROD');
   if(strcmp(rtprod,''))
     rtprod = '/asl/rtp_prod';
@@ -52,7 +67,7 @@ function airs_l1bcm_ecmwf_umw(sdate, edate, root)
     setenv('MATLIB',matlib);
   end
 
-  % Define code pathes
+  % Set code pathes
   addpath(rtprod);
   paths
 
@@ -62,6 +77,7 @@ function airs_l1bcm_ecmwf_umw(sdate, edate, root)
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Define the "data root" - 
   % Set data root - for input and output
   %root = '/home/imbiriba/git/rtp_prod/testsuit/asl'
   if(nargin()<3)
@@ -127,6 +143,7 @@ function airs_l1bcm_ecmwf_umw(sdate, edate, root)
   str_calc.file_type	= 'rtpZ';	% Will be an rtpZ file
   output_file_calc = rtp_str2name(str_calc);
 
+  % This is a hack! 
   % Replace rtprod_airs by rtprod_airs_0
   irpl = strfind(output_file_obs1,'rtprod_airs');
   output_file_obs1([irpl:end+2]) = ['rtprod_airs_0/' output_file_obs1(irpl+12:end)];
@@ -144,8 +161,8 @@ function airs_l1bcm_ecmwf_umw(sdate, edate, root)
   end
 
   disp('Output Files:');
-  disp(output_file_obs1);
-  disp(output_file_calc);
+  disp(output_file_obs1); lmake_output_file_obs1=true;
+  disp(output_file_calc); lmake_output_files_calc=true;
 
   if(~exist(output_file_dir,'dir'))
     disp(['Creating output directory']);
@@ -153,7 +170,27 @@ function airs_l1bcm_ecmwf_umw(sdate, edate, root)
   end
 
 
+  %%%%%%%%%%%%%%%%%%%% 
+  % Check which files exist and decide what to do
 
+  if(~exist(output_file_obs1,'file'))
+    lmake_output_file_obs1=true;
+  else
+    lmake_output_file_obs1=false;
+  end
+
+  if(~exist(output_file_calc,'file'))
+    lmake_output_file_calc=true;
+  else 
+    if(lmake_output_file_obs1)
+      lmake_output_file_calc=true;
+    else 
+      lmake_output_file_calc=false;
+    end
+  end
+  
+
+  if(lmake_output_file_obs1)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
   % 3 - Make RTP Structure
@@ -167,11 +204,11 @@ function airs_l1bcm_ecmwf_umw(sdate, edate, root)
     % L1bcm files are daily. 
     % We must subset for the desired time span
     % Subset for desired time
-    %itime = find(profi.rtime >= mattime2tai(sdate,1993) & profi.rtime< mattime2tai(edate,1993));
-    %prof(ifile) = ProfSubset2(profi, itime);
+    itime = find(profi.rtime >= mattime2tai(sdate,1993) & profi.rtime< mattime2tai(edate,1993));
+    prof(ifile) = ProfSubset2(profi, itime);
     
     % I don't want to subset, want the whole daily file.
-    prof(ifile) = profi;
+    % prof(ifile) = profi;
   end
   clear profi;
   prof = structmerge(prof);
@@ -214,7 +251,18 @@ function airs_l1bcm_ecmwf_umw(sdate, edate, root)
   rtpwrite(output_file_obs1, head,hattr,prof,pattr);
 
 
+  end % lmake_output_file_obs1
 
+
+
+
+
+  if(lmake_output_file_calc)
+
+    % Load obs if it has not being made here
+    if(~lmake_output_file_obs1)
+      [head hattr prof pattr] = rtpread(output_file_obs1);
+    end
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
   % 6 - Compute Calculated Radiances
@@ -229,28 +277,34 @@ function airs_l1bcm_ecmwf_umw(sdate, edate, root)
     KlayersRun(head,hattr,prof,pattr,tempfile,11);
 
     % See help SartaRun for the types of Sarta available
-    [ head hattr profx pattr] = SartaRun(tempfile, 5);
-    % I don't care about all the irrelevant fields created here.
-    % Simply extract rcalc    
+    [ headx hattrx profx pattrx] = SartaRun(tempfile, 5);
+
+    % Grab rcalc and the Sarta name attribute
+    sartaname = get_attr(hattrx,'sarta');
+    hattr = set_attr(hattr, 'sarta', sartaname);
     prof.rcalc = profx.rcalc;
-    clear profx
+    head.pfields = headx.pfields;
 
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %
-  % 7 - Save Calc Data - but remove ATM model 
-  %
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % Trim and save file
+    clear headx hattrx profx pattrx
 
-  disp(['Saving data ' output_file_calc]);
-  prof = rmfield(prof,{'gas_1','gas_2','gas_3','gas_4','gas_5','gas_6',...
-                       'gas_9','gas_12','plevs','palts','ptemp'});
-  [head hattr prof pattr] = rtptrim(head,hattr,prof,pattr,'parent',...
-                                    output_file_obs1);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %
+    % 7 - Save Calc Data - but remove ATM model 
+    %
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Trim and save file
 
-  rtpwrite(output_file_calc, head, hattr, prof, pattr);
-  %greetings('airs_l1bcm_ecmwf_umw');
+    disp(['Saving data ' output_file_calc]);
+    %[head hattr prof pattr] = rtptrim_ptype_0(head, hattr, prof, pattr, output_file_obs1);
+    [head hattr prof pattr] = rtptrim(head,hattr,prof,pattr,'parent',...
+				      output_file_obs1,'allowempty');
+
+
+    rtpwrite(output_file_calc, head, hattr, prof, pattr);
+  end
+
+  farewell('airs_l1bcm_ecmwf_umw');
 
 end
 % END

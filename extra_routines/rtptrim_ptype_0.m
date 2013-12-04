@@ -18,11 +18,14 @@ function [head hattr prof pattr] = rtptrim_ptype_0(head, hattr, prof, pattr, par
 
 
   % Remove ptype=1 type profiles:
-
-  prof = rmfield(prof,{'gas_1','gas_2','gas_3','gas_4','gas_5','gas_6',...
-                       'gas_9','gas_12','plevs','palts','ptemp'});
-
-  [head hattr prof pattr] = rtptrim(head,hattr,prof,pattr,'parent',parent);
+  fns={'gas_1','gas_2','gas_3','gas_4','gas_5','gas_6',...
+                       'gas_9','gas_12','plevs','palts','ptemp'};
+  for iff=1:numel(fns)
+    if(isfield(prof,fns{iff}))
+      prof = rmfield(prof,fns{iff});
+    end
+  end
+  [head hattr prof pattr] = rtptrim(head,hattr,prof,pattr,'parent',parent,'allowempty');
 
 
   % Fix header 
