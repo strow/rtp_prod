@@ -31,6 +31,8 @@ function [file_list nfiles] = cris_ccast_filenames(sdate, edate, asldata, dataty
       path = [asldata '/cris/ccast/sdr60_dtf/' num2str(yyyy,'%04d') '/' num2str(ddd,'%03d') ];
     elseif(strcmpi(datatype, 'ccast_sdr60'))
       path = [asldata '/cris/ccast/sdr60/' num2str(yyyy,'%04d') '/' num2str(ddd,'%03d') ];
+    elseif(strcmpi(datatype, 'ccast_sdr60_hr'))
+      path = [asldata '/cris/ccast/sdr60_hr/' num2str(yyyy,'%04d') '/' num2str(ddd,'%03d') ];
     else
       error(['Unknonw data type ' datatype '.']);
     end
