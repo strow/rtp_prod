@@ -1,16 +1,17 @@
+% Produce RTP files (obs and calcs) from AIRS L1BCM data and MODEL.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %       AIRS L1BCM PRODUCTION M FUNCTION
 %
 % This script is part of the AIRS L1bCM production
-% See "airs_l1bcm_proc_run.sh" to know how to 
+% See "airs_l1bcm_****_run.sh" to know how to 
 % run this on the TARA cluster.
 % 
 % (C) ASL Group - 2013 - GPL V.3
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
-% function airs_l1bcm_proc(sdate, edate)
+% function airs_l1b_merra_udz(sdate, edate, root)
 %
 %   Acumulate AIRS data from sdate to edate, add model
 %   and compute radiances. 
@@ -18,7 +19,18 @@
 %   Input:
 %   sdate - matlab start date 
 %   edate - matlab end date
-%
+
+%   Optional Input: 
+%   root  - Root directory of the data tree (default = "$PWD/dump/")
+%           For most of the code we assume 
+%           that files are saved bellow a "root" 
+%           directory: 
+%           $root/data/rtprod_airs/....
+%           
+%           This is a bit rigid, but lets you have 
+%           your own repository of data with the same
+%           file structure.
+
 % B.I. Aug.2013
 
 function airs_l1b_merra_udz(sdate, edate, root)
@@ -28,21 +40,33 @@ function airs_l1b_merra_udz(sdate, edate, root)
   % 1 - Setup
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Say that I'm starting
+  greetings(mfilename())
+
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Set rtp_prod installation and set 
-  % environment variable
+  % environment variable.
 
-  rtprod = '/home/imbiriba/git/rtp_prod';
-  matlib = '/home/imbiriba/git/matlib';
+  % At this point no path has been set. 
+  % Look at the shell environment variables.
+  % If they don't exist, set to default pathes.
 
-  % Define code pathes
+  rtprod = getenv('RTPROD');
+  if(strcmp(rtprod,''))
+    rtprod = '/asl/rtp_prod';
+    setenv('RTPROD',rtprod);
+  end
+
+  matlib = getenv('MATLIB');
+  if(strcmp(matlib,''))
+    matlib = '/asl/matlib';
+    setenv('MATLIB',matlib);
+  end
+
+  % Set code pathes
   addpath(rtprod);
   paths
-
-  % Export environment variable
-  setenv('RTPROD',rtprod);
-
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Get code version number
@@ -50,6 +74,7 @@ function airs_l1b_merra_udz(sdate, edate, root)
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Define the "data root" - 
   % Set data root - for input and output
   %root = '/home/imbiriba/git/rtp_prod/testsuit/asl'
   if(nargin()<3)
@@ -174,8 +199,10 @@ function airs_l1b_merra_udz(sdate, edate, root)
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % This data set is already a "clear" set
-  % Airs L1Bcm is alreay clear subset.
+  % Do clear selection - for now this is instrument dependent
+  instrument='AIRS'; %'IASI','CRIS'
+  [head hattr prof pattr summary] = ...
+                   compute_clear_wrapper(head, hattr, prof, pattr, instrument);
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -195,17 +222,23 @@ function airs_l1b_merra_udz(sdate, edate, root)
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    % See KlayersRun and SartaRun
-    % SartaRun is not configured for running with HR cris yet. 
-    disp('Computing calculated Radiances');
+  % See KlayersRun and SartaRun
+  % SartaRun is not configured for running with HR cris yet. 
+  disp('Computing calculated Radiances');
 
-    tempfile = mktemp('temp.rtp');
-    KlayersRun(head,hattr,prof,pattr,tempfile,11);
+  tempfile = mktemp('temp.rtp');
+  KlayersRun(head,hattr,prof,pattr,tempfile,11);
 
-    % See help SartaRun for the types of Sarta available
-    [ head hattr prof pattr] = SartaRun(tempfile, 5);
-    
+  % See help SartaRun for the types of Sarta available
+  [ headx hattrx profx pattrx] = SartaRun(tempfile, 5);
 
+  % Grab rcalc and the Sarta name attribute
+  sartaname = get_attr(hattrx,'sarta');
+  hattr = set_attr(hattr, 'sarta', sartaname);
+  prof.rcalc = profx.rcalc;
+  head.pfields = headx.pfields;
+
+  clear headx hattrx profx pattrx
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
@@ -216,13 +249,13 @@ function airs_l1b_merra_udz(sdate, edate, root)
   % Trim and save file
 
   disp(['Saving data ' output_file_calc]);
-  prof = rmfield(prof,{'gas_1','gas_2','gas_3','gas_4','gas_5','gas_6',...
-                       'gas_9','gas_12','plevs','palts','ptemp'});
+
   [head hattr prof pattr] = rtptrim(head,hattr,prof,pattr,'parent',...
-                                    output_file_obs1);
+                                    output_file_obs1,'allowempty');
 
   rtpwrite(output_file_calc, head, hattr, prof, pattr);
-
+  farewell(mfilename());
+  
 end
 % END
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

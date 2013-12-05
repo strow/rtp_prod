@@ -50,21 +50,22 @@ export MATLIB
 if [ "$#" -eq 0 ] 
 then
   mkdir -p log
-  srun --partition=batch --cpus-per-task=2 --ntasks=16 --exclusive --job-name=AirsProc --qos=long_contrib --output=log/slurm-%j.%t.out $0 onnode &
+
+  bn=`basename $0`
+  srun --partition=batch --cpus-per-task=1 --ntasks=8 --job-name=ArsL1bcmEcm --qos=long_contrib --output=log/slurm-$bn-%j.%t.out $0 onnode &
 
 elif [ "$1" == 'onnode' ]
 then
 
   echo on node...
-  start_time='[2013, 04, 24,  0,  0,  0]'
-    end_time='[2013, 10, 30,  0,  0,  0]'
-    #end_time='[2013, 04, 24, 23, 59, 59.999]'
-  delta_time='[   0,  0,  1,  0,  0,  0]'
+  start_time='[2013, 08, 27,  0,  0,  0]'
+    end_time='[2013, 08, 28,  0,  0,  0]'
+  # 1-hr blocks  
+  delta_time='[   0,  0,  0,  1,  0,  0]'
 
   NPE=$SLURM_NPROCS 
   PE=$((SLURM_PROCID+1))
 
-  #echo "test_cris_clear_driver($start_time, $end_time, $delta_time, $PE, $NPE); exit"
 
   echo "Calling MATLAB"
   matlab -nosplash -nodesktop -nodisplay -r "\

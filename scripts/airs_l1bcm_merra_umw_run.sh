@@ -46,8 +46,10 @@ MATLIB=$GITROOT/matlib
 
 if [ "$#" -eq 0 ] 
 then
+  mkdir -p log
 
-  srun --partition=batch --cpus-per-task=2 --ntasks=24 --exclusive --job-name=CrsClrPrc --qos=long_contrib --output=slurm-%j.%t.out $0 onnode &
+  bn=`basename $0`
+  srun --partition=batch --cpus-per-task=2 --ntasks=24 --job-name=ArsL1bcmMra --qos=long_contrib --output=log/slurm-$bn-%j.%t.out $0 onnode &
 
 elif [ "$1" == 'onnode' ]
 then

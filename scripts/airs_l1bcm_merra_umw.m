@@ -1,23 +1,35 @@
+% Produce RTP files (obs and calcs) from AIRS L1BCM data and MODEL.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %       AIRS L1BCM PRODUCTION M FUNCTION
 %
 % This script is part of the AIRS L1bCM production
-% See "airs_l1bcm_proc_run.sh" to know how to 
+% See "airs_l1bcm_****_run.sh" to know how to 
 % run this on the TARA cluster.
 % 
 % (C) ASL Group - 2013 - GPL V.3
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
-% function airs_l1bcm_proc(sdate, edate)
+% function airs_l1bcm_merra_umw(sdate, edate, root)
 %
 %   Acumulate AIRS data from sdate to edate, add model
 %   and compute radiances. 
 %
 %   Input:
-%   sdate - matlab start date 
-%   edate - matlab end date
+%   sdate - matlab start date (inclusive)
+%   edate - matlab end date (exclusive)
+%
+%   Optional Input: 
+%   root  - Root directory of the data tree (default = "$PWD/dump/")
+%           For most of the code we assume 
+%           that files are saved bellow a "root" 
+%           directory: 
+%           $root/data/rtprod_airs/....
+%           
+%           This is a bit rigid, but lets you have 
+%           your own repository of data with the same
+%           file structure.
 %
 % B.I. Aug.2013
 
@@ -28,21 +40,37 @@ function airs_l1bcm_merra_umw(sdate, edate, root)
   % 1 - Setup
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Say that I'm starting
+  greetings(mfilename());
+
+
+  % We want to make sure the final time (edate) is 
+  % not used (exclusive). Remove 1 second from it.
+  edate = edate - 1.1573e-5;
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Set rtp_prod installation and set 
-  % environment variable
+  % environment variable.
 
-  rtprod = '/home/imbiriba/git/rtp_prod';
-  matlib = '/home/imbiriba/git/matlib';
+  % At this point no path has been set. 
+  % Look at the shell environment variables.
+  % If they don't exist, set to default pathes.
 
-  % Define code pathes
+  rtprod = getenv('RTPROD');
+  if(strcmp(rtprod,''))
+    rtprod = '/asl/rtp_prod';
+    setenv('RTPROD',rtprod);
+  end
+
+  matlib = getenv('MATLIB');
+  if(strcmp(matlib,''))
+    matlib = '/asl/matlib';
+    setenv('MATLIB',matlib);
+  end
+
+  % Set code pathes
   addpath(rtprod);
   paths
-
-  % Export environment variable
-  setenv('RTPROD',rtprod);
-
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Get code version number
@@ -50,6 +78,7 @@ function airs_l1bcm_merra_umw(sdate, edate, root)
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Define the "data root" - 
   % Set data root - for input and output
   %root = '/home/imbiriba/git/rtp_prod/testsuit/asl'
   if(nargin()<3)
@@ -89,7 +118,7 @@ function airs_l1bcm_merra_umw(sdate, edate, root)
   % name structure and convert it on a filename string.
 
   % output obs filename
-  str_obs1.root 	= [pwd '/dump'];
+  str_obs1.root 	= [pwd '/dump/'];
   str_obs1.instr	= 'airs';
   str_obs1.sat_data	= 'l1bcm';
   str_obs1.atm_model 	= 'merra';	% Will contain profile information
@@ -123,8 +152,8 @@ function airs_l1bcm_merra_umw(sdate, edate, root)
   end
 
   disp('Output Files:');
-  disp(output_file_obs1);
-  disp(output_file_calc);
+  disp(output_file_obs1); lmake_output_file_obs1=true;
+  disp(output_file_calc); lmake_output_files_calc=true;
 
   if(~exist(output_file_dir,'dir'))
     disp(['Creating output directory']);
@@ -132,7 +161,27 @@ function airs_l1bcm_merra_umw(sdate, edate, root)
   end
 
 
+  %%%%%%%%%%%%%%%%%%%% 
+  % Check which files exist and decide what to do
 
+  if(~exist(output_file_obs1,'file'))
+    lmake_output_file_obs1=true;
+  else
+    lmake_output_file_obs1=false;
+  end
+
+  if(~exist(output_file_calc,'file'))
+    lmake_output_file_calc=true;
+  else 
+    if(lmake_output_file_obs1)
+      lmake_output_file_calc=true;
+    else 
+      lmake_output_file_calc=false;
+    end
+  end
+  
+
+  if(lmake_output_file_obs1)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
   % 3 - Make RTP Structure
@@ -191,7 +240,18 @@ function airs_l1bcm_merra_umw(sdate, edate, root)
   rtpwrite(output_file_obs1, head,hattr,prof,pattr);
 
 
+  end % lmake_output_file_obs1
 
+
+
+
+
+  if(lmake_output_file_calc)
+
+    % Load obs if it has not being made here
+    if(~lmake_output_file_obs1)
+      [head hattr prof pattr] = rtpread(output_file_obs1);
+    end
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
   % 6 - Compute Calculated Radiances
@@ -206,25 +266,34 @@ function airs_l1bcm_merra_umw(sdate, edate, root)
     KlayersRun(head,hattr,prof,pattr,tempfile,11);
 
     % See help SartaRun for the types of Sarta available
-    [ head hattr prof pattr] = SartaRun(tempfile, 5);
-    
+    [ headx hattrx profx pattrx] = SartaRun(tempfile, 5);
+
+    % Grab rcalc and the Sarta name attribute
+    sartaname = get_attr(hattrx,'sarta');
+    hattr = set_attr(hattr, 'sarta', sartaname);
+    prof.rcalc = profx.rcalc;
+    head.pfields = headx.pfields;
+
+    clear headx hattrx profx pattrx
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %
+    % 7 - Save Calc Data - but remove ATM model 
+    %
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Trim and save file
+
+    disp(['Saving data ' output_file_calc]);
+    %[head hattr prof pattr] = rtptrim_ptype_0(head, hattr, prof, pattr, output_file_obs1);
+    [head hattr prof pattr] = rtptrim(head,hattr,prof,pattr,'parent',...
+				      output_file_obs1,'allowempty');
 
 
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %
-  % 7 - Save Calc Data - but remove ATM model 
-  %
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % Trim and save file
+    rtpwrite(output_file_calc, head, hattr, prof, pattr);
+  end
 
-  disp(['Saving data ' output_file_calc]);
-  prof = rmfield(prof,{'gas_1','gas_2','gas_3','gas_4','gas_5','gas_6',...
-                       'gas_9','gas_12','plevs','palts','ptemp'});
-  [head hattr prof pattr] = rtptrim(head,hattr,prof,pattr,'parent',...
-                                    output_file_obs1);
-
-  rtpwrite(output_file_calc, head, hattr, prof, pattr);
+  farewell(mfilename());
 
 end
 % END

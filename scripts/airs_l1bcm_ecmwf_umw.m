@@ -1,3 +1,4 @@
+% Produce RTP files (obs and calcs) from AIRS L1BCM data and MODEL.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %       AIRS L1BCM PRODUCTION M FUNCTION
@@ -10,7 +11,7 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
-% function airs_l1bcm_proc(sdate, edate, root)
+% function airs_l1bcm_ecmwf_umw(sdate, edate, root)
 %
 %   Acumulate AIRS data from sdate to edate, add model
 %   and compute radiances. 
@@ -40,7 +41,7 @@ function airs_l1bcm_ecmwf_umw(sdate, edate, root)
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Say that I'm starting
-  greetings('airs_l1bcm_ecmwf_umw');
+  greetings(mfilename())
 
 
   % We want to make sure the final time (edate) is 
@@ -93,7 +94,6 @@ function airs_l1bcm_ecmwf_umw(sdate, edate, root)
 
   % Set where data will be (relative to root) 
   asldata=[root '/data/airs'];
-  system('echo $RTPROD');
   airs_l1bcm_download(sdate, edate, asldata);
 
 
@@ -118,7 +118,7 @@ function airs_l1bcm_ecmwf_umw(sdate, edate, root)
   % name structure and convert it on a filename string.
 
   % output obs filename
-  str_obs1.root 	= [pwd '/dump/' ];
+  str_obs1.root 	= [pwd '/dump/'];
   str_obs1.instr	= 'airs';
   str_obs1.sat_data	= 'l1bcm';
   str_obs1.atm_model 	= 'ecmwf';	% Will contain profile information
@@ -143,12 +143,12 @@ function airs_l1bcm_ecmwf_umw(sdate, edate, root)
   str_calc.file_type	= 'rtpZ';	% Will be an rtpZ file
   output_file_calc = rtp_str2name(str_calc);
 
-  % This is a hack! 
-  % Replace rtprod_airs by rtprod_airs_0
-  irpl = strfind(output_file_obs1,'rtprod_airs');
-  output_file_obs1([irpl:end+2]) = ['rtprod_airs_0/' output_file_obs1(irpl+12:end)];
-  irpl = strfind(output_file_calc,'rtprod_airs');
-  output_file_calc([irpl:end+2]) = ['rtprod_airs_0/' output_file_calc(irpl+12:end)];
+  %% This is a hack! 
+  %% Replace rtprod_airs by rtprod_airs_0
+  %irpl = strfind(output_file_obs1,'rtprod_airs');
+  %output_file_obs1([irpl:end+2]) = ['rtprod_airs_0/' output_file_obs1(irpl+12:end)];
+  %irpl = strfind(output_file_calc,'rtprod_airs');
+  %output_file_calc([irpl:end+2]) = ['rtprod_airs_0/' output_file_calc(irpl+12:end)];
 
 
 
@@ -304,7 +304,7 @@ function airs_l1bcm_ecmwf_umw(sdate, edate, root)
     rtpwrite(output_file_calc, head, hattr, prof, pattr);
   end
 
-  farewell('airs_l1bcm_ecmwf_umw');
+  farewell(mfilename());
 
 end
 % END

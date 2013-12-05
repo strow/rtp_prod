@@ -1,16 +1,17 @@
+% Produce RTP files (obs and calcs) from AIRS L1BCM data and MODEL.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %       AIRS L1BCM PRODUCTION M FUNCTION
 %
 % This script is part of the AIRS L1bCM production
-% See "airs_l1bcm_proc_run.sh" to know how to 
+% See "airs_l1bcm_****_run.sh" to know how to 
 % run this on the TARA cluster.
 % 
 % (C) ASL Group - 2013 - GPL V.3
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
-% function airs_l1b_ecmwf_umw_run(sdate, edate)
+% function airs_l1b_ecmwf_umw(sdate, edate, root)
 %
 %   Acumulate AIRS data from sdate to edate, add model
 %   and compute radiances. 
@@ -18,22 +19,39 @@
 %   Input:
 %   sdate - matlab start date 
 %   edate - matlab end date
-%
+
+%   Optional Input: 
+%   root  - Root directory of the data tree (default = "$PWD/dump/")
+%           For most of the code we assume 
+%           that files are saved bellow a "root" 
+%           directory: 
+%           $root/data/rtprod_airs/....
+%           
+%           This is a bit rigid, but lets you have 
+%           your own repository of data with the same
+%           file structure.
+
 % B.I. Aug.2013
 
-function airs_l1b_ecmwf_umw_run(sdate, edate, root)
+function airs_l1b_ecmwf_umw(sdate, edate, root)
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
   % 1 - Setup
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Say that I'm starting
+  greetings(mfilename())
+
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Set rtp_prod installation and set 
-  % environment variable
+  % environment variable.
 
-  % Get or Set Environment Variables
+  % At this point no path has been set. 
+  % Look at the shell environment variables.
+  % If they don't exist, set to default pathes.
+
   rtprod = getenv('RTPROD');
   if(strcmp(rtprod,''))
     rtprod = '/asl/rtp_prod';
@@ -46,10 +64,9 @@ function airs_l1b_ecmwf_umw_run(sdate, edate, root)
     setenv('MATLIB',matlib);
   end
 
-  % Define code pathes
+  % Set code pathes
   addpath(rtprod);
   paths
-
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Get code version number
@@ -57,6 +74,7 @@ function airs_l1b_ecmwf_umw_run(sdate, edate, root)
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Define the "data root" - 
   % Set data root - for input and output
   %root = '/home/imbiriba/git/rtp_prod/testsuit/asl'
   if(nargin()<3)
@@ -90,6 +108,7 @@ function airs_l1b_ecmwf_umw_run(sdate, edate, root)
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Make output file name
+  % output_file = make_rtprod_filename('AIRS', 'l1bcm', 'merra', 'udz','calc', '', [sdate edate], version,'rtp',[pwd '/dump/']);
   %
   % We use the rtp_str2name.m function that takes a predefined
   % name structure and convert it on a filename string.
@@ -204,23 +223,23 @@ function airs_l1b_ecmwf_umw_run(sdate, edate, root)
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    % See KlayersRun and SartaRun
-    % SartaRun is not configured for running with HR cris yet. 
-    disp('Computing calculated Radiances');
+  % See KlayersRun and SartaRun
+  % SartaRun is not configured for running with HR cris yet. 
+  disp('Computing calculated Radiances');
 
-    tempfile = mktemp('temp.rtp');
-    KlayersRun(head,hattr,prof,pattr,tempfile,11);
+  tempfile = mktemp('temp.rtp');
+  KlayersRun(head,hattr,prof,pattr,tempfile,11);
 
-    % See help SartaRun for the types of Sarta available
-    [ headx hattrx profx pattrx] = SartaRun(tempfile, 5);
+  % See help SartaRun for the types of Sarta available
+  [ headx hattrx profx pattrx] = SartaRun(tempfile, 5);
 
-    % Grab rcalc and the Sarta name attribute
-    sartaname = get_attr(hattrx,'sarta');
-    hattr = set_attr(hattr, 'sarta', sartaname);
-    prof.rcalc = profx.rcalc;
-    head.pfields = headx.pfields;
+  % Grab rcalc and the Sarta name attribute
+  sartaname = get_attr(hattrx,'sarta');
+  hattr = set_attr(hattr, 'sarta', sartaname);
+  prof.rcalc = profx.rcalc;
+  head.pfields = headx.pfields;
 
-    clear headx hattrx profx pattrx
+  clear headx hattrx profx pattrx
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
@@ -231,14 +250,13 @@ function airs_l1b_ecmwf_umw_run(sdate, edate, root)
   % Trim and save file
 
   disp(['Saving data ' output_file_calc]);
-  %prof = rmfield(prof,{'gas_1','gas_2','gas_3','gas_4','gas_5','gas_6',...
-  %                     'gas_9','gas_12','plevs','palts','ptemp'});
 
   [head hattr prof pattr] = rtptrim(head,hattr,prof,pattr,'parent',...
                                     output_file_obs1,'allowempty');
 
   rtpwrite(output_file_calc, head, hattr, prof, pattr);
-
+  farewell(mfilename());
+  
 end
 % END
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
