@@ -16,7 +16,9 @@ function gran = mtime2airs_gran(mtime)
 % next day. And all smaller time spans will have this 5:32 offset.
 % Live with this for now....
 
-  gran = mod(floor(centiround((mtime - floor(mtime)).*240)),240)+1;
+  cr = centiround((mtime - floor(mtime)).*240);
+  cr = min(239, cr);
+  gran = mod(floor(cr),240)+1;
 
 end
 

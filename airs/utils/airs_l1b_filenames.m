@@ -24,8 +24,8 @@ function file_list = airs_l1b_filenames(sdate,edate,asldata)
 
 
     % For a day in the middle of the range, we have:
-    g0 = mtime2airs_gran(day);
-    g1 = mtime2airs_gran(day+.999999);
+    g0 = 1; %mtime2airs_gran(day);
+    g1 = 240; %mtime2airs_gran(day+.99999);
 
     % And now check if they fall off the actual range:
     if(day<sdate)
@@ -36,10 +36,14 @@ function file_list = airs_l1b_filenames(sdate,edate,asldata)
     end
 
     % If last granule start time IS the end time, we don't need this granule
-    % Say .001 accuracy.
-    if( (airs_gran2mtime(g1) - (edate-floor(edate)))<.001)
+    % Say .001 accuracy (which is less than one granule).
+    if( abs((airs_gran2mtime(g1) - (edate-floor(edate))))<.001)
       g1 = g1 - 1;
     end
+    % but if g1<g0, make they equal
+    if(g1<g0) 
+      g1=g0;
+    end  
 
     for ig=g0:g1
 

@@ -31,6 +31,10 @@ nodata = -9999;
 % version of processing
 rtp_version = 2.01;
 
+% fix if it's a string
+if(isstr(JOB))
+  JOB = datenum(JOB,'yyyymmdd');
+end
 julian = JOB(1) - datenum(datevec(JOB(1)).*[1 0 0 0 0 0]);
 
 % LLS commented out below - updated by PS to identify the system and run if at UMBC
@@ -38,6 +42,9 @@ julian = JOB(1) - datenum(datevec(JOB(1)).*[1 0 0 0 0 0]);
 hostname = getenv('HOSTNAME');
 %[x hostname]=system('hostname -f')
 if strcmp(hostname(max(1,end-7):end),'umbc.edu') || hostname(1) == 'n'
+  % I need the previous day last granule for l1bcm data (because it enters in the current date
+  disp(['../utils/get_meta_data ' datestr(JOB(1)-1,'yyyymmdd') 240 ' > /dev/null']);
+  system(['../utils/get_meta_data ' datestr(JOB(1)-1,'yyyymmdd') 240 ' > /dev/null']);
   disp(['../utils/get_meta_data ' datestr(JOB(1),'yyyymmdd') ' > /dev/null']);
   system(['../utils/get_meta_data ' datestr(JOB(1),'yyyymmdd') ' > /dev/null']);
   disp(['/asl/opt/bin/getairs ' datestr(JOB(1),'yyyymmdd') ' 2 AIRXBCAL.005 > /dev/null']);
