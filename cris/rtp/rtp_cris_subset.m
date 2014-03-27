@@ -98,7 +98,7 @@ disp(['nother=' int2str(length(iother))])
 %-------------------------------------------------
 
 % Should I do this?
-if(strcmp(subset,'site_only_obs');
+if(strcmp(subset,'site_only_obs'));
   do_clear=false;
   iclear=[];
 else

@@ -44,6 +44,9 @@ end
 
 
 clear f
+flist = findfiles(input_glob);
+disp(['Found ' numel(flist) ' files for glob ' input_glob]);
+
 for f = findfiles(input_glob);
   bn = basename(f{1});
 
