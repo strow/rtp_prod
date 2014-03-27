@@ -1,4 +1,4 @@
-function [file_list nfiles] = iasi_noaa_ops_filenames(sdate, edate, asldata, datatype)
+function [file_list nfiles] = iasi_l1c_filenames(sdate, edate, asldata, datatype)
 % function [file_list nfiles] = iasi_noaa_ops_filenames(sdate, edate, asldata, datatype)
 %
 %   Look for the CRIS "datatype" files that span the time interval between
@@ -20,8 +20,12 @@ function [file_list nfiles] = iasi_noaa_ops_filenames(sdate, edate, asldata, dat
   for mdate = sday:eday
     [yyyy mm dd HH MM SS] = datevec(mdate);
 
-%    /asl/data/IASI/L1C/2012/09/20/
-    path = [asldata '/IASI/' datatype '/' num2str(yyyy,'%04d') '/' num2str(mm,'%02d') '/' num2str(dd,'%02d') ];
+    if(strcmpi(datatype,'l1c'))
+      %/asl/data/IASI/L1C/2012/09/20/
+      path = [asldata '/IASI/L1C/' num2str(yyyy,'%04d') '/' num2str(mm,'%02d') '/' num2str(dd,'%02d') ];
+    else
+      error(['Unknown datatype ' datatype]);
+    end
 
     % Load SCRIR file names for this day
     siasi_fstr = dir([path '/IASI_xxx_*.gz']);

@@ -29,7 +29,9 @@ function [head hattr prof, pattr] = makertp_iasi_l1c(iasifiles)
   %randadjust = 0.1;
   randadjust = 0.3;
 
-
+  if(~iscell(iasifiles))
+    iasifiles = {iasifiles};
+  end
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 

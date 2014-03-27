@@ -71,7 +71,7 @@ function [head,hattr,prof_out,pattr,s,isubset] = iasi_uniform_and_allfov_func(ia
   greetings(rn);
 
   warning('off');
-  RandStream.setDefaultStream(RandStream('mt19937ar','seed',sum(100*clock)));
+  RandStream.setGlobalStream(RandStream('mt19937ar','seed',sum(100*clock)));
   warning('on');
 
   % IASI channel info
@@ -306,8 +306,6 @@ function [head,hattr,prof_out,pattr,s,isubset] = iasi_uniform_and_allfov_func(ia
     % Get model surface termperature
     %say('Adding SKT, TCC, & CI from ECMWF');
     pattr = set_attr({},'rtime','Seconds since 2000','profiles');
-    model = 'ERA';
-    disp(['Adding SKT, TCC, & CI from ' model]);
     p = struct;
     p.rlat = data.Latitude(:)'; %'
     p.rlon = data.Longitude(:)'; %'
@@ -318,13 +316,18 @@ function [head,hattr,prof_out,pattr,s,isubset] = iasi_uniform_and_allfov_func(ia
     %
     h.pfields = 0;
     try
-      [h hattr p pattr] = rtpadd_era_data(h,{},p,pattr);
+      %[h hattr p pattr] = rtpadd_era_data(h,{},p,pattr);
       %[h hattr p pattr] = rtpadd_era_data(h,{},p,pattr,{'SKT' 'TCC', 'CI'});
-      %[h hattr p pattr] = rtpadd_ecmwf_data(h,{},p,pattr,{'SKT' 'TCC', 'CI'});
+      %model = 'ERA';
+      [h hattr p pattr] = rtpadd_ecmwf_data(h,{},p,pattr,{'SKT' 'TCC', 'CI'});
+      model = 'ECMWF';
+      disp(['Adding SKT, TCC, & CI from ' model]);
     catch err
       Etc_show_error(err);
-      error(['Missing ERA data file']);
+      disp('Missing ECMWF data file for surface temperature');
+      disp('Will go to gfs for surface temperature'); 
       [h hattr p pattr] = rtpadd_gfs(h,{},p,pattr);
+      
     end
     %
 

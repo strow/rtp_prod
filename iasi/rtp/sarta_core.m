@@ -10,11 +10,11 @@
 %  input_glob - "glob" of files to look for to process for rtp calc creation
 %  usgs   - optiona variable - if it exists, add the USGS landfrac and salti.
 %  sarta  - version of sarta to use (clr - clear / cld - slab cloudy)
-%
+%  do_diurnal_stemp - [false/true] set to run driver_gentemann_dsst.m on the data.
 %%%%%%%%
 
 %  Written by Paul Schou  17 Jun 2011
-%  Comments by Breno Imbiriba 2012.12.27 - FUCK!!!
+%  Comments by Breno Imbiriba 2012.12.27 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Sequence
@@ -68,6 +68,11 @@ if ~exist('emis','var')
 end
 if ~exist('sarta','var')
   sarta='clr';
+end
+
+if ~exist('do_diurnal_stemp','var')
+  disp('Will use Tsurf from Model with no diurnal modifications');
+  do_diurnal_stemp = false;
 end
 
 % 
@@ -183,6 +188,17 @@ for f = file_list
     %[prof.salti, prof.landfrac] = usgs_deg10_dem(prof.rlat, prof.rlon);
     % fix the land frac for the larger fovs:
     [prof.salti prof.landfrac] = usgs_degN(prof.rlat,prof.rlon,1.5);
+
+
+    %%%%
+    %
+    %  Surface Temperature Modification - Sergio's Daily
+    %
+    %%%%
+    if(do_diurnal_stemp)
+      disp('Running driver_gentemann_dsst for Diurnal Stemp Correction');
+      [head hattr prof pattr] = driver_gentemann_dsst(head,hattr, prof,pattr);
+    end
 
     %%%%
     %
