@@ -47,10 +47,17 @@ swath_id  = hdfsw('attach',file_id,'L1B_AIRS_Science');
 
 
 % Read "state" and find good FOVs
+% From http://disc.sci.gsfc.nasa.gov/atdd/AIRS/documentation/airs_l2/DOCS/L1B_QA_Quick_Start.pdf
+% State Valid	State Value	Meaning
+% Process	0		Normal Data
+% Special	1		Special calibration mode
+% Erroneous	2		Data known bad (e.g. safe mode)
+% Missin	3		Data are missing
+
 [junk,s]=hdfsw('readfield',swath_id,'state',[],[],[]);
 if s == -1; disp('Error reading state');end;
 state = reshape( double(junk), 1,nobs);
-i0=find( state == 0);  % Indices of "good" FOVs
+i0=find( state <= 1);  % Indices of "good" FOVs (Process or Special)
 n0=length(i0);
 %
 clear state

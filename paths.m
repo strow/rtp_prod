@@ -19,12 +19,14 @@
 
 
 if(~exist('rtprod','var'))
+  disp('PATHS: rtprod does not exist - using default /asl/rtprod/');
   rtprod = '/asl/rtp_prod/';
   %rtprod = '~/git/rtp_prod';
 %  rtprod = fileparts(mfilename('fullpath'));
 end
 
 if(~exist('matlib','var'))
+  disp('PATHS: matlib does not exist - using default /asl/matlib/');
   matlib = '/asl/matlib/';
 %  matlib = '~/git/matlib';
 %  matlib = [fileparts(rtprod) '/matlib'];
@@ -58,6 +60,7 @@ addpath([rtprod '/cris/utils']);
 addpath([ matlib]);
 addpath([ matlib '/aslutil']);
 addpath([ matlib '/clouds']);
+addpath([ matlib '/clouds/sarta']);
 addpath([ matlib '/fconv']);
 addpath([ matlib '/gribtools']);
 addpath([ matlib '/h4tools']);
