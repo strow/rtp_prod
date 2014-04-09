@@ -40,14 +40,19 @@
 # Based on the fact that we are at 
 # $GITROOT/rtp_prod/scripts
 
-GITROOT=$(dirname $(dirname $PWD))
+#GITROOT=$(dirname $(dirname $PWD))
+GITROOT=/asl
 RTPROD=$GITROOT/rtp_prod
 MATLIB=$GITROOT/matlib
+export RTPROD
+export MATLIB
 
 if [ "$#" -eq 0 ] 
 then
+  mkdir -p log
 
-  srun --partition=batch --cpus-per-task=2 --ntasks=4 --exclusive --job-name=CrSdClMra --qos=long --output=slurm-%j.%t.out $0 onnode &
+  bn=`basename $0`
+  srun --partition=batch --cpus-per-task=1 --mem-per-cpu=4096 --ntasks=4 --job-name=CrSdClMra --qos=long --output=log/$bn-%j.%t.out $0 onnode &
 
 elif [ "$1" == 'onnode' ]
 then

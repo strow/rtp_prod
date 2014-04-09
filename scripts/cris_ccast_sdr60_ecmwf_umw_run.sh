@@ -40,21 +40,24 @@
 # Based on the fact that we are at 
 # $GITROOT/rtp_prod/scripts
 
-GITROOT=$(dirname $(dirname $PWD))
+#GITROOT=$(dirname $(dirname $PWD))
+GITROOT=/asl
 RTPROD=$GITROOT/rtp_prod
 MATLIB=$GITROOT/matlib
+export RTPROD
+export MATLIB
 
 if [ "$#" -eq 0 ] 
 then
-
-  srun --partition=batch --cpus-per-task=2 --ntasks=16 --exclusive --job-name=sdr60ccast --qos=long_contrib --output=slurm-%j.%t.out $0 onnode &
+  bn=`basename $0`
+  srun --partition=batch --cpus-per-task=1 --mem-per-cpu=4096 --ntasks=8 --job-name=sdr60ccast --qos=long_contrib --output=log/$bn-%j.%t.out $0 onnode &
 
 elif [ "$1" == 'onnode' ]
 then
 
   echo on node...
-  start_time='[2012, 09, 20,  0,  0,  0]'
-    end_time='[2012, 09, 20, 23, 59, 59.999]'
+  start_time='[2014, 03, 01,  0,  0,  0]'
+    end_time='[2014, 03, 03, 23, 59, 59.999]'
 #    end_time='[2012, 09, 20,  0, 59,  59.999]'
   delta_time='[   0,  0,  0,  0, 10,  0]'
 
