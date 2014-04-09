@@ -55,8 +55,8 @@ elif [ "$1" == 'onnode' ]
 then
 
   echo on node...
-  start_time='[2012, 09, 20,  0,  0,  0]'
-    end_time='[2012, 09, 20, 23, 59, 59.999]'
+  start_time='[2011, 04, 11,  0,  0,  0]'
+    end_time='[2011, 04, 11, 23, 59, 59.999]'
 #    end_time='[2012, 09, 20,  0, 59,  59.999]'
   delta_time='[   0,  0,  0,  1,  0,  0]'
 
@@ -65,7 +65,7 @@ then
 
   #echo "test_cris_clear_driver($start_time, $end_time, $delta_time, $PE, $NPE); exit"
 
-  /asl/opt/bin/matlab -nosplash -nodesktop -nodisplay -r "\
+  /usr/cluster/matlab/r2013a/bin/matlab -nosplash -nodesktop -nodisplay -r "\
     timeblock_dealer($start_time, $end_time, $delta_time, $PE, $NPE, @airs_l1bcm_merra_umw ); \
     exit" 
 

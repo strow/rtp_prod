@@ -19,7 +19,7 @@
 # B.I. Oct.2013
 
 
-# srun --ntasks=4 --job-name=test --qos=long_contrib --output=slurm-%j.%t.out cris_clear_test_run.sh
+# srun --ntasks=4 --job-name=test --qos=long_contrib --output=slurm-%j.%t.out cris_clear_test_run.sh file1 ... fileN
 #
 # N.B.: You may want to add a directory before the output file name
 #
@@ -40,8 +40,8 @@ MATLIB=$GITROOT/matlib
 
 if [ "$1" != 'onnode' ] 
 then
-
-  srun --partition=batch --cpus-per-task=2 --ntasks=2 --exclusive --job-name=CrsClrPrc --qos=long_contrib --output=slurm-%j.%t.out $0 onnode "$@" &
+  #srun --partition=batch --cpus-per-task=1 --ntasks=1 --exclusive --job-name=CrsClrPrc --qos=long_contrib --output=slurm-%j.%t.out $0 onnode "$@" &
+  srun --partition=batch --cpus-per-task=1 --ntasks=1 --job-name=CRIS_SDR --qos=long_contrib --output=slurm-%j.%t.out $0 onnode "$@" &
 
 elif [ "$1" == 'onnode' ]
 then
@@ -64,9 +64,8 @@ then
   #echo "test_cris_clear_driver($start_time, $end_time, $delta_time, $PE, $NPE); exit"
 
   matlab -nosplash -nodesktop -nodisplay -r "\
-  filename_dealer $PE  $NPE  $file_list  @test; \
+  filename_dealer $PE  $NPE  $file_list  @cris_sdr60_ecmwf_umw_clear_fname; \
   exit" 
-#    filename_dealer $PE  $NPE  $file_list  @cris_sdr60_ecmwf_umw_clear_fname; \
 
 else
   echo $0 run the job on tara.

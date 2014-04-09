@@ -52,14 +52,14 @@ then
   mkdir -p log
 
   bn=`basename $0`
-  srun --partition=batch --cpus-per-task=1 --ntasks=8 --job-name=ArsL1bcmEcm --qos=long_contrib --output=log/slurm-$bn-%j.%t.out $0 onnode &
+  srun --partition=batch --cpus-per-task=1 --ntasks=24 --job-name=ArsL1bcmEcm --qos=long_contrib --output=log/slurm-$bn-%j.%t.out $0 onnode &
 
 elif [ "$1" == 'onnode' ]
 then
 
   echo on node...
-  start_time='[2013, 08, 27,  0,  0,  0]'
-    end_time='[2013, 08, 28,  0,  0,  0]'
+  start_time='[2013, 09, 20,  0,  0,  0]'
+    end_time='[2013, 09, 20, 23, 59, 59.999]'
   # 1-hr blocks  
   delta_time='[   0,  0,  0,  1,  0,  0]'
 

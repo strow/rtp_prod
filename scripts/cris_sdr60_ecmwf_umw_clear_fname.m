@@ -186,8 +186,8 @@ function cris_fname_proc(flist)
 
   %%%%%% DON'T %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %% Do subset, if wanted. (remove coasts (16) also).
-  %iclear = find(prof.iudef(1,:)>0 & prof.iudef(1,:)<16); 
-  %[head prof] = subset_rtp(head, prof, [],[],iclear);
+  iclear = find(prof.iudef(1,:)>0 & prof.iudef(1,:)<16); 
+  [head prof] = subset_rtp(head, prof, [],[],iclear);
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

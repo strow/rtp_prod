@@ -52,14 +52,15 @@ then
   mkdir -p log
 
   bn=`basename $0`
-  srun --partition=batch --cpus-per-task=1 --ntasks=8 --job-name=ArsL1bEc --qos=long_contrib --output=log/slurm-$bn-%j.%t.out $0 onnode &
+  srun --partition=batch --cpus-per-task=1 --mem-per-cpu=4096 --ntasks=64 --job-name=ArsL1bEc --qos=long_contrib --output=log/slurm-$bn-%j.%t.out $0 onnode &
 
 elif [ "$1" == 'onnode' ]
 then
 
   echo on node...
-  start_time='[2013,08,28,0,0,0]'
-    end_time='[2013,08,28,23,59,59.999]'
+  start_time='[2011,03,11,0,0,0]'
+#    end_time='[2011,03,11,0,5,59.999]'
+    end_time='[2011,03,11,23,59,59.999]'
   # 6-minute blocks for AIRS granules
   delta_time='[0,0,0,0,6,0]'  
 
