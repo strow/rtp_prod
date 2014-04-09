@@ -11,7 +11,7 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
-% function airs_l1b_ecmwf_umw(sdate, edate, root)
+% function airs_l1b_era_umw(sdate, edate, root)
 %
 %   Acumulate AIRS data from sdate to edate, add model
 %   and compute radiances. 
@@ -33,7 +33,7 @@
 
 % B.I. Aug.2013
 
-function airs_l1bct_ecmwf_umw(sdate, edate, root)
+function airs_l1bct_era_umw(sdate, edate, root)
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
@@ -47,14 +47,20 @@ function airs_l1bct_ecmwf_umw(sdate, edate, root)
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Setup Cloudy parameters:
+  % Ask Sergio about the meaning of these parameters
 
   run_sarta.clear = +1;
   run_sarta.cloud = +1;
   run_sarta.cumsum = 9999;
 
-  %codeX = 0; %% use default with A. Baran params
-  codeX = 1; %% use new     with B. Baum, P. Yang params
-
+  % Select type of Sarta Code (pre/post Nov2003)
+  if(sdate<datenum(2003,10,30))
+    preNov2003 = true;
+  else
+    preNov2003 = false;
+  end
+  
+  %
   % 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -126,10 +132,10 @@ function airs_l1bct_ecmwf_umw(sdate, edate, root)
     disp('No AIRS file found.');
     return
   end
+
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % Make output file name
-  % output_file = make_rtprod_filename('AIRS', 'l1bcm', 'merra', 'udz','calc', '', [sdate edate], version,'rtp',[pwd '/dump/']);
   %
+  % Make output file name
   % We use the rtp_str2name.m function that takes a predefined
   % name structure and convert it on a filename string.
 
@@ -149,14 +155,15 @@ function airs_l1bct_ecmwf_umw(sdate, edate, root)
   str_cld.subset 	= 'ctrtrk';	% clear subset only 
 
   % Set Type of cloudy calc (sarta) and corresponding file name.
-  if(codeX==0)
-    str_cld.infix         = 'sarta_baran_ice';
-    run_sarta.sartacloud_code = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140_iceaggr_waterdrop_desertdust_slabcloud_hg3_wcon_nte';
-  elseif(codeX==1)
+  % with A. Baran params
+  if(preNov2003)
     str_cld.infix         = 'sarta_baum_ice';
     run_sarta.sartacloud_code = '/home/sergio/SARTA_CLOUDY/BinV201/sarta_apr08_m140x_iceGHMbaum_waterdrop_desertdust_slabcloud_hg3';
+    run_sarta.sartaclear_code = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140x_370';
   else
-    error('Wrong cloudy code version - set "codeX" to 0 or 1.');
+    str_cld.infix         = 'sarta_baran_ice';
+    run_sarta.sartacloud_code = '/home/sergio/SARTA_CLOUDY/BinV201/sarta_apr08_m140_iceGHMbaum_waterdrop_desertdust_slabcloud_hg3';
+    run_sarta.sartaclear_code = '/asl/packages/sartaV108/BinV201/sarta_apr08_m140';
   end
 
   str_cld.mdate 	= [sdate edate];
@@ -238,17 +245,29 @@ function airs_l1bct_ecmwf_umw(sdate, edate, root)
     %[head hattr prof pattr] = rtpadd_emis_DanZhou(head,hattr,prof,pattr, root);
     [head hattr prof pattr] = rtpadd_emis_Wisc(head,hattr,prof,pattr);
 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
+    %
+    % Add CO2 ramp:
+    % CO2ppm = 372 + 2*(year-2002)
+
+    [head hattr prof pattr] = rtpadd_co2(head, hattr, prof, pattr, 1);
+
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %
     % Do clear selection - for now this is instrument dependent
+    %
+
     instrument='AIRS'; %'IASI','CRIS'
     [head hattr prof pattr summary] = ...
 		     compute_clear_wrapper(head, hattr, prof, pattr, instrument);
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %
     % Center Track Subset
     % keep only center track data - xtrack=[44 45]
+    
     ictrtrk = find(prof.xtrack == 45 | prof.xtrack == 46);
     prof = ProfSubset2(prof, ictrtrk);
 

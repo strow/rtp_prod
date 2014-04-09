@@ -34,14 +34,19 @@
 # Based on the fact that we are at 
 # $GITROOT/rtp_prod/scripts
 
-GITROOT=$(dirname $(dirname $PWD))
+#GITROOT=$(dirname $(dirname $PWD))
+GITROOT=/asl
 RTPROD=$GITROOT/rtp_prod
 MATLIB=$GITROOT/matlib
+export RTPROD
+export MATLIB
 
 if [ "$1" != 'onnode' ] 
 then
-  #srun --partition=batch --cpus-per-task=1 --ntasks=1 --exclusive --job-name=CrsClrPrc --qos=long_contrib --output=slurm-%j.%t.out $0 onnode "$@" &
-  srun --partition=batch --cpus-per-task=1 --ntasks=1 --job-name=CRIS_SDR --qos=long_contrib --output=slurm-%j.%t.out $0 onnode "$@" &
+  mkdir -p log
+
+  bn=`basename $0`
+  srun --partition=batch --cpus-per-task=1 --mem-per-cpu=4096 --ntasks=1 --job-name=CrISProd --qos=long_contrib --output=log/$bn-%j.%t.out $0 onnode "$@" &
 
 elif [ "$1" == 'onnode' ]
 then
@@ -66,6 +71,7 @@ then
   matlab -nosplash -nodesktop -nodisplay -r "\
   filename_dealer $PE  $NPE  $file_list  @cris_sdr60_ecmwf_umw_clear_fname; \
   exit" 
+#  filename_dealer $PE  $NPE  $file_list  @test; \
 
 else
   echo $0 run the job on tara.

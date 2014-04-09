@@ -33,15 +33,21 @@ function cris_clear_proc(sdate, edate)
   % Set rtp_prod installation and set 
   % environment variable
 
-  rtprod = '/home/imbiriba/git/rtp_prod';
-  matlib = '/home/imbiriba/git/matlib';
+  rtprod = getenv('RTPROD');
+  if(strcmp(rtprod,''))
+    rtprod = '/asl/rtp_prod';
+    setenv('RTPROD',rtprod);
+  end
+
+  matlib = getenv('MATLIB');
+  if(strcmp(matlib,''))
+    matlib = '/asl/matlib';
+    setenv('MATLIB',matlib);
+  end
 
   % Define code pathes
   addpath(rtprod);
   paths
-
-  % Export environment variable
-  setenv('RTPROD',rtprod);
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

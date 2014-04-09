@@ -10,17 +10,18 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
-% function cris_clear_proc(flist)
+% function cris_clear_proc(sdate, edate)
 %
-%   Acumulate CrIS data in files in flist, add model
+%   Acumulate CrIS data from sdate to edate, add model
 %   and compute radiances. 
 %
 %   Input:
-%   flist - a cell array list of file names
+%   sdate - matlab start date 
+%   edate - matlab end date
 %
-% B.I. Oct.2013
+% B.I. Aug.2013
 
-function cris_fname_proc(flist)
+function cris_clear_proc(sdate, edate, root)
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
@@ -49,7 +50,6 @@ function cris_fname_proc(flist)
   paths
 
 
-
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Get code version number
   version = version_number();
@@ -57,7 +57,24 @@ function cris_fname_proc(flist)
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Set data root - for input and output
-  root = '/asl/';
+  %root = '/home/imbiriba/git/rtp_prod/testsuit/asl'
+  if(nargin()<3)
+    root = '/asl/';
+  end
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Download CRIS data
+  %
+  % I Don't know how to do that. 
+  % CrIS data seems to appear magically at a 
+  % default place.
+  %
+  % Hence, copy data manually
+
+
+  % Set where data will be (relative to root) 
+  asldata=[root '/data'];
 
 
 
@@ -68,18 +85,9 @@ function cris_fname_proc(flist)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % If flist is a string, put it in a cell 
-  % array
-  if(iscell(flist))
-    file_list = flist;
-  elseif(isstr(flist))
-    file_list = {flist};
-  end
-
-  % Compute start time and end time for each file.
-  % If the list contain repetitions, take the newest ones.
-  % (based on cris' file ctime)
-  [sdate edate file_list] = cris_noaa_ops_date_from_file(file_list);
+  % Find existing input files (according 
+  %                to provided date ranges)
+  file_list = cris_noaa_ops_filenames(sdate,edate,asldata,'sdr60');
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -90,16 +98,16 @@ function cris_fname_proc(flist)
 
   % output obs filename
   %str_obs1.root 	= [pwd '/dump'];
-  str_obs1.root 	= [root];
+  str_obs1.root 	= ['/asl'];
   str_obs1.instr	= 'cris';
   str_obs1.sat_data	= 'sdr60_noaa_ops';
   str_obs1.atm_model 	= 'ecmwf';	% Will contain profile information
   str_obs1.surfflags 	= 'umw'; 	% Will contain usgs topo (u),
-                                        % base model stemp (m), Wisc emis (w)
+                                        % Sergio's diurnal(d), Wisc emis (w)
   str_obs1.calc 	= '';
-  str_obs1.subset 	= 'clear';	% clear subset only 
+  str_obs1.subset 	= '';	% clear subset only 
   str_obs1.infix 	= '';
-  str_obs1.mdate 	= [min(sdate) max(edate)];
+  str_obs1.mdate 	= [sdate edate];
   str_obs1.ver 		= version;
   str_obs1.file_type 	= 'rtp';
 
@@ -162,12 +170,13 @@ function cris_fname_proc(flist)
   prof = structmerge(prof);
   head.ngas = 0;
 
-
+  
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Remove buggy CrIS rtime, rlat, and rlon
   [head prof] = cris_filter_bad_data(head, prof);
 
 
+  
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
   % add version number on header attributes
   hattr = set_attr(hattr,'version',version);
@@ -184,6 +193,7 @@ function cris_fname_proc(flist)
   % Add Model Information
 
   [head hattr prof pattr] = rtpadd_usgs_10dem(head,hattr,prof,pattr,root);
+  % [head hattr prof pattr] = rtpadd_merra(head,hattr,prof,pattr);
   [head hattr prof pattr] = rtpadd_ecmwf_data(head,hattr,prof,pattr);
 
   %[head hattr prof pattr] = driver_gentemann_dsst(head,hattr, prof,pattr);
@@ -197,10 +207,11 @@ function cris_fname_proc(flist)
                    compute_clear_wrapper(head, hattr, prof, pattr, instrument);
 
 
-  %%%%%% DON'T %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %% Do subset, if wanted. (remove coasts (16) also).
-  iclear = find(prof.iudef(1,:)>0 & prof.iudef(1,:)<16); 
-  [head prof] = subset_rtp(head, prof, [],[],iclear);
+  %iclear = find(prof.iudef(1,:)>0 & prof.iudef(1,:)<16); 
+  %[head prof] = subset_rtp(head, prof, [],[],iclear);
+
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -247,5 +258,3 @@ function cris_fname_proc(flist)
 % END
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-end

@@ -12,9 +12,16 @@
 #
 # see: "man srun" for further options
 
+#GITROOT=$(dirname $(dirname $PWD))
+GITROOT=/asl
+RTPROD=$GITROOT/rtp_prod
+MATLIB=$GITROOT/matlib
+export RTPROD
+export MATLIB
+
 if [ "$#" -eq 0 ] 
 then
-  srun --partition=batch --ntasks=4 --job-name=test --qos=long_contrib --output=slurm-%j.%t.out airs_l1bcm_test_run.sh onnode &
+  srun --partition=batch --ntasks=4 --job-name=test --qos=long_contrib --output=%j.%t.out airs_l1bcm_test_run.sh onnode &
 elif [ "$1" == 'onnode' ]
 then
 
