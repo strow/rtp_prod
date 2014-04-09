@@ -32,15 +32,22 @@ function cris_fname_proc(flist)
   % Set rtp_prod installation and set 
   % environment variable
 
-  rtprod = '/asl/rtp_prod';
-  matlib = '/asl/matlib';
+  rtprod = getenv('RTPROD');
+  if(strcmp(rtprod,''))
+    rtprod = '/asl/rtp_prod';
+    setenv('RTPROD',rtprod);
+  end
+
+  matlib = getenv('MATLIB');
+  if(strcmp(matlib,''))
+    matlib = '/asl/matlib';
+    setenv('MATLIB',matlib);
+  end
 
   % Define code pathes
   addpath(rtprod);
   paths
 
-  % Export environment variable
-  setenv('RTPROD',rtprod);
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -82,7 +89,8 @@ function cris_fname_proc(flist)
   % name structure and convert it on a filename string.
 
   % output obs filename
-  str_obs1.root 	= [pwd '/dump'];
+  %str_obs1.root 	= [pwd '/dump'];
+  str_obs1.root 	= [root];
   str_obs1.instr	= 'cris';
   str_obs1.sat_data	= 'sdr60_noaa_ops';
   str_obs1.atm_model 	= 'ecmwf';	% Will contain profile information
@@ -153,6 +161,11 @@ function cris_fname_proc(flist)
   clear profi;
   prof = structmerge(prof);
   head.ngas = 0;
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Remove buggy CrIS rtime, rlat, and rlon
+  [head prof] = cris_filter_bad_data(head, prof);
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   

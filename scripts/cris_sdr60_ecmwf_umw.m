@@ -87,7 +87,7 @@ function cris_clear_proc(sdate, edate, root)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Find existing input files (according 
   %                to provided date ranges)
-  file_list = cris_ccast_filenames(sdate,edate,asldata,'ccast_sdr60_dt1');
+  file_list = cris_noaa_ops_filenames(sdate,edate,asldata,'sdr60');
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -97,11 +97,12 @@ function cris_clear_proc(sdate, edate, root)
   % name structure and convert it on a filename string.
 
   % output obs filename
-  str_obs1.root 	= [pwd '/dump'];
+  %str_obs1.root 	= [pwd '/dump'];
+  str_obs1.root 	= ['/asl'];
   str_obs1.instr	= 'cris';
-  str_obs1.sat_data	= 'ccast_sdr60_dt1';
-  str_obs1.atm_model 	= 'merra';	% Will contain profile information
-  str_obs1.surfflags 	= 'udw'; 	% Will contain usgs topo (u),
+  str_obs1.sat_data	= 'sdr60_noaa_ops';
+  str_obs1.atm_model 	= 'ecmwf';	% Will contain profile information
+  str_obs1.surfflags 	= 'umw'; 	% Will contain usgs topo (u),
                                         % Sergio's diurnal(d), Wisc emis (w)
   str_obs1.calc 	= '';
   str_obs1.subset 	= '';	% clear subset only 
@@ -142,7 +143,6 @@ function cris_clear_proc(sdate, edate, root)
   end
 
 
-
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
   % 3 - Make RTP Structure
@@ -152,7 +152,7 @@ function cris_clear_proc(sdate, edate, root)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Read CrIS Data:
   for ifile=1:numel(file_list)
-    [head hattr profi pattr] = sdr2rtp_bc(file_list{ifile}); 
+    [head hattr profi pattr] = sdr2rtp_h5(file_list{ifile}); 
 
     % Sometimes you'd like to to a time subsetting here
     % but this is not necessary for sdr60 data which will
@@ -176,6 +176,7 @@ function cris_clear_proc(sdate, edate, root)
   [head prof] = cris_filter_bad_data(head, prof);
 
 
+  
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
   % add version number on header attributes
   hattr = set_attr(hattr,'version',version);
@@ -192,9 +193,10 @@ function cris_clear_proc(sdate, edate, root)
   % Add Model Information
 
   [head hattr prof pattr] = rtpadd_usgs_10dem(head,hattr,prof,pattr,root);
-  [head hattr prof pattr] = rtpadd_merra(head,hattr,prof,pattr);
+  % [head hattr prof pattr] = rtpadd_merra(head,hattr,prof,pattr);
+  [head hattr prof pattr] = rtpadd_ecmwf_data(head,hattr,prof,pattr);
 
-  [head hattr prof pattr] = driver_gentemann_dsst(head,hattr, prof,pattr);
+  %[head hattr prof pattr] = driver_gentemann_dsst(head,hattr, prof,pattr);
   [head hattr prof pattr] = rtpadd_emis_Wisc(head,hattr,prof,pattr);
  
 
