@@ -67,13 +67,29 @@ All_jobs_array(1:NJOBS) = [1:NJOBS];
 % Each Row represents a processor:
 My_jobs = All_jobs_array(PE,:);
 
+disp(['Files this PE will work on: ' num2str(My_jobs)]);
+
 for fn1=1:numel(My_jobs)
   this_job = My_jobs(fn1);
   if(this_job==0) continue; end
 
-  %%% Your code goes here %%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %
+  % 1 - Call Processing script
+  %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
   disp(['Job = ' num2str(this_job) ' Fn = ' file_list{this_job}]);
-  cmd(file_list{this_job});
+  try
+    cmd(file_list{this_job});
+  catch errstr
+    fprintf('\nError: %s (%s).\n',errstr.message, errstr.identifier);
+    for it=1:length(errstr.stack)
+      fprintf('   IN: %s>%s at %d.\n',errstr.stack(it).file, ...
+				      errstr.stack(it).name, errstr.stack(it).line);
+    end
+    fprintf('Continuing filename_dealer loop.\n');
+  end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
