@@ -41,7 +41,7 @@ function airs_l1bcm_merra_umw(sdate, edate, root)
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Say that I'm starting
-  greetings(mfilename());
+  disp(['Runnin ', mfilename()]);
 
 
   % We want to make sure the final time (edate) is 
@@ -118,7 +118,8 @@ function airs_l1bcm_merra_umw(sdate, edate, root)
   % name structure and convert it on a filename string.
 
   % output obs filename
-  str_obs1.root 	= [pwd '/dump/'];
+  %str_obs1.root 	= [pwd '/dump/'];
+  str_obs1.root 	= ['/asl/'];
   str_obs1.instr	= 'airs';
   str_obs1.sat_data	= 'l1bcm';
   str_obs1.atm_model 	= 'merra';	% Will contain profile information
