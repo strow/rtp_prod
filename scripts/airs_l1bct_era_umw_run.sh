@@ -40,8 +40,8 @@
 # Based on the fact that we are at 
 # $GITROOT/rtp_prod/scripts
 
-#GITROOT=$(dirname $(dirname $PWD))
-GITROOT=/asl
+GITROOT=$(dirname $(dirname $PWD))
+#GITROOT=/asl
 RTPROD=$GITROOT/rtp_prod
 MATLIB=$GITROOT/matlib
 export RTPROD
@@ -52,14 +52,15 @@ then
   mkdir -p log
 
   bn=`basename $0`
-  srun --partition=batch --cpus-per-task=1 --mem-per-cpu=4096 --ntasks=32 --job-name=CtTrkALL --qos=long_contrib --output=log/$bn-%j.%t.out $0 onnode &
+  srun --partition=batch --cpus-per-task=1 --mem-per-cpu=4096 --ntasks=1 --job-name=CtTrkALL --qos=long_contrib --output=log/$bn-%j.%t.out $0 onnode &
 
 elif [ "$1" == 'onnode' ]
 then
 
   echo on node...
   start_time='[2002,09,01,0,0,0]'
-    end_time='[2014,03,31,23,59,59.999]'
+    end_time='[2002,09,01,0,59,59.999]'
+    #end_time='[2014,03,31,23,59,59.999]'
   # 6-minute blocks for AIRS granules
   # 1-hour blocks (it's centertrack)
   delta_time='[0,0,0,1,0,0]'  
