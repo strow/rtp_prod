@@ -5,9 +5,8 @@
 #
 #
 
-POST='dcc_ecm'
-prod='iasi'
-
+POST='dcc_ecm_hr'
+prod='cris'
 
 # cd into a temporary directory to get things out of the way
 #cd $2
@@ -33,7 +32,9 @@ if [ ${#arr[@]} -eq 3 ] && [ ${#arr[0]} -eq 8 ]; then # we run daily
 
   for date in `/asl/opt/bin/datelist ${arr[0]}:${arr[2]}`; do
     year=${date:0:4}; mo=${date:4:2}; day=${date:6:2}
-    filemask="$filemask '/asl/data/rtprod_$prod/$year/$mo/$day/ecm.clr.${prod}_l1c.*.rtp_1Z'";
+    #filemask="$filemask '/asl/data/rtprod_$prod/$year/$mo/$day/ecm.cris_*sub*.rtpZ'";
+    #filemask="$filemask '/asl/s1/imbiriba/git_rtp_prod_scripts_dump/data/rtprod_$prod/$year/$mo/$day/cris_ccast_hr.ecmwf.umw.calc.*.rtp'";
+    filemask="$filemask '/asl/s1/motteler/rtp_prod/data/rtprod_$prod/$year/$mo/$day/cris_ccast_hr.ecmwf.umw.calc.*.rtp'";
   done
 else
   echo "I don't know what you want to do!
@@ -49,12 +50,12 @@ echo filemask=$filemask
 
 # Start up matlab with this setup:
 
-defaults="addpath ../rtp;iasi_paths;\
+defaults="addpath ../rtp; cris_paths; \
 gtops = struct; \
 gtops.rlat_bins=[-70 -60 -50 -45 -40 -35 -30:2.5:30 35 40 45 50 60 70]; \
 gtops.secang_bins=[1 1.028 1.1 1.31 1.72]; \
 gtops.landfrac_bins=[0 0.001]; \
-gtops.ifov_bins=1:5; \
+gtops.ifov_bins=1:10; \
 gtops.solzen_bins=[0 90 180]; \
 gtops.calflag_bit=nan; \
 gtops.reason_bins=3; \
@@ -64,7 +65,7 @@ gtops.filemask={$filemask}; \
 
 
 # Execute matlab
-matlab -nodisplay -nodesktop -nojvm -nosplash -r "$defaults;  \
+matlab -nodisplay -nodesktop -nojvm -nosplash -r "$defaults; \
   gstats(gtops,'${out}'); exit;" 
 
 # Clear the lock file to allow the process to be re-ran

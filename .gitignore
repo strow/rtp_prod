@@ -47,3 +47,6 @@ dump/
 # Potential cluster run outputs.
 slurm*
 
+/airs/gstats/.html
+/cris/rtp/rtp_core.groff
+/z_trash/rtpgrow.m

@@ -1,0 +1,125 @@
+## General changes:
+rtp_prod commits:
+
+
+##################################################
+##################################################
+### COMMIT FOR THE HR PROCESSING
+#
+
+#rtp/rtp_core.m
+	Intra-day processing - Bug-minor: needed floor/ceil to select time blocks inside a day.
+	I/O - Bug-minor: Fixed properly parsing of dates in file names.
+	I/O - Feature: Added reader to files conteining geo info in it (see: readsdr_rrtp_geoin.m).
+
+
+#rtp/rtp_core_hr.m
+       Processing: CrIS HR calcs take too long. Keep calculations while doing clear tests (see rtp_cris_subset_hr.m)
+       Intra-day processing - Bug-minor: needed floor/ceil to select time blocks inside a day, plus error message.
+
+
+#rtp/rtp_cris_subset_hr.m
+       Procesing - Change: CrIS HR calcs always run for ALL channels. Added a flag to keep calculations while doing the clear subsetting.
+
+
+#rtp/sarta_core.m
+       Processing - Change: Check for ECMWF profile data alreay in the file, and skip loading ECMWF if so.
+
+
+#utils/cris888_sarta_wrapper_bc.m
+       Code - Change: small change on mktemp call location.
+
+
+       Some untracked files
+
+
+
+       #       ../rtp/create_rcalc_ecm_sdr4_allfov_with_flist.m
+       #       ../rtp/create_rcalc_gravite.m
+       #       ../rtp/create_rcalc_howard_hr_allfovs.m
+       #       ../rtp/create_rtp_gravite.m
+       #       ../rtp/create_rtp_howard_hr.m
+
+#       utils/geonav_ugly_hack.m
+       Hack routine called "sdr2rtp_bc.m" to fake geo info.
+
+
+
+
+#READER CHANGES
+
+#cris/readers/readsdr_rtp.m
+	Processing - change: if there's no geofile fall back to the original file and look for geo info there.
+
+#cris/readers/readsdr_rawpd_all.m
+	Code - Major: While reading the HDF5 file, look for the specific names for the data records. More portable.
+
+#cris/readers/readsdr_rawpd_all_new.m
+	NEW: similar to "readsdr_rawpd_all.m". Reads both data and geo info - Not used yet - May replace readsdr_rawpd_all.n
+
+#readers/readsdr_rawpd_geo_all.m
+
+
+#cris/readers/readsdr_rtp_geoin.m
+	Similar to readsdr_rtp.m but assume that geo info is inside the file.
+
+
+
+
+##################################################
+##################################################
+rtp/rtp_core.m	
+	If one single "GCRSO-SCRIS" file, calls "readsdr_rtp_geoin"
+	If two files, calls "readsdr_rtp" (and this one fetch both)
+
+
+rtp/rtp_core_hr.m
+	If h5 file, calls "readsdr_rtp"
+	If Howards Mat file, calls "sdr2rtp_bc"
+
+
+##############################
+readers/readsdr_rtp.m 		- Main reader wrapper (returns head/prof)
+	Called by "rtp_core_hr" and "rtp_core"
+	Calls: 	"readsdr_rawpd_all"
+		"readsdr_rawgeo"
+	Geo info is either in a siding GEO file, or in the original file.
+
+
+##############################
+utils/sdr2rtp_bc.m 	- reader for Howard's Ccast mat files
+	Calls: geonav_ugly_hack.m 
+
+
+##############################
+readers/readsdr_rtp_geoin.m	- Main reader wrapper
+	Called by "rtp_core"
+	Calls:	"readsdr_rawpd_geo_all"
+	Geo info is assumed to be in the same file
+
+readers/readsdr_rawpd_geo_all.m	- hardcoded routine to return ALL and GEO
+	Called by "readers/readsdr_rtp_geoin.m"
+
+
+####################
+readers/readsdr_rawpd_all.m 	- hardcoded routine to return ALL structures
+	Called by "readers/readsdr_rtp.m"
+
+readers/readsdr_rawgeo.m	- hardcoded GEO reader
+	Called by "readers/readsdr_rtp.m"
+
+
+
+
+####################
+readers/readsdr_rawpd.m  	- simple hardcoded routine to return PD only
+	Never Called
+
+readers/readsdr_rawpd_all_new.m	- non-hardcoded routine, returns ALL and GEO
+	Never Called
+
+
+### COMMIT for the READERS
+
+
+

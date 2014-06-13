@@ -52,14 +52,14 @@ then
   mkdir -p log
 
   bn=`basename $0`
-  srun --partition=batch --cpus-per-task=1 --mem-per-cpu=4096 --ntasks=24 --job-name=CrsClrPrc --qos=long_contrib --output=log/$bn-%j.%t.out $0 onnode &
+  srun --partition=batch --cpus-per-task=1 --mem-per-cpu=6000 --ntasks=24 --job-name=CrsClrPrc --qos=long_contrib --output=log/$bn-%j.%t.out $0 onnode &
 
 elif [ "$1" == 'onnode' ]
 then
 
   echo on node...
-  start_time='[2012, 09, 20,  0,  0,  0]'
-    end_time='[2012, 09, 20, 23, 59, 59.999]'
+  start_time='[2013, 11, 21,  0,  0,  0]'
+    end_time='[2014, 04, 08, 23, 59, 59.999]'
 #    end_time='[2012, 09, 20,  0, 59,  59.999]'
   delta_time='[   0,  0,  0,  1,  0,  0]'
 
@@ -68,7 +68,7 @@ then
 
   #echo "test_cris_clear_driver($start_time, $end_time, $delta_time, $PE, $NPE); exit"
 
-  /asl/opt/bin/matlab -nosplash -nodesktop -nodisplay -r "\
+  matlab -nosplash -nodesktop -nodisplay -r "\
     timeblock_dealer($start_time, $end_time, $delta_time, $PE, $NPE, @cris_sdr60_ecmwf_umw_clear ); \
     exit" 
 

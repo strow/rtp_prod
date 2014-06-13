@@ -1,0 +1,97 @@
+#!/bin/sh
+#
+# Run gstats for a given date range and save it to a predeclared folder.  
+#  For usage and detailed information run this script without any arguments.
+#
+# Usage:
+# clustcmd -q long_contrib -l log -N gstats -n 8 -p 8 rungstats_clr_ecm_secang 20110415
+
+
+POST='ctr2378_era_trans_1291_cld'
+prod='airs'
+
+# cd into a temporary directory to get things out of the way
+#cd $2
+
+rand=`uuidgen`
+
+arr=(`echo $1 | sed "s/:/ /g"`)
+if [ ${#arr[@]} == 2 ]; then # if no step size is given
+  arr=( ${arr[0]} 1 ${arr[1]} );
+elif [ ${#arr[@]} == 1 ]; then # of no end is given
+  arr=( ${arr[0]} 1 ${arr[0]} );
+fi
+
+if [ ${#arr[@]} -eq 3 ] && [ ${#arr[0]} -eq 8 ]; then # we run daily
+  dir=/asl/data/rtprod_$prod/gstats/gsx_${arr[1]}day_$POST
+  mkdir $dir 2> /dev/null
+
+  out=$dir/$prod-${arr[1]}day_${arr[0]}.mat
+  lock=$dir/.$prod-${arr[1]}day_${arr[0]}.lock
+  #if [ -e $out ]; then exit; fi
+  echo lockfile = $lock
+  lockfile -0 -r0 -l3600 $lock || exit
+
+  for date in `/asl/opt/bin/datelist ${arr[0]}:${arr[2]}`; do
+    year=${date:0:4}; mo=${date:4:2}; day=${date:6:2}
+    filemask="$filemask '/asl/data/rtprod_$prod/$year/$mo/$day/airs_l1b.era.umw.ctrtrk.sarta_baum_ice.$year.$mo.$day.*.R1.9n-M1.9l.rtp'";
+  done
+else
+  echo "I don't know what you want to do!
+  Maybe you want to try one of the following:
+
+  $ ./`basename $0` 20070514:20090301  # make daily stats in gs_daily$POST/
+  
+  OR PERHAPS (for a series of days)
+
+  for dd in \`/asl/opt/bin/datelist 20030901:20030930\`; 
+  do 
+    echo ./rungstats_ctr2378_era_trans_1291_cld \$dd; 
+  done
+
+  OR WITH CLUSTCMD
+  clustcmd -n 16 -q long_contrib -N gstats -l log -e rungstats_ctr2378_era_trans_1291_cld 20030201:20140331
+
+"
+  exit
+fi
+
+#
+#  Run the job!
+#
+#gtops.dbtsst_bins=[274 inf]; \
+# Variables I wanna save:
+# Radiances: robs1, rcalc, sarta_rclearcalc
+# Geophysical: stemp, spres, salti, solzen, secang, wspeed, gas_1, gas_3, ptemp,landfrac 
+# Clouds: cfrac, cfrac2, cfrac12, cprtop, cprtop2, cngwat, cngwat2, cpsize, cpsize2
+# Geo: rlat, rlon, rtime, plat, plon
+
+defaults="gtops = struct; \
+gtops.skip_calc = true; \
+gtops.run_klayers = true; \
+gtops.bto_id1291_bins=[193:5:328]; \
+gtops.transcom_bins=[0:23]; \
+gtops.solzen_bins=0:90:180; \
+gtops.ctype_bins=[0 101 201 300]; \
+gtops.ctype2_bins=[0 101 201 300]; \
+gtops.inc_fields={'robs1','rcalc','sarta_rclearcalc', \
+'stemp','spres','salti_avg','solzen','secang_avg','wspeed_avg', \
+'gas_1','gas_2','gas_3','co2ppm','ptemp','landfrac', \
+'cfrac', 'cprtop', 'cngwat', 'cpsize', \
+'cfrac2', 'cfrac12', 'cprtop2', 'cngwat2',  'cpsize2', \
+'rlat_avg','rlon_avg','rtime_avg','plat_avg','plon_avg'}; \
+gtops.filemask={$filemask}; \
+"
+
+out_tmp=`mktemp`
+matlab -nodesktop -nosplash -r "$defaults;  \
+  addpath ../rtp/;airs_paths; \
+  gstats(gtops,'$out');  \
+  exit;"
+
+if [ -s $out_tmp.mat ]; then
+  mv $out_tmp.mat ${out}
+fi
+
+/bin/rm -f $out_tmp $out_tmp.mat $lock
+
