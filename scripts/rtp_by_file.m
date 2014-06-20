@@ -7,12 +7,9 @@
 % rtp_prod grib readers, and maybe emissivity assignments.
 %
 % June, 20, 2014
-
 rtprod = '~/Git/rtp_prod';
 matlib = '~/Git/matlib';
 gribtype = 'ecmwf';
-% Combination of matlib and rtp_prod git hash/tags
-version = version_number();
 
 fin_hdr  = fullfile('/asl/data/cris/ccast/sdr60_hr','2013','240');
 fout_hdr = fullfile('/asl/s1/strow/rtprod_cris','2013','08','28');
@@ -26,6 +23,9 @@ addpath(rtprod);
 paths
 setenv('RTPROD',rtprod);
 
+% Combination of matlib and rtp_prod git hash/tags
+version = version_number();
+
 % Just do the first file for now
 ifile = 1;
 
@@ -34,6 +34,8 @@ fn_in = fullfile(fin_hdr,flist(ifile).name);
 % Vary name here, add version, remove SDR, etc.
 fn_out = flist(ifile).name;
 fn_out = strrep(fn_out,'SDR_','cris_ccast_hr_');
+fn_out = strrep(fn_out,'.mat',['-git' version '.rtp']);
+
 fn_out = fullfile(fout_hdr,fn_out);
 fn_out_dir = fileparts(fn_out);
 
