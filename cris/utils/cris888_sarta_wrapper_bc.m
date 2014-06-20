@@ -100,7 +100,6 @@ else
   error('Wrong number of guard channels');
 end
 
-
 % Read rtpin and check channels
 [head, hattr, prof, pattr] = rtpread(rtpin);
 %
@@ -121,15 +120,16 @@ end
 
 
 % Run klayers if needed
-jout = mktemp();
-rtpop = mktemp();
+jout = get_sys_random_name();
+rtpop = get_sys_random_name();
+% jout = mktemp();
+% rtpop = mktemp();
 if (head.ptype == 0)
    disp('running klayers')
    eval(['! ' KLAYERS ' fin=' rtpin ' fout=' rtpop ' > ' jout]);
 else
   eval(['! cp ' rtpin ' ' rtpop]);
 end
-
 
 % Prepare RTP for IASI SARTA runs in two parts
 [head, hattr, prof, pattr] = rtpread(rtpop);
@@ -154,7 +154,8 @@ end
 head.nchan = 4231;
 head.ichan = (1:4231)'; %'
 rtpwrite(rtpop,head,hattr,prof,pattr);
-rtprad=mktemp();
+%rtprad=mktemp();
+rtprad=get_sys_random_name();
 disp('running SARTA for IASI channels 1-4231')
 eval(['! ' SARTA ' fin=' rtpop ' fout=' rtprad ' > ' jout]);
 [head, hattr, prof, pattr] = rtpread(rtprad);

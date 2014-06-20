@@ -121,9 +121,12 @@ if(do_clear)
 
   % Get names of tmp rtp files
   disp('generating tmp RTP filenames')
-  tmp_rtp1 = mktemp('/tmp/rtp1_');
-  tmp_rtp2 = mktemp('/tmp/rtp2_');
-  tmp_jout = mktemp('/tmp/jout_');
+%   tmp_rtp1 = mktemp('/tmp/rtp1_');
+%   tmp_rtp2 = mktemp('/tmp/rtp2_');
+%   tmp_jout = mktemp('/tmp/jout_');
+  tmp_rtp1 = get_sys_random_name();
+  tmp_rtp2 = get_sys_random_name();
+  tmp_jout = get_sys_random_name();
 
   % Subset RTP for the clear test channels (to speed up calcs) - 
   %    *** this is not so for the IASI->CrIS calculations!

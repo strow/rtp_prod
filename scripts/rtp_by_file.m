@@ -76,16 +76,16 @@ hattr = set_attr(hattr,'version',version);
 [head hattr prof pattr] = rtpadd_emis_DanZhou(head,hattr,prof,pattr);
 
 % Find clear FOVs and compute SARTA clear
-% instrument='CRIS_888';
-% [head hattr prof pattr summary] = ...
-%        compute_clear_wrapper(head, hattr, prof, pattr, instrument);
+instrument='CRIS_888';
+[head hattr prof pattr summary] = ...
+       compute_clear_wrapper(head, hattr, prof, pattr, instrument);
 
 % Save output
-%   [dd, ~, ~] = fileparts(output_file_obs1);
-%   if(~exist(dd,'dir'))
-%     system(['mkdir -p ' dd]);
-%   end 
-%   disp(['Saving ' output_file_obs1]);
-%   rtpwrite(output_file_obs1, head,hattr,prof,pattr);
+  [dd, ~, ~] = fileparts(fn_out);
+  if(~exist(dd,'dir'))
+    system(['mkdir -p ' dd]);
+  end 
+  disp(['Saving ' fn_out]);
+  rtpwrite(fn_out, head,hattr,prof,pattr);
 
 
