@@ -11,8 +11,8 @@ rtprod = '~/Git/rtp_prod';
 matlib = '~/Git/matlib';
 gribtype = 'ecmwf';
 
-fin_hdr  = fullfile('/asl/data/cris/ccast/sdr60_hr','2013','240');
-fout_hdr = fullfile('/asl/s1/strow/rtprod_cris','2013','08','28');
+fin_hdr  = fullfile('/asl/data/cris/sdr60/hdf','2013','240');
+fout_hdr = fullfile('/asl/s1/strow/');
 
 flist    = dir(fullfile(fin_hdr,'SDR*.mat'));
 
@@ -30,12 +30,16 @@ version = version_number();
 % 26 is our test granule for hi-res data
 ifile = 26;
 
-fn_in = fullfile(fin_hdr,flist(ifile).name);
+fn2='SCRIS_npp_d20130828_t0326579_e0334557_b09502_c20130828093458042989_noaa_ops.h5';
+
+fn_in = fullfile(fin_hdr,fn2);
+
+
 
 % Vary name here, add version, remove SDR, etc.
-fn_out = flist(ifile).name;
-fn_out = strrep(fn_out,'SDR_','cris_ccast_hr_');
-fn_out = strrep(fn_out,'.mat',['-git' version '.rtp']);
+fn_out = 'idps.rtp';%flist(ifile).name;
+% fn_out = strrep(fn_out,'SDR_','cris_ccast_hr_');
+% fn_out = strrep(fn_out,'.mat',['-git' version '.rtp']);
 
 fn_out = fullfile(fout_hdr,fn_out);
 fn_out_dir = fileparts(fn_out);
@@ -69,17 +73,17 @@ hattr = set_attr(hattr,'version',version);
 % Add landfrac
 [head hattr prof pattr] = rtpadd_usgs_10dem(head,hattr,prof,pattr,'/asl');
 
-% Get grib data
-[head, hattr, prof, pattr, current_ename] = ...
-    rtpadd_grib_data(current_ename, gribtype, head, hattr, prof, pattr);
+% % Get grib data
+% [head, hattr, prof, pattr, current_ename] = ...
+%     rtpadd_grib_data(current_ename, gribtype, head, hattr, prof, pattr);
 
 % Assign emissivities (land and ocean)
-[head hattr prof pattr] = rtpadd_emis_DanZhou(head,hattr,prof,pattr);
+% [head hattr prof pattr] = rtpadd_emis_DanZhou(head,hattr,prof,pattr);
 
-% Find clear FOVs and compute SARTA clear
-instrument='CRIS_888';
-[head hattr prof pattr summary] = ...
-       compute_clear_wrapper(head, hattr, prof, pattr, instrument);
+% % Find clear FOVs and compute SARTA clear
+% instrument='CRIS_888';
+% [head hattr prof pattr summary] = ...
+%        compute_clear_wrapper(head, hattr, prof, pattr, instrument);
 
 % Save output
   [dd, ~, ~] = fileparts(fn_out);
