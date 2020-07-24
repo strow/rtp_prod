@@ -56,7 +56,7 @@ grhbytes=20;
 tname = mktemp();
 if strcmp(fname(end-2:end),'.gz')
   %disp(['/asl/opt/bin/zcat ' fname ' > ' tname]);
-  system(['/asl/opt/bin/zcat ' fname ' > ' tname]);
+  system(['/bin/zcat ' fname ' > ' tname]);
   fid = fopen(tname,'r');
   d = dir(tname);
 else
